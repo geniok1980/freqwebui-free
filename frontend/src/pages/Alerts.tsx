@@ -166,9 +166,9 @@ export function Alerts() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Alerts</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Алерты</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {total} total alerts, {alertsData?.unread_count || 0} unread
+            {total} всего алертов, {alertsData?.unread_count || 0} непрочитано
           </p>
         </div>
         <button
@@ -176,7 +176,7 @@ export function Alerts() {
           disabled={markAllReadMutation.isPending || (alertsData?.unread_count || 0) === 0}
           className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Mark all as read
+          Прочитать все
         </button>
       </div>
 
@@ -186,7 +186,7 @@ export function Alerts() {
           {/* Severity Filter */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Severity
+              Важность
             </label>
             <select
               value={severityFilter}
@@ -196,9 +196,9 @@ export function Alerts() {
               }}
               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="all">All</option>
-              <option value="critical">Critical</option>
-              <option value="warning">Warning</option>
+              <option value="all">Все</option>
+              <option value="critical">Критично</option>
+              <option value="warning">Предупреждение</option>
               <option value="info">Info</option>
             </select>
           </div>
@@ -206,7 +206,7 @@ export function Alerts() {
           {/* Status Filter */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Status
+              Статус
             </label>
             <select
               value={statusFilter}
@@ -216,9 +216,9 @@ export function Alerts() {
               }}
               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="all">All</option>
-              <option value="unread">Unread only</option>
-              <option value="read">Read</option>
+              <option value="all">Все</option>
+              <option value="unread">Только непрочитанные</option>
+              <option value="read">Прочитанные</option>
             </select>
           </div>
 
@@ -226,21 +226,21 @@ export function Alerts() {
           {selectedAlerts.size > 0 && (
             <div className="flex items-end gap-2 ml-auto">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {selectedAlerts.size} selected
+                Выбрано: {selectedAlerts.size}
               </span>
               <button
                 onClick={() => markReadMutation.mutate(Array.from(selectedAlerts))}
                 disabled={markReadMutation.isPending}
                 className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg disabled:opacity-50"
               >
-                Mark Read
+                Прочитать
               </button>
               <button
                 onClick={() => dismissMutation.mutate(Array.from(selectedAlerts))}
                 disabled={dismissMutation.isPending}
                 className="px-3 py-1.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg disabled:opacity-50"
               >
-                Dismiss
+                Скрыть
               </button>
             </div>
           )}
@@ -263,8 +263,8 @@ export function Alerts() {
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
               />
             </svg>
-            <p className="text-lg font-medium">No alerts found</p>
-            <p className="text-sm">Try adjusting your filters</p>
+            <p className="text-lg font-medium">Алерты не найдены</p>
+            <p className="text-sm">Попробуйте изменить фильтры</p>
           </div>
         ) : (
           <>
@@ -278,11 +278,11 @@ export function Alerts() {
                   className="rounded border-gray-300 dark:border-gray-600"
                 />
               </div>
-              <div className="col-span-1">Severity</div>
-              <div className="col-span-4">Alert</div>
-              <div className="col-span-2">Bot</div>
-              <div className="col-span-2">Time</div>
-              <div className="col-span-2">Actions</div>
+              <div className="col-span-1">Важность</div>
+              <div className="col-span-4">Алерт</div>
+              <div className="col-span-2">Бот</div>
+              <div className="col-span-2">Время</div>
+              <div className="col-span-2">Действия</div>
             </div>
 
             {/* Alert Rows */}
@@ -342,10 +342,10 @@ export function Alerts() {
                             to={`/bots/${alert.bot_id}`}
                             className="text-blue-600 dark:text-blue-400 hover:underline"
                           >
-                            {alert.bot_name || 'Unknown Bot'}
+                            {alert.bot_name || 'Неизвестный бот'}
                           </Link>
                         ) : (
-                          <span className="text-gray-400">System</span>
+                          <span className="text-gray-400">Система</span>
                         )}
                       </div>
 
@@ -363,14 +363,14 @@ export function Alerts() {
                             onClick={() => markReadMutation.mutate([alert.id])}
                             className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                           >
-                            Mark read
+                            Прочитать
                           </button>
                         )}
                         <button
                           onClick={() => dismissMutation.mutate([alert.id])}
                           className="text-sm text-red-600 dark:text-red-400 hover:underline"
                         >
-                          Dismiss
+                          Скрыть
                         </button>
                       </div>
                     </div>
@@ -386,7 +386,7 @@ export function Alerts() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} alerts
+            Показано {(page - 1) * limit + 1}–{Math.min(page * limit, total)} из {total} алертов
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -394,17 +394,17 @@ export function Alerts() {
               disabled={page === 1}
               className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Previous
+              Назад
             </button>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Page {page} of {totalPages}
+              Страница {page} из {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Next
+              Вперед
             </button>
           </div>
         </div>

@@ -103,35 +103,35 @@ export function Backtest() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Backtest Results
+          Результаты бэктеста
         </h1>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          From SQLite → PostgreSQL Migration
+          После миграции SQLite → PostgreSQL
         </span>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Strategies</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Стратегии</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {summary?.total_strategies || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Profitable</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Прибыльные</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">
             {summary?.profitable || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Unprofitable</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Убыточные</p>
           <p className="text-2xl font-bold text-red-600 dark:text-red-400">
             {summary?.unprofitable || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Avg Profit</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Средняя прибыль</p>
           <p className={`text-2xl font-bold ${
             (summary?.avg_profit_pct || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
           }`}>
@@ -143,7 +143,7 @@ export function Backtest() {
       {/* Profit Chart */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Profit Comparison
+          Сравнение прибыли
         </h2>
         {chartData.length > 0 ? (
           <div className="h-64">
@@ -172,7 +172,7 @@ export function Backtest() {
                     borderRadius: '8px',
                   }}
                   labelStyle={{ color: '#9CA3AF' }}
-                  formatter={(value: number) => [formatProfit(value), 'Profit %']}
+                  formatter={(value: number) => [formatProfit(value), 'Прибыль %']}
                 />
                 <Bar dataKey="profit" radius={[0, 4, 4, 0]}>
                   {chartData.map((entry, index) => (
@@ -184,14 +184,14 @@ export function Backtest() {
           </div>
         ) : (
           <div className="h-64 flex items-center justify-center text-gray-500">
-            No data available
+            Нет данных
           </div>
         )}
       </div>
 
       {/* Sort Controls */}
       <div className="flex gap-2">
-        <span className="text-sm text-gray-500 dark:text-gray-400 py-2">Sort by:</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400 py-2">Сортировка:</span>
         {(['profit', 'trades', 'winrate', 'drawdown'] as const).map((sort) => (
           <button
             key={sort}
@@ -202,7 +202,7 @@ export function Backtest() {
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
             }`}
           >
-            {sort.charAt(0).toUpperCase() + sort.slice(1)}
+            {sort === 'profit' ? 'Прибыль' : sort === 'trades' ? 'Сделки' : sort === 'winrate' ? 'Винрейт' : 'Просадка'}
           </button>
         ))}
       </div>
@@ -211,35 +211,35 @@ export function Backtest() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Strategy Results
+            Результаты стратегий
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Rank</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Strategy</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Timeframe</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Profit</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Win Rate</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Trades</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Drawdown</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ранг</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Стратегия</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Таймфрейм</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Прибыль</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Винрейт</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Сделки</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Просадка</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Sharpe</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Best Pair</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Лучшая пара</th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {resultsLoading ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
-                    Loading backtest results...
+                    Загрузка результатов бэктеста...
                   </td>
                 </tr>
               ) : !sortedResults?.length ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
-                    No backtest results found.
+                    Результаты бэктеста не найдены.
                   </td>
                 </tr>
               ) : (
@@ -297,13 +297,13 @@ export function Backtest() {
       {/* Legend */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-2">
-          About Backtest Results
+          О результатах бэктеста
         </h3>
         <p className="text-sm text-blue-700 dark:text-blue-300">
-          These results are from running backtests on 2025-01-01 to 2025-02-14. 
-          GKD_FisherTransformV4_ML is the clear winner with +115.75% profit and 100% win rate. 
-          AlexStarMark shows an unrealistic +46,699% — likely a position sizing bug.
-          Data imported from SQLite and now stored in the dashboard PostgreSQL database.
+          Эти результаты получены из бэктестов за 2025-01-01 — 2025-02-14.
+          GKD_FisherTransformV4_ML — явный победитель с прибылью +115.75% и винрейтом 100%.
+          AlexStarMark показывает нереалистичные +46,699% — вероятно, ошибка сайзинга позиции.
+          Данные импортированы из SQLite и сейчас хранятся в PostgreSQL дашборда.
         </p>
       </div>
     </div>

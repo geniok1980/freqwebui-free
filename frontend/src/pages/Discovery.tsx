@@ -94,7 +94,7 @@ export function Discovery() {
       queryClient.invalidateQueries({ queryKey: ['bots'] });
     },
     onError: (error: any) => {
-      setFormError(error.message || 'Failed to add bot');
+      setFormError(error.message || 'Не удалось добавить бота');
     },
   });
 
@@ -108,7 +108,7 @@ export function Discovery() {
       queryClient.invalidateQueries({ queryKey: ['portfolio'] });
     },
     onError: (error: any) => {
-      alert(error.message || 'Failed to delete bot');
+      alert(error.message || 'Не удалось удалить бота');
     },
   });
 
@@ -116,18 +116,18 @@ export function Discovery() {
     e.preventDefault();
     setFormError(null);
     if (!manualForm.name.trim()) {
-      setFormError('Bot name is required');
+      setFormError('Требуется имя бота');
       return;
     }
     if (!manualForm.api_url.trim()) {
-      setFormError('API URL is required');
+      setFormError('Требуется API URL');
       return;
     }
     addManualBot.mutate(manualForm);
   };
 
   const formatDate = (dateStr: string | null): string => {
-    if (!dateStr) return 'Never';
+    if (!dateStr) return 'Никогда';
     try {
       return format(new Date(dateStr), 'PPp');
     } catch {
@@ -136,9 +136,9 @@ export function Discovery() {
   };
 
   const formatInterval = (seconds: number): string => {
-    if (seconds < 60) return `${seconds} seconds`;
-    if (seconds < 3600) return `${Math.round(seconds / 60)} minutes`;
-    return `${Math.round(seconds / 3600)} hours`;
+    if (seconds < 60) return `${seconds} сек`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)} мин`;
+    return `${Math.round(seconds / 3600)} ч`;
   };
 
   const getEnvironmentBadge = (env: string) => {
@@ -157,10 +157,10 @@ export function Discovery() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Bot Discovery
+            Обнаружение ботов
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Manage automatic and manual bot discovery
+            Управление автоматическим и ручным обнаружением ботов
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export function Discovery() {
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            Add Bot Manually
+            Добавить бота вручную
           </button>
           <button
             onClick={() => triggerScan.mutate()}
@@ -184,14 +184,14 @@ export function Discovery() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Scanning...
+                Сканирование...
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Scan Now
+                Сканировать
               </>
             )}
           </button>
@@ -203,7 +203,7 @@ export function Discovery() {
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-green-800 dark:text-green-200">
-              Scan Completed Successfully
+              Сканирование завершено успешно
             </h3>
             <button
               onClick={() => setLastResult(null)}
@@ -216,19 +216,19 @@ export function Discovery() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-2">
             <div>
-              <span className="text-green-600 dark:text-green-400">Discovered:</span>
+              <span className="text-green-600 dark:text-green-400">Обнаружено:</span>
               <span className="ml-2 font-medium text-green-800 dark:text-green-200">{lastResult.discovered}</span>
             </div>
             <div>
-              <span className="text-green-600 dark:text-green-400">New:</span>
+              <span className="text-green-600 dark:text-green-400">Новых:</span>
               <span className="ml-2 font-medium text-green-800 dark:text-green-200">{lastResult.new}</span>
             </div>
             <div>
-              <span className="text-green-600 dark:text-green-400">Updated:</span>
+              <span className="text-green-600 dark:text-green-400">Обновлено:</span>
               <span className="ml-2 font-medium text-green-800 dark:text-green-200">{lastResult.updated}</span>
             </div>
             <div>
-              <span className="text-green-600 dark:text-green-400">Removed:</span>
+              <span className="text-green-600 dark:text-green-400">Удалено:</span>
               <span className="ml-2 font-medium text-green-800 dark:text-green-200">{lastResult.removed}</span>
             </div>
           </div>
@@ -240,7 +240,7 @@ export function Discovery() {
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Registered Bots ({bots?.length || 0})
+              Зарегистрированные боты ({bots?.length || 0})
             </h2>
           </div>
         </div>
@@ -264,9 +264,9 @@ export function Discovery() {
               <svg className="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <p className="text-gray-500 dark:text-gray-400">No bots registered yet</p>
+              <p className="text-gray-500 dark:text-gray-400">Боты пока не зарегистрированы</p>
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                Run a scan or add a bot manually to get started
+                Запустите сканирование или добавьте бота вручную, чтобы начать
               </p>
             </div>
           ) : (
@@ -308,7 +308,7 @@ export function Discovery() {
                     {bot.environment}
                   </span>
                   <span className="text-xs text-gray-400 dark:text-gray-500">
-                    {bot.last_seen ? formatDistanceToNow(new Date(bot.last_seen), { addSuffix: true }) : 'Never seen'}
+                    {bot.last_seen ? formatDistanceToNow(new Date(bot.last_seen), { addSuffix: true }) : 'Никогда'}
                   </span>
                   <Link
                     to={`/bot/${bot.id}`}
@@ -327,7 +327,7 @@ export function Discovery() {
                     }}
                     disabled={deleteBot.isPending}
                     className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                    title="Delete bot"
+                    title="Удалить бота"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -344,7 +344,7 @@ export function Discovery() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
         <div className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Discovery Status
+            Статус обнаружения
           </h2>
 
           {isLoading ? (
@@ -357,19 +357,19 @@ export function Discovery() {
               {/* Timing Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Last Scan</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Последнее сканирование</p>
                   <p className="text-lg font-medium text-gray-900 dark:text-white">
                     {formatDate(status?.last_scan || null)}
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Scan Interval</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Интервал сканирования</p>
                   <p className="text-lg font-medium text-gray-900 dark:text-white">
                     {formatInterval(status?.scan_interval_seconds || 0)}
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Next Scan</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Следующее сканирование</p>
                   <p className="text-lg font-medium text-gray-900 dark:text-white">
                     {formatDate(status?.next_scan || null)}
                   </p>
@@ -379,7 +379,7 @@ export function Discovery() {
               {/* Discovery Sources */}
               <div>
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Discovery Sources
+                  Источники обнаружения
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Docker Source */}
@@ -400,11 +400,11 @@ export function Discovery() {
                       <div className="flex items-center gap-2">
                         {status?.docker_enabled ? (
                           <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">
-                            Enabled
+                            Включено
                           </span>
                         ) : (
                           <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded">
-                            Disabled
+                            Отключено
                           </span>
                         )}
                         <span className={`w-2.5 h-2.5 rounded-full ${
@@ -415,9 +415,9 @@ export function Discovery() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {status?.docker_enabled
                         ? status?.docker_available
-                          ? 'Docker daemon is connected and scanning for Freqtrade containers.'
-                          : 'Docker is enabled but daemon is not available.'
-                        : 'Docker discovery is disabled.'}
+                          ? 'Docker daemon подключен и сканирует контейнеры Freqtrade.'
+                          : 'Docker включен, но daemon недоступен.'
+                        : 'Обнаружение через Docker отключено.'}
                     </p>
                   </div>
 
@@ -439,11 +439,11 @@ export function Discovery() {
                       <div className="flex items-center gap-2">
                         {status?.filesystem_enabled ? (
                           <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">
-                            Enabled
+                            Включено
                           </span>
                         ) : (
                           <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded">
-                            Disabled
+                            Отключено
                           </span>
                         )}
                         <span className={`w-2.5 h-2.5 rounded-full ${
@@ -454,9 +454,9 @@ export function Discovery() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {status?.filesystem_enabled
                         ? status?.filesystem_available
-                          ? 'Filesystem scanner is active and scanning configured paths.'
-                          : 'Filesystem is enabled but no valid paths found.'
-                        : 'Filesystem discovery is disabled.'}
+                          ? 'Сканер файловой системы активен и сканирует настроенные пути.'
+                          : 'Файловая система включена, но валидные пути не найдены.'
+                        : 'Обнаружение через файловую систему отключено.'}
                     </p>
                   </div>
                 </div>
@@ -472,7 +472,7 @@ export function Discovery() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Add Bot Manually
+                Добавить бота вручную
               </h3>
               <button
                 onClick={() => {
@@ -496,13 +496,13 @@ export function Discovery() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Bot Name *
+                  Имя бота *
                 </label>
                 <input
                   type="text"
                   value={manualForm.name}
                   onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
-                  placeholder="My Trading Bot"
+                  placeholder="Мой торговый бот"
                   className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -519,32 +519,32 @@ export function Discovery() {
                   className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  The Freqtrade API URL (e.g., http://localhost:8080)
+                  URL API Freqtrade (например, http://localhost:8080)
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Username
+                    Логин
                   </label>
                   <input
                     type="text"
                     value={manualForm.username}
                     onChange={(e) => setManualForm({ ...manualForm, username: e.target.value })}
-                    placeholder="Optional"
+                    placeholder="Необязательно"
                     className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Password
+                    Пароль
                   </label>
                   <input
                     type="password"
                     value={manualForm.password}
                     onChange={(e) => setManualForm({ ...manualForm, password: e.target.value })}
-                    placeholder="Optional"
+                    placeholder="Необязательно"
                     className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -559,7 +559,7 @@ export function Discovery() {
                   }}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
                 >
-                  Cancel
+                  Отмена
                 </button>
                 <button
                   type="submit"
@@ -572,7 +572,7 @@ export function Discovery() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                   )}
-                  Add Bot
+                  Добавить бота
                 </button>
               </div>
             </form>

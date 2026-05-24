@@ -195,7 +195,7 @@ export function BotTrades({ botId }: BotTradesProps) {
     return (
       <div className="text-center py-8">
         <p className="text-red-500 dark:text-red-400">
-          Failed to load trades. The bot might not support trade fetching via this method.
+          Не удалось загрузить сделки. Этот бот может не поддерживать получение сделок этим способом.
         </p>
       </div>
     );
@@ -214,7 +214,7 @@ export function BotTrades({ botId }: BotTradesProps) {
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
-            All
+            Все
           </button>
           <button
             onClick={() => handleFilterChange('open')}
@@ -224,7 +224,7 @@ export function BotTrades({ botId }: BotTradesProps) {
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
-            Open
+            Открытые
           </button>
           <button
             onClick={() => handleFilterChange('closed')}
@@ -234,24 +234,24 @@ export function BotTrades({ botId }: BotTradesProps) {
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
-            Closed
+            Закрытые
           </button>
         </div>
 
         <div className="flex items-center gap-3">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {sortedTrades?.length || 0} trades
+            {sortedTrades?.length || 0} сделок
           </p>
           {sortedTrades && sortedTrades.length > 0 && (
             <button
               onClick={handleExport}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              title="Export trades to CSV"
+              title="Экспорт сделок в CSV"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Export CSV
+              Экспорт CSV
             </button>
           )}
         </div>
@@ -261,38 +261,38 @@ export function BotTrades({ botId }: BotTradesProps) {
       {stats && stats.closed > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Win Rate</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Винрейт</p>
             <p className={`text-lg font-semibold ${stats.winRate >= 50 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {stats.winRate.toFixed(1)}%
             </p>
             <p className="text-xs text-gray-400">{stats.wins}W / {stats.losses}L</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Total Profit</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Общая прибыль</p>
             <p className={`text-lg font-semibold ${stats.totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toFixed(4)}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Avg Profit</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Средняя прибыль</p>
             <p className={`text-lg font-semibold ${stats.avgProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {stats.avgProfit >= 0 ? '+' : ''}{stats.avgProfit.toFixed(2)}%
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Avg Win</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Средний плюс</p>
             <p className="text-lg font-semibold text-green-600 dark:text-green-400">
               +{stats.avgWin.toFixed(2)}%
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Avg Loss</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Средний минус</p>
             <p className="text-lg font-semibold text-red-600 dark:text-red-400">
               {stats.avgLoss.toFixed(2)}%
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Open</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Открытые</p>
             <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
               {stats.open}
             </p>
@@ -305,7 +305,7 @@ export function BotTrades({ botId }: BotTradesProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {stats.bestTrade && (
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800">
-              <p className="text-xs text-green-600 dark:text-green-400 font-medium">Best Trade</p>
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium">Лучшая сделка</p>
               <div className="flex items-center justify-between mt-1">
                 <span className="font-medium text-gray-900 dark:text-white">{stats.bestTrade.pair}</span>
                 <span className="text-green-600 dark:text-green-400 font-semibold">
@@ -316,7 +316,7 @@ export function BotTrades({ botId }: BotTradesProps) {
           )}
           {stats.worstTrade && (
             <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 border border-red-200 dark:border-red-800">
-              <p className="text-xs text-red-600 dark:text-red-400 font-medium">Worst Trade</p>
+              <p className="text-xs text-red-600 dark:text-red-400 font-medium">Худшая сделка</p>
               <div className="flex items-center justify-between mt-1">
                 <span className="font-medium text-gray-900 dark:text-white">{stats.worstTrade.pair}</span>
                 <span className="text-red-600 dark:text-red-400 font-semibold">
@@ -340,30 +340,30 @@ export function BotTrades({ botId }: BotTradesProps) {
           <table className="min-w-full">
             <thead>
               <tr className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th className="px-4 py-3">Pair</th>
-                <th className="px-4 py-3">Side</th>
+                <th className="px-4 py-3">Пара</th>
+                <th className="px-4 py-3">Сторона</th>
                 <th
                   className="px-4 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300"
                   onClick={() => toggleSort('date')}
                 >
-                  Date
+                  Дата
                   {sortBy === 'date' && (
                     <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                   )}
                 </th>
-                <th className="px-4 py-3">Entry</th>
-                <th className="px-4 py-3">Exit</th>
+                <th className="px-4 py-3">Вход</th>
+                <th className="px-4 py-3">Выход</th>
                 <th
                   className="px-4 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300"
                   onClick={() => toggleSort('profit')}
                 >
-                  Profit
+                  Прибыль
                   {sortBy === 'profit' && (
                     <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                   )}
                 </th>
-                <th className="px-4 py-3">Duration</th>
-                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Длительность</th>
+                <th className="px-4 py-3">Статус</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -377,7 +377,7 @@ export function BotTrades({ botId }: BotTradesProps) {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, sortedTrades.length)} of {sortedTrades.length}
+                Показано {((currentPage - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, sortedTrades.length)} из {sortedTrades.length}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -385,31 +385,31 @@ export function BotTrades({ botId }: BotTradesProps) {
                   disabled={currentPage === 1}
                   className="px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  First
+                  Первая
                 </button>
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="px-3 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  Previous
+                  Назад
                 </button>
                 <span className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
-                  Page {currentPage} of {totalPages}
+                  Страница {currentPage} из {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  Next
+                  Вперед
                 </button>
                 <button
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage === totalPages}
                   className="px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  Last
+                  Последняя
                 </button>
               </div>
             </div>
@@ -430,9 +430,9 @@ export function BotTrades({ botId }: BotTradesProps) {
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
             />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No trades</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Сделок нет</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {filter === 'open' ? 'No open positions.' : filter === 'closed' ? 'No closed trades yet.' : 'No trades found for this bot.'}
+            {filter === 'open' ? 'Нет открытых позиций.' : filter === 'closed' ? 'Закрытых сделок пока нет.' : 'Для этого бота сделки не найдены.'}
           </p>
         </div>
       )}
@@ -495,7 +495,7 @@ function TradeRow({ trade }: { trade: Trade }) {
             ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
             : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
         }`}>
-          {trade.is_short ? 'SHORT' : 'LONG'}
+          {trade.is_short ? 'ШОРТ' : 'ЛОНГ'}
         </span>
       </td>
       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
@@ -530,7 +530,7 @@ function TradeRow({ trade }: { trade: Trade }) {
             ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
             : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
         }`}>
-          {trade.is_open ? 'Open' : trade.exit_reason || 'Closed'}
+          {trade.is_open ? 'Открыта' : trade.exit_reason || 'Закрыта'}
         </span>
       </td>
     </tr>

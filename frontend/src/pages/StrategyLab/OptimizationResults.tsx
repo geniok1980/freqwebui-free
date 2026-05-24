@@ -60,17 +60,17 @@ export function OptimizationResults() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            🏆 Optimization Results
+            🏆 Результаты оптимизации
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Track strategy improvements over time
+            Отслеживание улучшений стратегий во времени
           </p>
         </div>
         <Link
           to="/strategy-lab"
           className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
-          ← Back to Strategy Lab
+          ← Назад в лабораторию стратегий
         </Link>
       </div>
 
@@ -88,7 +88,7 @@ export function OptimizationResults() {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                {range === 'all' ? 'All time' : `Last ${range}`}
+                {range === 'all' ? 'За всё время' : `Последние ${range}`}
               </button>
             ))}
           </div>
@@ -97,7 +97,7 @@ export function OptimizationResults() {
             onChange={(e) => setFilterStrategy(e.target.value)}
             className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
-            <option value="all">All Strategies</option>
+            <option value="all">Все стратегии</option>
             {strategies?.map(s => (
               <option key={s.name} value={s.name}>{s.name}</option>
             ))}
@@ -108,19 +108,19 @@ export function OptimizationResults() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Runs</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Всего прогонов</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {filteredRuns.length}
           </p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Strategies Tested</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Проверено стратегий</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {Object.keys(byStrategy).length}
           </p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Best Profit</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Лучшая прибыль</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">
             {summaries.length && summaries[0].bestProfit !== null
               ? `+${summaries[0].bestProfit.toFixed(2)}%`
@@ -128,7 +128,7 @@ export function OptimizationResults() {
           </p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Success Rate</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Доля успешных</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {filteredRuns.length
               ? `${((filteredRuns.filter(r => (r.result_profit_pct || 0) > 0).length / filteredRuns.length) * 100).toFixed(0)}%`
@@ -141,31 +141,31 @@ export function OptimizationResults() {
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="font-semibold text-gray-900 dark:text-white">
-            Strategy Performance Comparison
+            Сравнение производительности стратегий
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">Strategy</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Runs</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Best Profit</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Avg Profit</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">Trend</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">Last Run</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">Стратегия</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Прогоны</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Лучшая прибыль</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Средняя прибыль</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">Тренд</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">Последний прогон</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">Действия</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500">Loading...</td>
+                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500">Загрузка...</td>
                 </tr>
               ) : summaries.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-                    No optimization runs yet. Start a workflow to see results.
+                    Оптимизационных прогонов пока нет. Запустите workflow, чтобы увидеть результаты.
                   </td>
                 </tr>
               ) : summaries.map(summary => (
@@ -207,7 +207,7 @@ export function OptimizationResults() {
                       to={`/strategy-lab/hyperopt/${summary.name}`}
                       className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-xs"
                     >
-                      View Epochs
+                      Эпохи
                     </Link>
                   </td>
                 </tr>
@@ -221,7 +221,7 @@ export function OptimizationResults() {
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="font-semibold text-gray-900 dark:text-white">
-            Run History
+            История прогонов
           </h2>
         </div>
         <div className="divide-y divide-gray-200 dark:divide-gray-700 max-h-96 overflow-y-auto">
@@ -266,7 +266,7 @@ export function OptimizationResults() {
           ))}
           {filteredRuns.length === 0 && (
             <div className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-              No optimization runs found for the selected filters.
+              По выбранным фильтрам прогоны не найдены.
             </div>
           )}
         </div>

@@ -5,6 +5,7 @@
 import type { ApiResponse, TokenResponse } from '../types';
 
 const BACKEND_ORIGIN_STORAGE_KEY = 'dashboard_backend_origin';
+const TENANT_SLUG_STORAGE_KEY = 'dashboard_tenant_slug';
 
 function normalizeOrigin(raw: string): string {
   let u = raw.trim();
@@ -27,6 +28,18 @@ export function setBackendOrigin(origin: string | null) {
     return;
   }
   localStorage.setItem(BACKEND_ORIGIN_STORAGE_KEY, normalizeOrigin(origin));
+}
+
+export function getTenantSlug(): string {
+  return localStorage.getItem(TENANT_SLUG_STORAGE_KEY) || 'default';
+}
+
+export function setTenantSlug(slug: string | null) {
+  if (!slug) {
+    localStorage.removeItem(TENANT_SLUG_STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(TENANT_SLUG_STORAGE_KEY, slug.trim().toLowerCase());
 }
 
 function resolveApiBaseUrl(): string {
@@ -145,7 +158,10 @@ class ApiClient {
 
     const response = await fetch(url, {
       method,
-      headers: this.getHeaders(includeAuth),
+      headers: {
+        ...this.getHeaders(includeAuth),
+        'X-Tenant-Slug': getTenantSlug(),
+      },
       body: body ? JSON.stringify(body) : undefined,
     });
 
@@ -205,7 +221,7 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async login(username: string, password: string): Promise<TokenResponse> {
+  async login(username: string, password: string, tenantSlug: string = 'default'): Promise<TokenResponse> {
     const formData = new URLSearchParams();
     formData.append('username', username);
     formData.append('password', password);
@@ -214,6 +230,7 @@ class ApiClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Tenant-Slug': tenantSlug,
       },
       body: formData,
     });
@@ -221,14 +238,39 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Login failed');
+      throw new Error(data.error || data.detail || data.message || 'Login failed');
     }
 
     // Store the token
     if (data.data?.access_token) {
       this.setAccessToken(data.data.access_token);
+      setTenantSlug(tenantSlug);
     }
 
+    return data.data;
+  }
+
+  async signup(payload: {
+    username: string;
+    password: string;
+    tenant_name: string;
+    tenant_slug: string;
+  }): Promise<TokenResponse> {
+    const response = await fetch(`${this.baseUrl}/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || data.detail || data.message || 'Signup failed');
+    }
+    if (data.data?.access_token) {
+      this.setAccessToken(data.data.access_token);
+      setTenantSlug(payload.tenant_slug);
+    }
     return data.data;
   }
 

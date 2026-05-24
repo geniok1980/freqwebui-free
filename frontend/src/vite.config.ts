@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // Get API URL from environment or use default
-const API_URL = process.env.VITE_API_URL || 'http://backend:8000';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://backend:8000';
 
 export default defineConfig({
   plugins: [react()],

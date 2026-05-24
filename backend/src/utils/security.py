@@ -115,12 +115,20 @@ class TokenData:
         username: str,
         user_id: str,
         role: UserRole,
+        tenant_id: str | None,
+        tenant_slug: str | None,
+        tenant_schema: str | None,
+        membership_role: str | None,
         exp: datetime,
         token_type: str = "access",
     ):
         self.username = username
         self.user_id = user_id
         self.role = role
+        self.tenant_id = tenant_id
+        self.tenant_slug = tenant_slug
+        self.tenant_schema = tenant_schema
+        self.membership_role = membership_role
         self.exp = exp
         self.token_type = token_type
 
@@ -138,6 +146,10 @@ class TokenData:
             username = payload.get("sub")
             user_id = payload.get("user_id")
             role_str = payload.get("role")
+            tenant_id = payload.get("tenant_id")
+            tenant_slug = payload.get("tenant_slug")
+            tenant_schema = payload.get("tenant_schema")
+            membership_role = payload.get("membership_role")
             exp = payload.get("exp")
             token_type = payload.get("type", "access")
 
@@ -151,6 +163,10 @@ class TokenData:
                 username=username,
                 user_id=user_id,
                 role=role,
+                tenant_id=tenant_id,
+                tenant_slug=tenant_slug,
+                tenant_schema=tenant_schema,
+                membership_role=membership_role,
                 exp=exp_dt,
                 token_type=token_type,
             )

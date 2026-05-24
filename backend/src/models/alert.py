@@ -63,7 +63,7 @@ class Alert(Base):
     # Target user (optional - for user-specific alerts)
     user_id: Mapped[Optional[str]] = mapped_column(
         UUID(as_uuid=False),
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("public.users.id", ondelete="CASCADE"),
         nullable=True,
         index=True,
     )

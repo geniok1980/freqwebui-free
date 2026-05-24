@@ -11,19 +11,61 @@ from src.api.historic import router as historic_router
 from src.api.portfolio import router as portfolio_router
 from src.api.users import router as users_router
 from src.api.agent import router as agent_router
+from src.api.deps import require_active_subscription, get_current_active_user
+from fastapi import Depends
 
 # Main API router
 api_router = APIRouter()
 
 # Include sub-routers
-api_router.include_router(alerts_router, prefix="/alerts", tags=["alerts"])
+api_router.include_router(
+    alerts_router,
+    prefix="/alerts",
+    tags=["alerts"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
-api_router.include_router(backtest_router, prefix="/backtest", tags=["backtest"])
-api_router.include_router(bots_router, prefix="/bots", tags=["bots"])
-api_router.include_router(discovery_router, prefix="/discovery", tags=["discovery"])
-api_router.include_router(historic_router, prefix="/historic", tags=["historic"])
-api_router.include_router(portfolio_router, prefix="/portfolio", tags=["portfolio"])
-api_router.include_router(users_router, prefix="/users", tags=["users"])
-api_router.include_router(agent_router, prefix="/agent", tags=["agent"])
+api_router.include_router(
+    backtest_router,
+    prefix="/backtest",
+    tags=["backtest"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+api_router.include_router(
+    bots_router,
+    prefix="/bots",
+    tags=["bots"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+api_router.include_router(
+    discovery_router,
+    prefix="/discovery",
+    tags=["discovery"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+api_router.include_router(
+    historic_router,
+    prefix="/historic",
+    tags=["historic"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+api_router.include_router(
+    portfolio_router,
+    prefix="/portfolio",
+    tags=["portfolio"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+api_router.include_router(
+    users_router,
+    prefix="/users",
+    tags=["users"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+api_router.include_router(
+    agent_router,
+    prefix="/agent",
+    tags=["agent"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 
 __all__ = ["api_router"]

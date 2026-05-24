@@ -109,6 +109,26 @@ class LoggingConfig(BaseModel):
     file: str | None = None
 
 
+class TenancyConfig(BaseModel):
+    enabled: bool = True
+    enforce: bool = False
+    header_name: str = "X-Tenant-Slug"
+
+
+class BillingConfig(BaseModel):
+    enabled: bool = False
+    enforce: bool = False
+    provider: str = "wata"
+    wata_base_url: str = "https://api.wata.pro/api/h2h"
+    wata_api_token: str = ""
+    wata_currency: str = "USD"
+    wata_public_key_ttl_seconds: int = 3600
+    wata_webhook_ips: list[str] = Field(default_factory=lambda: ["62.84.126.140", "51.250.106.150"])
+    success_url: str = "http://localhost:5000/billing?checkout=success"
+    cancel_url: str = "http://localhost:5000/billing?checkout=cancel"
+    portal_return_url: str = "http://localhost:5000/billing"
+
+
 class Settings(BaseSettings):
     """Application settings loaded from YAML config and environment."""
 
@@ -121,6 +141,8 @@ class Settings(BaseSettings):
     api_defaults: ApiDefaultsConfig = Field(default_factory=ApiDefaultsConfig)
     auth: AuthConfig = Field(default_factory=AuthConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
+    tenancy: TenancyConfig = Field(default_factory=TenancyConfig)
+    billing: BillingConfig = Field(default_factory=BillingConfig)
 
     class Config:
         env_prefix = "DASHBOARD_"
@@ -173,6 +195,47 @@ def load_config(config_path: str | Path | None = None) -> Settings:
         if "database" not in config_data:
             config_data["database"] = {}
         config_data["database"]["url"] = db_url
+
+    if "tenancy" not in config_data:
+        config_data["tenancy"] = {}
+    config_data["tenancy"]["enforce"] = os.environ.get("TENANCY_ENFORCED", "false").lower() in {"1", "true", "yes"}
+
+    if "billing" not in config_data:
+        config_data["billing"] = {}
+    config_data["billing"]["enforce"] = os.environ.get("BILLING_ENFORCED", "false").lower() in {"1", "true", "yes"}
+    config_data["billing"]["provider"] = os.environ.get("BILLING_PROVIDER", "wata")
+    config_data["billing"]["wata_base_url"] = os.environ.get(
+        "WATA_BASE_URL", config_data["billing"].get("wata_base_url", "https://api.wata.pro/api/h2h")
+    )
+    config_data["billing"]["wata_api_token"] = os.environ.get("WATA_API_TOKEN", "")
+    config_data["billing"]["wata_currency"] = os.environ.get(
+        "WATA_CURRENCY", config_data["billing"].get("wata_currency", "USD")
+    )
+    config_data["billing"]["wata_public_key_ttl_seconds"] = int(
+        os.environ.get(
+            "WATA_PUBLIC_KEY_TTL_SECONDS",
+            config_data["billing"].get("wata_public_key_ttl_seconds", 3600),
+        )
+    )
+    webhook_ips_raw = os.environ.get("WATA_WEBHOOK_IPS")
+    if webhook_ips_raw:
+        config_data["billing"]["wata_webhook_ips"] = [ip.strip() for ip in webhook_ips_raw.split(",") if ip.strip()]
+    config_data["billing"]["success_url"] = os.environ.get(
+        "BILLING_SUCCESS_URL",
+        os.environ.get(
+            "STRIPE_SUCCESS_URL", config_data["billing"].get("success_url", "http://localhost:5000/billing?checkout=success")
+        ),
+    )
+    config_data["billing"]["cancel_url"] = os.environ.get(
+        "BILLING_CANCEL_URL",
+        os.environ.get(
+            "STRIPE_CANCEL_URL", config_data["billing"].get("cancel_url", "http://localhost:5000/billing?checkout=cancel")
+        ),
+    )
+    config_data["billing"]["portal_return_url"] = os.environ.get(
+        "BILLING_PORTAL_RETURN_URL",
+        os.environ.get("STRIPE_PORTAL_RETURN_URL", config_data["billing"].get("portal_return_url", "http://localhost:5000/billing")),
+    )
 
     return Settings(**config_data)
 

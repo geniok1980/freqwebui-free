@@ -10,6 +10,7 @@ import { initTheme } from './styles/theme';
 import { Layout } from './components/common/Layout';
 import { ToastContainer } from './components/common/Toast';
 import Login from './pages/Login';
+import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { BotDetail } from './pages/BotDetail';
 import { Settings } from './pages/Settings';
@@ -29,6 +30,7 @@ import { FinanceData } from './pages/FinanceData';
 import { AgentDashboard } from './pages/Agent';
 import { PairlistSelector } from './pages/PairlistSelector';
 import { FreqtradeBots } from './pages/FreqtradeBots';
+import { setTenantSlug } from './services/api';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -53,6 +55,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <Layout>{children}</Layout>;
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((state) => state.user);
+  if (user?.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+}
+
 /**
  * Main App component.
  */
@@ -67,6 +77,10 @@ function App() {
   // Initialize theme on mount
   useEffect(() => {
     initTheme();
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    if (parts[0] === 't' && parts[1]) {
+      setTenantSlug(parts[1]);
+    }
   }, []);
 
   // Listen for unauthorized events (401) and redirect to login
@@ -90,6 +104,18 @@ function App() {
           <Route
             path="/login"
             element={needsSetup ? <Navigate to="/setup" replace /> : <Login />}
+          />
+          <Route
+            path="/t/:tenantSlug/login"
+            element={needsSetup ? <Navigate to="/setup" replace /> : <Login />}
+          />
+          <Route
+            path="/signup"
+            element={needsSetup ? <Navigate to="/setup" replace /> : <Signup />}
+          />
+          <Route
+            path="/t/:tenantSlug/signup"
+            element={needsSetup ? <Navigate to="/setup" replace /> : <Signup />}
           />
 
           {/* If setup is required, force all other routes to /setup */}
@@ -142,7 +168,9 @@ function App() {
             path="/users"
             element={
               <ProtectedRoute>
-                <UserManagement />
+                <AdminRoute>
+                  <UserManagement />
+                </AdminRoute>
               </ProtectedRoute>
             }
           />

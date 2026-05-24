@@ -1,15 +1,17 @@
 """FastAPI application entry point."""
 
 import logging
+import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 import structlog
-from fastapi import FastAPI, Request, status
+from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.api import api_router
+from src.api.deps import get_current_active_user, require_active_subscription
 from src.config import settings
 
 # Configure structured logging
@@ -40,6 +42,13 @@ logging.basicConfig(
 )
 
 logger = structlog.get_logger()
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 @asynccontextmanager
@@ -93,8 +102,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Start Finance Data Collectors
     from src.services.finance_collectors import finance_scheduler
 
-    await finance_scheduler.start()
-    logger.info("Finance Data Collectors started")
+    finance_collectors_enabled = not _env_flag("DISABLE_FINANCE_COLLECTORS", False)
+    if finance_collectors_enabled:
+        await finance_scheduler.start()
+        logger.info("Finance Data Collectors started")
+    else:
+        logger.info("Finance Data Collectors disabled by environment")
 
     yield
 
@@ -102,8 +115,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Shutting down Freqtrade Dashboard API")
 
     # Stop Finance Data Collectors
-    await finance_scheduler.stop()
-    logger.info("Finance Data Collectors stopped")
+    if finance_collectors_enabled:
+        await finance_scheduler.stop()
+        logger.info("Finance Data Collectors stopped")
 
     # Stop Strategy Lab (V6)
     from src.api.strategy_lab import app_state
@@ -205,23 +219,48 @@ app.include_router(api_router, prefix="/api/v1")
 
 # Include Strategy Lab routes (V6)
 from src.api.strategy_lab import router as strategy_lab_router
-app.include_router(strategy_lab_router, prefix="/api/v1", tags=["strategy-lab"])
+app.include_router(
+    strategy_lab_router,
+    prefix="/api/v1",
+    tags=["strategy-lab"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 
 # Include FinanceData routes (AlexFinanceData integration)
 from src.api.finance import router as finance_router
-app.include_router(finance_router, prefix="/api/v1", tags=["finance"])
+app.include_router(
+    finance_router,
+    prefix="/api/v1",
+    tags=["finance"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 
 # Include Agent routes (V8 Agent Strategy)
 from src.api.agent import router as agent_router
-app.include_router(agent_router, prefix="/api/v1", tags=["agent"])
+app.include_router(
+    agent_router,
+    prefix="/api/v1",
+    tags=["agent"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 
 # Include WebSocket routes (directly on app, not under /api/v1)
 from src.api.websocket import router as ws_router
-app.include_router(ws_router, prefix="/api/v1", tags=["websocket"])
+app.include_router(
+    ws_router,
+    prefix="/api/v1",
+    tags=["websocket"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 
 # Include Pairlist Selector routes
 from src.api.pairlist_selector import router as pairlist_router
-app.include_router(pairlist_router, prefix="/api/v1", tags=["pairlist-selector"])
+app.include_router(
+    pairlist_router,
+    prefix="/api/v1",
+    tags=["pairlist-selector"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 
 # Include Settings routes (OLD - disabled, using unified settings instead)
 # from src.api.settings import router as settings_router
@@ -229,11 +268,21 @@ app.include_router(pairlist_router, prefix="/api/v1", tags=["pairlist-selector"]
 
 # Include Unified Settings routes (at /api/v1/settings)
 from src.api.unified_settings import router as unified_settings_router
-app.include_router(unified_settings_router, prefix="/api/v1", tags=["settings"])
+app.include_router(
+    unified_settings_router,
+    prefix="/api/v1",
+    tags=["settings"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 
 # Include Pairlist Results routes
 from src.api.pairlist_results import router as pairlist_results_router
-app.include_router(pairlist_results_router, prefix="/api/v1", tags=["pairlist-results"])
+app.include_router(
+    pairlist_results_router,
+    prefix="/api/v1",
+    tags=["pairlist-results"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
 
 
 if __name__ == "__main__":

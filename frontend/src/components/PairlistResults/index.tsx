@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, TrendingUp, TrendingDown, BarChart3, Download } from 'lucide-react';
+import { Trophy, BarChart3, Download } from 'lucide-react';
 
-const API_BASE = 'http://192.168.0.210:8000/api/v1';
+const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 interface PairResult {
   rank: number;
@@ -66,14 +66,14 @@ export function PairlistResults() {
   });
   
   // Fetch detailed results
-  const { data: resultData } = useQuery({
+  const { data: resultData } = useQuery<JobResult>({
     queryKey: ['pairlist-result', selectedJob],
     queryFn: async () => {
       const token = localStorage.getItem('access_token');
       const res = await fetch(`${API_BASE}/pairlist-results/jobs/${selectedJob}`, {
         headers: { 'Authorization': 'Bearer ' + token }
       });
-      return res.json() as JobResult;
+      return (await res.json()) as JobResult;
     },
     enabled: !!selectedJob
   });

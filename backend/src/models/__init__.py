@@ -11,6 +11,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 from src.config import settings
+from src.tenancy import apply_tenant_search_path
 
 # Naming convention for constraints
 convention = {
@@ -69,6 +70,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for getting database sessions."""
     async with async_session_maker() as session:
         try:
+            await apply_tenant_search_path(session)
             yield session
             await session.commit()
         except Exception:
@@ -85,5 +87,32 @@ from src.models.user import User  # noqa: E402, F401
 from src.models.alert import Alert  # noqa: E402, F401
 from src.models.pairlist import PairlistJob, PairlistResult, PairlistPairResult  # noqa: E402, F401
 from src.models.settings import SystemSetting  # noqa: E402, F401
+from src.models.tenant import (  # noqa: E402, F401
+    BillingAuditLog,
+    BillingWebhookEvent,
+    Plan,
+    Subscription,
+    Tenant,
+    TenantMembership,
+)
 
-__all__ = ["Base", "engine", "async_session_maker", "get_db", "User", "Bot", "BotMetrics", "Alert", "PairlistJob", "PairlistResult", "PairlistPairResult", "SystemSetting"]
+__all__ = [
+    "Base",
+    "engine",
+    "async_session_maker",
+    "get_db",
+    "User",
+    "Bot",
+    "BotMetrics",
+    "Alert",
+    "PairlistJob",
+    "PairlistResult",
+    "PairlistPairResult",
+    "SystemSetting",
+    "Tenant",
+    "TenantMembership",
+    "Plan",
+    "Subscription",
+    "BillingAuditLog",
+    "BillingWebhookEvent",
+]

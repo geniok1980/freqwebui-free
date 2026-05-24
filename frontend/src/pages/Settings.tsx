@@ -55,22 +55,22 @@ export function Settings() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('Password changed successfully');
+      toast.success('Пароль успешно изменен');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Failed to change password');
+      toast.error(error.response?.data?.detail || 'Не удалось изменить пароль');
     },
   });
 
   const validatePassword = (password: string): { valid: boolean; errors: string[] } => {
     const errors: string[] = [];
-    if (password.length < 8) errors.push('At least 8 characters');
-    if (!/[A-Z]/.test(password)) errors.push('One uppercase letter');
-    if (!/[a-z]/.test(password)) errors.push('One lowercase letter');
-    if (!/[0-9]/.test(password)) errors.push('One number');
+    if (password.length < 8) errors.push('Минимум 8 символов');
+    if (!/[A-Z]/.test(password)) errors.push('Одна заглавная буква');
+    if (!/[a-z]/.test(password)) errors.push('Одна строчная буква');
+    if (!/[0-9]/.test(password)) errors.push('Одна цифра');
     return { valid: errors.length === 0, errors };
   };
 
@@ -81,15 +81,15 @@ export function Settings() {
 
   const handleChangePassword = () => {
     if (!currentPassword) {
-      toast.error('Current password is required');
+      toast.error('Требуется текущий пароль');
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error('Пароли не совпадают');
       return;
     }
     if (!passwordValidation.valid) {
-      toast.error('Password does not meet requirements');
+      toast.error('Пароль не соответствует требованиям');
       return;
     }
     changePassword.mutate({
@@ -105,7 +105,7 @@ export function Settings() {
       const bots = response.data || [];
 
       if (bots.length === 0) {
-        toast.info('No bots to export');
+        toast.info('Нет ботов для экспорта');
         return;
       }
 
@@ -116,7 +116,7 @@ export function Settings() {
         health_state: bot.health_state,
         exchange: bot.exchange || '',
         strategy: bot.strategy || '',
-        is_dryrun: bot.is_dryrun ? 'Yes' : 'No',
+        is_dryrun: bot.is_dryrun ? 'Да' : 'Нет',
         api_url: bot.api_url || '',
         tags: (bot.tags || []).join(';'),
         last_seen: bot.last_seen || '',
@@ -127,9 +127,9 @@ export function Settings() {
       const csv = arrayToCSV(exportData, headers);
       const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
       downloadFile(csv, `bots_export_${timestamp}.csv`, 'text/csv;charset=utf-8;');
-      toast.success(`Exported ${bots.length} bots`);
+      toast.success(`Экспортировано ботов: ${bots.length}`);
     } catch (error) {
-      toast.error('Failed to export bots');
+      toast.error('Не удалось экспортировать ботов');
     } finally {
       setIsExporting(null);
     }
@@ -152,7 +152,7 @@ export function Settings() {
               bot_name: bot.name,
               trade_id: trade.id,
               pair: trade.pair,
-              side: trade.is_short ? 'SHORT' : 'LONG',
+              side: trade.is_short ? 'ШОРТ' : 'ЛОНГ',
               leverage: trade.leverage || 1,
               open_date: trade.open_date,
               close_date: trade.close_date || '',
@@ -163,7 +163,7 @@ export function Settings() {
               profit_pct: trade.close_profit !== undefined ? (trade.close_profit * 100).toFixed(4) : '',
               profit_abs: trade.close_profit_abs || '',
               exit_reason: trade.exit_reason || '',
-              is_open: trade.is_open ? 'Yes' : 'No',
+              is_open: trade.is_open ? 'Да' : 'Нет',
             });
           });
         } catch {
@@ -172,7 +172,7 @@ export function Settings() {
       }
 
       if (allTrades.length === 0) {
-        toast.info('No trades to export');
+        toast.info('Нет сделок для экспорта');
         return;
       }
 
@@ -180,9 +180,9 @@ export function Settings() {
       const csv = arrayToCSV(allTrades, headers);
       const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
       downloadFile(csv, `trades_export_${timestamp}.csv`, 'text/csv;charset=utf-8;');
-      toast.success(`Exported ${allTrades.length} trades from ${bots.length} bots`);
+      toast.success(`Экспортировано сделок: ${allTrades.length} из ${bots.length} ботов`);
     } catch (error) {
-      toast.error('Failed to export trades');
+      toast.error('Не удалось экспортировать сделки');
     } finally {
       setIsExporting(null);
     }
@@ -195,7 +195,7 @@ export function Settings() {
       const alerts = response.data?.data || [];
 
       if (alerts.length === 0) {
-        toast.info('No alerts to export');
+        toast.info('Нет алертов для экспорта');
         return;
       }
 
@@ -215,9 +215,9 @@ export function Settings() {
       const json = JSON.stringify(exportData, null, 2);
       const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
       downloadFile(json, `alerts_export_${timestamp}.json`, 'application/json');
-      toast.success(`Exported ${alerts.length} alerts`);
+      toast.success(`Экспортировано алертов: ${alerts.length}`);
     } catch (error) {
-      toast.error('Failed to export alerts');
+      toast.error('Не удалось экспортировать алерты');
     } finally {
       setIsExporting(null);
     }
@@ -225,7 +225,7 @@ export function Settings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Настройки</h1>
 
       {/* Unified Settings - Refresh, Theme, Discovery (ONE Save button) */}
       <UnifiedSettings />
@@ -233,13 +233,13 @@ export function Settings() {
       {/* Change Password Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Change Password
+          Смена пароля
         </h2>
 
         <div className="space-y-4 max-w-md">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Current Password
+              Текущий пароль
             </label>
             <input
               type="password"
@@ -251,7 +251,7 @@ export function Settings() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              New Password
+              Новый пароль
             </label>
             <input
               type="password"
@@ -281,8 +281,8 @@ export function Settings() {
                 </div>
                 <p className={`text-xs ${passwordValidation.valid ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
                   {passwordValidation.valid
-                    ? 'Password meets all requirements'
-                    : `Missing: ${passwordValidation.errors.join(', ')}`}
+                    ? 'Пароль соответствует всем требованиям'
+                    : `Не хватает: ${passwordValidation.errors.join(', ')}`}
                 </p>
               </div>
             )}
@@ -290,7 +290,7 @@ export function Settings() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Confirm New Password
+              Подтвердите новый пароль
             </label>
             <input
               type="password"
@@ -303,10 +303,10 @@ export function Settings() {
               }`}
             />
             {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-              <p className="mt-1 text-xs text-red-500">Passwords do not match</p>
+              <p className="mt-1 text-xs text-red-500">Пароли не совпадают</p>
             )}
             {confirmPassword.length > 0 && newPassword === confirmPassword && newPassword.length > 0 && (
-              <p className="mt-1 text-xs text-green-600 dark:text-green-400">Passwords match</p>
+              <p className="mt-1 text-xs text-green-600 dark:text-green-400">Пароли совпадают</p>
             )}
           </div>
 
@@ -315,7 +315,7 @@ export function Settings() {
             disabled={changePassword.isPending || !currentPassword || !newPassword}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors"
           >
-            {changePassword.isPending ? 'Changing...' : 'Change Password'}
+            {changePassword.isPending ? 'Изменение...' : 'Изменить пароль'}
           </button>
         </div>
       </div>
@@ -323,16 +323,16 @@ export function Settings() {
       {/* Account Info */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Account Information
+          Информация об аккаунте
         </h2>
 
         <div className="grid grid-cols-2 gap-4 max-w-md">
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Username</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Логин</p>
             <p className="text-gray-900 dark:text-white font-medium">{user?.username}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Role</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Роль</p>
             <p className="text-gray-900 dark:text-white font-medium capitalize">{user?.role}</p>
           </div>
         </div>
@@ -341,12 +341,12 @@ export function Settings() {
       {/* Data Export Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Data Export
+          Экспорт данных
         </h2>
 
         <div className="space-y-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Export your bot data and trade history for analysis or backup purposes.
+            Экспортируйте данные ботов и историю сделок для анализа или резервного копирования.
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -355,7 +355,7 @@ export function Settings() {
               disabled={isExporting === 'bots'}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50"
             >
-              {isExporting === 'bots' ? 'Exporting...' : 'Export Bots (CSV)'}
+              {isExporting === 'bots' ? 'Экспорт...' : 'Экспорт ботов (CSV)'}
             </button>
 
             <button
@@ -363,7 +363,7 @@ export function Settings() {
               disabled={isExporting === 'trades'}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50"
             >
-              {isExporting === 'trades' ? 'Exporting...' : 'Export Trades (CSV)'}
+              {isExporting === 'trades' ? 'Экспорт...' : 'Экспорт сделок (CSV)'}
             </button>
 
             <button
@@ -371,7 +371,7 @@ export function Settings() {
               disabled={isExporting === 'alerts'}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50"
             >
-              {isExporting === 'alerts' ? 'Exporting...' : 'Export Alerts (JSON)'}
+              {isExporting === 'alerts' ? 'Экспорт...' : 'Экспорт алертов (JSON)'}
             </button>
           </div>
         </div>
@@ -380,23 +380,23 @@ export function Settings() {
       {/* Keyboard Shortcuts */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Keyboard Shortcuts
+          Горячие клавиши
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Search bots</span>
+            <span className="text-gray-600 dark:text-gray-400">Поиск ботов</span>
             <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl+K</kbd>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Toggle theme</span>
+            <span className="text-gray-600 dark:text-gray-400">Сменить тему</span>
             <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl+Shift+T</kbd>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Go to dashboard</span>
+            <span className="text-gray-600 dark:text-gray-400">Перейти к дашборду</span>
             <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">G then D</kbd>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Go to settings</span>
+            <span className="text-gray-600 dark:text-gray-400">Перейти в настройки</span>
             <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">G then S</kbd>
           </div>
         </div>

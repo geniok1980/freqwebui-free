@@ -19,10 +19,10 @@ interface BotSettingsProps {
 }
 
 const sourceModes: { value: SourceMode; label: string; description: string }[] = [
-  { value: 'auto', label: 'Auto (API preferred)', description: 'Use API when available, fallback to SQLite' },
-  { value: 'api', label: 'API Only', description: 'Only use REST API for data' },
-  { value: 'sqlite', label: 'SQLite Only', description: 'Only use SQLite database' },
-  { value: 'mixed', label: 'Mixed', description: 'Use API with SQLite fallback' },
+  { value: 'auto', label: 'Авто (предпочтительно API)', description: 'Использовать API, при недоступности — SQLite' },
+  { value: 'api', label: 'Только API', description: 'Использовать только REST API для данных' },
+  { value: 'sqlite', label: 'Только SQLite', description: 'Использовать только SQLite базу' },
+  { value: 'mixed', label: 'Смешанный режим', description: 'Использовать API с fallback на SQLite' },
 ];
 
 export function BotSettings({ bot }: BotSettingsProps) {
@@ -65,7 +65,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
       }
     },
     onError: (error: any) => {
-      setCredentialsError(error.message || 'Failed to update credentials');
+      setCredentialsError(error.message || 'Не удалось обновить учетные данные');
       setCredentialsSuccess(null);
     },
   });
@@ -73,7 +73,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
   const handleCredentialsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
-      setCredentialsError('Username and password are required');
+      setCredentialsError('Требуются логин и пароль');
       return;
     }
     setCredentialsError(null);
@@ -130,40 +130,40 @@ export function BotSettings({ bot }: BotSettingsProps) {
       {/* General Settings */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          General Settings
+          Общие настройки
         </h3>
         <div className="space-y-4">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Display Name
+              Отображаемое имя
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               className="w-full max-w-md px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Bot display name"
+              placeholder="Имя бота"
             />
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              A friendly name for this bot in the dashboard.
+              Удобное имя бота в дашборде.
             </p>
           </div>
 
           {/* Tags */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Tags
+              Теги
             </label>
             <input
               type="text"
               value={tags}
               onChange={(e) => handleTagsChange(e.target.value)}
               className="w-full max-w-md px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="production, btc, scalping"
+              placeholder="prod, btc, scalping"
             />
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Comma-separated tags for organizing and filtering bots.
+              Теги через запятую для организации и фильтрации ботов.
             </p>
           </div>
         </div>
@@ -172,7 +172,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
       {/* Data Source Settings */}
       <div>
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          Data Source
+          Источник данных
         </h3>
         <div className="space-y-3">
           {sourceModes.map((mode) => (
@@ -205,7 +205,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
       {bot.api_url && (
         <div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            API Connection
+            API подключение
           </h3>
 
           {credentialsSuccess && (
@@ -217,7 +217,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
           <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">API URL</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">URL API</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{bot.api_url}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
             {bot.health_state !== 'healthy' && (
               <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  API connection issue detected. If authentication failed, you can update the credentials below.
+                  Обнаружена проблема подключения к API. Если ошибка в авторизации, обновите учетные данные ниже.
                 </p>
               </div>
             )}
@@ -244,7 +244,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
                 onClick={() => setShowCredentialsForm(true)}
                 className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:underline"
               >
-                Update API Credentials
+                Обновить учетные данные API
               </button>
             ) : (
               <form onSubmit={handleCredentialsSubmit} className="mt-4 space-y-3">
@@ -257,7 +257,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Username
+                      Логин
                     </label>
                     <input
                       type="text"
@@ -269,7 +269,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Password
+                      Пароль
                     </label>
                     <input
                       type="password"
@@ -293,7 +293,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
-                    Test & Save
+                    Проверить и сохранить
                   </button>
                   <button
                     type="button"
@@ -305,7 +305,7 @@ export function BotSettings({ bot }: BotSettingsProps) {
                     }}
                     className="px-4 py-2 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
                   >
-                    Cancel
+                    Отмена
                   </button>
                 </div>
               </form>
@@ -322,18 +322,18 @@ export function BotSettings({ bot }: BotSettingsProps) {
             disabled={updateBot.isPending}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {updateBot.isPending ? 'Saving...' : 'Save Changes'}
+            {updateBot.isPending ? 'Сохранение...' : 'Сохранить изменения'}
           </button>
           <button
             onClick={handleReset}
             disabled={updateBot.isPending}
             className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
           >
-            Reset
+            Сбросить
           </button>
           {updateBot.isError && (
             <p className="text-sm text-red-500 dark:text-red-400">
-              Failed to save changes. Please try again.
+              Не удалось сохранить изменения. Попробуйте снова.
             </p>
           )}
         </div>
@@ -342,22 +342,22 @@ export function BotSettings({ bot }: BotSettingsProps) {
       {/* Danger Zone */}
       <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-4">
-          Danger Zone
+          Опасная зона
         </h3>
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">Remove Bot</p>
+              <p className="font-medium text-gray-900 dark:text-white">Удалить бота</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Remove this bot from the dashboard. This does not stop or affect the actual bot -
-                it only removes it from monitoring. The bot may be rediscovered on the next scan.
+                Удаляет бота из дашборда. Сам бот не останавливается и не изменяется —
+                он просто убирается из мониторинга. При следующем сканировании бот может появиться снова.
               </p>
             </div>
             <button
               onClick={() => setShowDeleteConfirm(true)}
               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors whitespace-nowrap ml-4"
             >
-              Remove Bot
+              Удалить бота
             </button>
           </div>
         </div>
@@ -368,25 +368,25 @@ export function BotSettings({ bot }: BotSettingsProps) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Remove Bot?
+              Удалить бота?
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Are you sure you want to remove <strong>{bot.name}</strong> from the dashboard?
-              This action cannot be undone, but the bot may be rediscovered on the next scan.
+              Вы уверены, что хотите удалить <strong>{bot.name}</strong> из дашборда?
+              Это действие нельзя отменить, но бот может быть найден снова при следующем сканировании.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                Cancel
+                Отмена
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteBot.isPending}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {deleteBot.isPending ? 'Removing...' : 'Remove'}
+                {deleteBot.isPending ? 'Удаление...' : 'Удалить'}
               </button>
             </div>
           </div>

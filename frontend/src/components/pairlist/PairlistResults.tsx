@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, TrendingUp, TrendingDown, Activity, BarChart3 } from 'lucide-react';
+import { Trophy, BarChart3 } from 'lucide-react';
 
-const API_BASE = 'http://192.168.0.210:8000/api/v1';
+const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 interface PairResult {
   rank: number;

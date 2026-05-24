@@ -15,7 +15,8 @@ interface AuthState {
   error: string | null;
 
   // Actions
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, tenantSlug?: string) => Promise<void>;
+  signup: (payload: { username: string; password: string; tenant_name: string; tenant_slug: string }) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateUser: (user: User) => void;
@@ -38,10 +39,10 @@ export const useAuthStore = create<AuthState>()(
       error: null,
 
       // Login action
-      login: async (username: string, password: string) => {
+      login: async (username: string, password: string, tenantSlug: string = 'default') => {
         set({ isLoading: true, error: null });
         try {
-          await api.login(username, password);
+          await api.login(username, password, tenantSlug);
 
           // Fetch user info after login
           const userResponse = await api.getCurrentUser();
@@ -54,6 +55,27 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           set({
             error: error instanceof Error ? error.message : 'Login failed',
+            isLoading: false,
+            isAuthenticated: false,
+            user: null,
+          });
+          throw error;
+        }
+      },
+
+      signup: async (payload) => {
+        set({ isLoading: true, error: null });
+        try {
+          await api.signup(payload);
+          const userResponse = await api.getCurrentUser();
+          set({
+            user: userResponse.data as User,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Signup failed',
             isLoading: false,
             isAuthenticated: false,
             user: null,

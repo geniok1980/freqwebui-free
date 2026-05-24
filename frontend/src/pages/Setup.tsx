@@ -19,18 +19,18 @@ export function Setup() {
   const [origin, setOrigin] = useState(existing);
   const [error, setError] = useState<string | null>(null);
 
-  const example = useMemo(() => 'http://192.168.0.210:5000', []);
+  const example = useMemo(() => 'http://localhost:5000', []);
 
   const save = () => {
     setError(null);
     const value = origin.trim();
     if (!value) {
-      setError('Please enter your backend URL (IP:port).');
+      setError('Введите URL backend (IP:port).');
       return;
     }
     const normalized = normalizeDisplay(value).replace(/\/+$/, '');
     if (!/^https?:\/\//i.test(normalized)) {
-      setError('URL must start with http:// or https://');
+      setError('URL должен начинаться с http:// или https://');
       return;
     }
     setBackendOrigin(normalized);
@@ -41,20 +41,20 @@ export function Setup() {
   const clear = () => {
     setBackendOrigin(null);
     setOrigin('');
-    setError('Cleared saved backend. Enter a new one.');
+    setError('Сохраненный backend очищен. Введите новый.');
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
       <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Connect Backend</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Подключение backend</h1>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-          This app bundles the dashboard UI. To load data, set the backend address of your MultiBotDashboard.
+          Это приложение содержит UI дашборда. Для загрузки данных укажите адрес backend вашего MultiBotDashboard.
         </p>
 
         <div className="mt-4">
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-            Backend URL (HTTP allowed)
+            URL backend (HTTP разрешен)
           </label>
           <input
             value={origin}
@@ -76,18 +76,18 @@ export function Setup() {
             onClick={save}
             className="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
           >
-            Save & Continue
+            Сохранить и продолжить
           </button>
           <button
             onClick={clear}
             className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
           >
-            Clear
+            Очистить
           </button>
         </div>
 
         <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-          Tip: make sure you are on the same Wi‑Fi/VPN as your backend. Example: <span className="font-mono">{example}</span>
+          Совет: убедитесь, что вы в той же Wi‑Fi/VPN сети, что и backend. Пример: <span className="font-mono">{example}</span>
         </div>
 
         <div className="mt-4">
@@ -95,7 +95,7 @@ export function Setup() {
             onClick={() => navigate('/login')}
             className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
           >
-            Back to Login
+            Назад ко входу
           </button>
         </div>
       </div>

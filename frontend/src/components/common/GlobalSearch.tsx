@@ -129,7 +129,7 @@ export function GlobalSearch() {
           setTimeout(() => inputRef.current?.focus(), 0);
         }}
         className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-        title="Search bots (Ctrl+K)"
+        title="Поиск ботов (Ctrl+K)"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -139,7 +139,7 @@ export function GlobalSearch() {
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
-        <span className="hidden sm:inline">Search...</span>
+        <span className="hidden sm:inline">Поиск...</span>
         <kbd className="hidden sm:inline px-1.5 py-0.5 text-xs bg-gray-200 dark:bg-gray-600 rounded">
           Ctrl+K
         </kbd>
@@ -170,7 +170,7 @@ export function GlobalSearch() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyNavigation}
-                  placeholder="Search bots by name, exchange, or strategy..."
+                  placeholder="Поиск ботов по имени, бирже или стратегии..."
                   className="flex-1 px-3 py-4 bg-transparent text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none"
                   autoFocus
                 />
@@ -194,16 +194,16 @@ export function GlobalSearch() {
                   </div>
                 ) : query.length === 0 ? (
                   <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                    <p className="text-sm">Start typing to search bots...</p>
-                    <p className="text-xs mt-2">Search by name, exchange, or strategy</p>
+                    <p className="text-sm">Начните ввод для поиска ботов...</p>
+                    <p className="text-xs mt-2">Поиск по имени, бирже или стратегии</p>
                   </div>
                 ) : results.length === 0 ? (
                   <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                     <svg className="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-sm font-medium">No bots found</p>
-                    <p className="text-xs mt-1">No results for "{query}"</p>
+                    <p className="text-sm font-medium">Боты не найдены</p>
+                    <p className="text-xs mt-1">Нет результатов для "{query}"</p>
                   </div>
                 ) : (
                   <ul className="py-2">
@@ -229,7 +229,7 @@ export function GlobalSearch() {
                               </span>
                               {bot.is_dryrun && (
                                 <span className="px-1.5 py-0.5 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded">
-                                  Dry
+                                  Демо
                                 </span>
                               )}
                             </div>
@@ -262,11 +262,11 @@ export function GlobalSearch() {
               <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">Enter</kbd>
-                  <span>to select</span>
+                  <span>выбрать</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">Esc</kbd>
-                  <span>to close</span>
+                  <span>закрыть</span>
                 </div>
               </div>
             </div>

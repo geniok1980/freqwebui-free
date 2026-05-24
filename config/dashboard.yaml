@@ -6,6 +6,7 @@ server:
   port: 8000
   workers: 4
   cors_origins:
+    - "http://localhost:5000"
     - "http://localhost:3000"
     - "http://localhost:5173"
     - "http://192.168.0.210:5000"
@@ -58,3 +59,15 @@ logging:
   level: "INFO"
   format: "json"
   file: null  # Set to path for file logging, e.g., "/var/log/dashboard/app.log"
+
+tenancy:
+  enabled: true
+  enforce: false
+  header_name: "X-Tenant-Slug"
+
+billing:
+  enabled: true
+  enforce: false
+  stripe_secret_key: "${STRIPE_SECRET_KEY}"
+  stripe_publishable_key: "${STRIPE_PUBLISHABLE_KEY}"
+  stripe_webhook_secret: "${STRIPE_WEBHOOK_SECRET}"

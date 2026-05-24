@@ -119,11 +119,11 @@ export function AgentDashboard() {
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null);
 
   // Fetch agent status
-  const { data: status, isLoading: statusLoading } = useQuery<AgentStatus>({
+  const { data: status } = useQuery<AgentStatus>({
     queryKey: ['agent', 'status'],
     queryFn: async () => {
-      const result = await api.get('/agent/status');
-      return result as AgentStatus;
+      const result = await api.get<AgentStatus>('/agent/status');
+      return result.data as AgentStatus;
     },
     refetchInterval: 10000
   });
@@ -132,8 +132,8 @@ export function AgentDashboard() {
   const { data: trades, isLoading: tradesLoading } = useQuery<Trade[]>({
     queryKey: ['agent', 'trades'],
     queryFn: async () => {
-      const result = await api.get('/agent/trades?limit=50');
-      return Array.isArray(result) ? result : [];
+      const result = await api.get<Trade[]>('/agent/trades?limit=50');
+      return Array.isArray(result.data) ? result.data : [];
     },
     refetchInterval: 30000
   });
@@ -142,8 +142,8 @@ export function AgentDashboard() {
   const { data: weights, isLoading: weightsLoading } = useQuery<SignalWeights[]>({
     queryKey: ['agent', 'weights'],
     queryFn: async () => {
-      const result = await api.get('/agent/weights');
-      return Array.isArray(result) ? result : [];
+      const result = await api.get<SignalWeights[]>('/agent/weights');
+      return Array.isArray(result.data) ? result.data : [];
     }
   });
 
@@ -151,8 +151,8 @@ export function AgentDashboard() {
   const { data: performance, isLoading: performanceLoading } = useQuery<PerformanceDay[]>({
     queryKey: ['agent', 'performance'],
     queryFn: async () => {
-      const result = await api.get('/agent/performance?days=30');
-      return Array.isArray(result) ? result : [];
+      const result = await api.get<PerformanceDay[]>('/agent/performance?days=30');
+      return Array.isArray(result.data) ? result.data : [];
     }
   });
 
@@ -160,8 +160,8 @@ export function AgentDashboard() {
   const { data: regimePerformance, isLoading: regimePerfLoading } = useQuery<RegimePerformance[]>({
     queryKey: ['agent', 'regime-performance'],
     queryFn: async () => {
-      const result = await api.get('/agent/performance/by-regime');
-      return Array.isArray(result) ? result : [];
+      const result = await api.get<RegimePerformance[]>('/agent/performance/by-regime');
+      return Array.isArray(result.data) ? result.data : [];
     }
   });
 
@@ -169,8 +169,8 @@ export function AgentDashboard() {
   const { data: currentRegime } = useQuery<CurrentRegime>({
     queryKey: ['agent', 'regime', 'current'],
     queryFn: async () => {
-      const result = await api.get('/agent/regime/current');
-      return result as CurrentRegime;
+      const result = await api.get<CurrentRegime>('/agent/regime/current');
+      return result.data as CurrentRegime;
     },
     refetchInterval: 60000
   });
@@ -203,10 +203,10 @@ export function AgentDashboard() {
   const overallWinRate = totalClosed > 0 ? (winCount / totalClosed * 100) : 0;
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'trades', label: 'Trades', icon: BarChart3 },
-    { id: 'weights', label: 'Signal Weights', icon: Brain },
-    { id: 'performance', label: 'Performance', icon: TrendingUp },
+    { id: 'overview', label: 'Обзор', icon: Activity },
+    { id: 'trades', label: 'Сделки', icon: BarChart3 },
+    { id: 'weights', label: 'Веса сигналов', icon: Brain },
+    { id: 'performance', label: 'Производительность', icon: TrendingUp },
   ];
 
   return (
@@ -214,16 +214,16 @@ export function AgentDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#e6edf3]">AI Trading Agent</h1>
+          <h1 className="text-3xl font-bold text-[#e6edf3]">AI торговый агент</h1>
           <p className="text-[#8b949e] mt-1">
-            Dynamic weight strategy with regime-based signal adaptation
+            Динамическая стратегия весов с адаптацией сигналов по рыночному режиму
           </p>
         </div>
         <div className="flex items-center gap-3">
           {status?.paper_trading && (
             <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-sm rounded-full flex items-center gap-1">
               <Shield size={14} />
-              Paper Trading
+              Бумажная торговля
             </span>
           )}
           <button
@@ -238,9 +238,9 @@ export function AgentDashboard() {
             {toggleMutation.isPending ? (
               <RefreshCw size={18} className="animate-spin" />
             ) : status?.enabled ? (
-              <><Pause size={18} /> Pause Agent</>
+              <><Pause size={18} /> Пауза агента</>
             ) : (
-              <><Play size={18} /> Start Agent</>
+              <><Play size={18} /> Запустить агента</>
             )}
           </button>
           
@@ -253,7 +253,7 @@ export function AgentDashboard() {
             {runDockerMutation.isPending ? (
               <RefreshCw size={18} className="animate-spin" />
             ) : (
-              <><Container size={18} /> Run Docker Agent</>
+              <><Container size={18} /> Запустить Docker-агент</>
             )}
           </button>
         </div>
@@ -265,16 +265,16 @@ export function AgentDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-[#8b949e]">
               <Server size={18} />
-              <span className="text-sm">Agent Status</span>
+              <span className="text-sm">Статус агента</span>
             </div>
             <div className={`w-2 h-2 rounded-full ${status?.enabled ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
           </div>
           <div className="mt-2">
             <span className={`text-lg font-semibold ${status?.enabled ? 'text-green-400' : 'text-red-400'}`}>
-              {status?.enabled ? 'Active' : 'Paused'}
+              {status?.enabled ? 'Активен' : 'На паузе'}
             </span>
             {status?.container_running && (
-              <span className="ml-2 text-xs text-[#8b949e]">(Container Running)</span>
+              <span className="ml-2 text-xs text-[#8b949e]">(Контейнер запущен)</span>
             )}
           </div>
         </div>
@@ -282,14 +282,14 @@ export function AgentDashboard() {
         <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
           <div className="flex items-center gap-2 text-[#8b949e]">
             <Target size={18} />
-            <span className="text-sm">Today&apos;s Win Rate</span>
+            <span className="text-sm">Винрейт за сегодня</span>
           </div>
           <div className="mt-2">
             <span className={`text-2xl font-bold ${(status?.today_win_rate || 0) >= 50 ? 'text-green-400' : 'text-red-400'}`}>
               {status?.today_win_rate?.toFixed(1) || 0}%
             </span>
             <span className="text-sm text-[#8b949e] ml-2">
-              ({status?.today_wins || 0}/{status?.today_signals || 0} signals)
+              ({status?.today_wins || 0}/{status?.today_signals || 0} сигналов)
             </span>
           </div>
         </div>
@@ -297,7 +297,7 @@ export function AgentDashboard() {
         <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
           <div className="flex items-center gap-2 text-[#8b949e]">
             <Zap size={18} />
-            <span className="text-sm">Today&apos;s Trades</span>
+            <span className="text-sm">Сделок сегодня</span>
           </div>
           <div className="mt-2">
             <span className="text-2xl font-bold text-[#e6edf3]">
@@ -309,7 +309,7 @@ export function AgentDashboard() {
         <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4">
           <div className="flex items-center gap-2 text-[#8b949e]">
             <Globe size={18} />
-            <span className="text-sm">Market Regime</span>
+            <span className="text-sm">Рыночный режим</span>
           </div>
           <div className="mt-2">
             <span
@@ -319,7 +319,7 @@ export function AgentDashboard() {
                 color: REGIME_COLORS[status?.current_regime || 'ranging']
               }}
             >
-              {status?.current_regime || 'Unknown'}
+              {status?.current_regime || 'Неизвестно'}
             </span>
             {currentRegime?.btc_price && (
               <span className="text-sm text-[#8b949e] ml-2">
@@ -337,7 +337,7 @@ export function AgentDashboard() {
             <BarChart3 className="text-blue-400" size={24} />
           </div>
           <div>
-            <p className="text-[#8b949e] text-sm">Total Trades</p>
+            <p className="text-[#8b949e] text-sm">Всего сделок</p>
             <p className="text-2xl font-bold text-[#e6edf3]">{trades?.length || 0}</p>
           </div>
         </div>
@@ -347,7 +347,7 @@ export function AgentDashboard() {
             <TrendingUp className="text-green-400" size={24} />
           </div>
           <div>
-            <p className="text-[#8b949e] text-sm">Overall Win Rate</p>
+            <p className="text-[#8b949e] text-sm">Общий винрейт</p>
             <p className={`text-2xl font-bold ${overallWinRate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
               {overallWinRate.toFixed(1)}%
             </p>
@@ -359,7 +359,7 @@ export function AgentDashboard() {
             <Layers className="text-purple-400" size={24} />
           </div>
           <div>
-            <p className="text-[#8b949e] text-sm">Total P&L</p>
+            <p className="text-[#8b949e] text-sm">Итоговый P&L</p>
             <p className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)}%
             </p>
@@ -398,9 +398,9 @@ export function AgentDashboard() {
             <div className="space-y-6">
               {/* Regime Performance */}
               <div>
-                <h3 className="text-lg font-semibold text-[#e6edf3] mb-4">Performance by Market Regime</h3>
+                <h3 className="text-lg font-semibold text-[#e6edf3] mb-4">Производительность по рыночным режимам</h3>
                 {regimePerfLoading ? (
-                  <div className="text-center py-8 text-[#8b949e]">Loading...</div>
+                  <div className="text-center py-8 text-[#8b949e]">Загрузка...</div>
                 ) : regimePerformance && regimePerformance.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {regimePerformance.map((regime) => (
@@ -415,21 +415,21 @@ export function AgentDashboard() {
                           >
                             {regime.regime}
                           </span>
-                          <span className="text-[#8b949e] text-sm">{regime.total_trades} trades</span>
+                          <span className="text-[#8b949e] text-sm">{regime.total_trades} сделок</span>
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-[#8b949e] text-sm">Win Rate</span>
+                            <span className="text-[#8b949e] text-sm">Винрейт</span>
                             <span className={regime.win_rate >= 50 ? 'text-green-400' : 'text-red-400'}>
                               {regime.win_rate.toFixed(1)}%
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-[#8b949e] text-sm">Wins</span>
+                            <span className="text-[#8b949e] text-sm">Победы</span>
                             <span className="text-green-400">{regime.wins}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-[#8b949e] text-sm">Avg Profit</span>
+                            <span className="text-[#8b949e] text-sm">Средняя прибыль</span>
                             <span className={regime.avg_profit >= 0 ? 'text-green-400' : 'text-red-400'}>
                               {regime.avg_profit >= 0 ? '+' : ''}{regime.avg_profit.toFixed(2)}%
                             </span>
@@ -441,7 +441,7 @@ export function AgentDashboard() {
                 ) : (
                   <div className="text-center py-8 text-[#8b949e]">
                     <AlertTriangle size={48} className="mx-auto mb-4" />
-                    <p>No regime performance data available yet.</p>
+                    <p>Данные по режимам пока недоступны.</p>
                   </div>
                 )}
               </div>
@@ -449,26 +449,26 @@ export function AgentDashboard() {
               {/* Recent Trades Preview */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-[#e6edf3]">Recent Trades</h3>
+                  <h3 className="text-lg font-semibold text-[#e6edf3]">Последние сделки</h3>
                   <button
                     onClick={() => setActiveTab('trades')}
                     className="text-[#58a6ff] hover:text-[#79b8ff] text-sm"
                   >
-                    View All →
+                    Показать все →
                   </button>
                 </div>
                 {tradesLoading ? (
-                  <div className="text-center py-8 text-[#8b949e]">Loading...</div>
+                  <div className="text-center py-8 text-[#8b949e]">Загрузка...</div>
                 ) : trades && trades.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-[#30363d]">
-                          <th className="text-left py-3 text-[#8b949e] font-medium">Pair</th>
-                          <th className="text-left text-[#8b949e] font-medium">Direction</th>
-                          <th className="text-left text-[#8b949e] font-medium">Confidence</th>
-                          <th className="text-right text-[#8b949e] font-medium">Profit</th>
-                          <th className="text-left text-[#8b949e] font-medium">Time</th>
+                          <th className="text-left py-3 text-[#8b949e] font-medium">Пара</th>
+                          <th className="text-left text-[#8b949e] font-medium">Направление</th>
+                          <th className="text-left text-[#8b949e] font-medium">Уверенность</th>
+                          <th className="text-right text-[#8b949e] font-medium">Прибыль</th>
+                          <th className="text-left text-[#8b949e] font-medium">Время</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -494,7 +494,7 @@ export function AgentDashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-[#8b949e]">
-                    <p>No trades yet. Start the agent to begin trading.</p>
+                    <p>Сделок пока нет. Запустите агента, чтобы начать торговлю.</p>
                   </div>
                 )}
               </div>
@@ -505,25 +505,25 @@ export function AgentDashboard() {
           {activeTab === 'trades' && (
             <div>
               {tradesLoading ? (
-                <div className="text-center py-8 text-[#8b949e]">Loading...</div>
+                <div className="text-center py-8 text-[#8b949e]">Загрузка...</div>
               ) : !trades || trades.length === 0 ? (
                 <div className="text-center py-12 text-[#8b949e]">
                   <AlertTriangle size={48} className="mx-auto mb-4" />
-                  <p>No trades yet. Start the agent to begin trading.</p>
+                  <p>Сделок пока нет. Запустите агента, чтобы начать торговлю.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-[#30363d]">
-                        <th className="text-left py-3 text-[#8b949e] font-medium">Pair</th>
-                        <th className="text-left text-[#8b949e] font-medium">Direction</th>
-                        <th className="text-left text-[#8b949e] font-medium">Confidence</th>
-                        <th className="text-right text-[#8b949e] font-medium">Stake</th>
-                        <th className="text-right text-[#8b949e] font-medium">Entry Price</th>
-                        <th className="text-left text-[#8b949e] font-medium">Status</th>
-                        <th className="text-right text-[#8b949e] font-medium">Profit</th>
-                        <th className="text-left text-[#8b949e] font-medium">Time</th>
+                        <th className="text-left py-3 text-[#8b949e] font-medium">Пара</th>
+                        <th className="text-left text-[#8b949e] font-medium">Направление</th>
+                        <th className="text-left text-[#8b949e] font-medium">Уверенность</th>
+                        <th className="text-right text-[#8b949e] font-medium">Ставка</th>
+                        <th className="text-right text-[#8b949e] font-medium">Цена входа</th>
+                        <th className="text-left text-[#8b949e] font-medium">Статус</th>
+                        <th className="text-right text-[#8b949e] font-medium">Прибыль</th>
+                        <th className="text-left text-[#8b949e] font-medium">Время</th>
                         <th></th>
                       </tr>
                     </thead>
@@ -572,7 +572,7 @@ export function AgentDashboard() {
                             <tr>
                               <td colSpan={9} className="py-3 px-4 bg-[#0f1419]">
                                 <div className="text-sm">
-                                  <p className="text-[#8b949e] mb-2">Signal Breakdown:</p>
+                                  <p className="text-[#8b949e] mb-2">Разбор сигналов:</p>
                                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                                     {Object.entries(trade.signals).map(([key, value]) => (
                                       <div key={key} className="bg-[#161b22] rounded px-3 py-2">
@@ -598,7 +598,7 @@ export function AgentDashboard() {
           {activeTab === 'weights' && (
             <div className="space-y-6">
               {weightsLoading ? (
-                <div className="text-center py-8 text-[#8b949e]">Loading...</div>
+                <div className="text-center py-8 text-[#8b949e]">Загрузка...</div>
               ) : weights && weights.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -607,7 +607,7 @@ export function AgentDashboard() {
                         <div className="flex items-center justify-between mb-4">
                           <h4 className="font-semibold text-[#e6edf3]">{weight.regime}</h4>
                           <div className="text-right">
-                            <span className="text-sm text-[#8b949e]">Win Rate: </span>
+                            <span className="text-sm text-[#8b949e]">Винрейт: </span>
                             <span className={weight.win_rate >= 50 ? 'text-green-400' : 'text-red-400'}>
                               {weight.win_rate.toFixed(1)}%
                             </span>
@@ -617,11 +617,11 @@ export function AgentDashboard() {
                         {/* Weight Bars */}
                         <div className="space-y-3">
                           {[
-                            { key: 'price_momentum_weight', label: 'Price Momentum', color: '#58a6ff' },
-                            { key: 'volume_weight', label: 'Volume', color: '#238636' },
-                            { key: 'sentiment_weight', label: 'Sentiment', color: '#f0883e' },
-                            { key: 'macro_weight', label: 'Macro', color: '#a371f7' },
-                            { key: 'orderbook_weight', label: 'Orderbook', color: '#f85149' },
+                            { key: 'price_momentum_weight', label: 'Ценовой импульс', color: '#58a6ff' },
+                            { key: 'volume_weight', label: 'Объем', color: '#238636' },
+                            { key: 'sentiment_weight', label: 'Сентимент', color: '#f0883e' },
+                            { key: 'macro_weight', label: 'Макро', color: '#a371f7' },
+                            { key: 'orderbook_weight', label: 'Стакан', color: '#f85149' },
                           ].map(({ key, label, color }) => {
                             const value = weight[key as keyof SignalWeights] as number;
                             return (
@@ -642,9 +642,9 @@ export function AgentDashboard() {
                         </div>
 
                         <div className="mt-4 pt-3 border-t border-[#30363d] flex justify-between text-sm">
-                          <span className="text-[#8b949e]">Total Trades: {weight.total_trades}</span>
+                          <span className="text-[#8b949e]">Всего сделок: {weight.total_trades}</span>
                           <span className="text-[#8b949e]">
-                            Updated: {new Date(weight.last_updated).toLocaleDateString()}
+                            Обновлено: {new Date(weight.last_updated).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -653,7 +653,7 @@ export function AgentDashboard() {
 
                   {/* Weights Comparison Chart */}
                   <div className="bg-[#0f1419] rounded-lg p-4 border border-[#30363d]">
-                    <h4 className="font-semibold text-[#e6edf3] mb-4">Signal Weights Comparison</h4>
+                    <h4 className="font-semibold text-[#e6edf3] mb-4">Сравнение весов сигналов</h4>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={weights}>
@@ -665,11 +665,11 @@ export function AgentDashboard() {
                             labelStyle={{ color: '#e6edf3' }}
                           />
                           <Legend />
-                          <Bar dataKey="price_momentum_weight" name="Price Momentum" fill="#58a6ff" />
-                          <Bar dataKey="volume_weight" name="Volume" fill="#238636" />
-                          <Bar dataKey="sentiment_weight" name="Sentiment" fill="#f0883e" />
+                          <Bar dataKey="price_momentum_weight" name="Ценовой импульс" fill="#58a6ff" />
+                          <Bar dataKey="volume_weight" name="Объем" fill="#238636" />
+                          <Bar dataKey="sentiment_weight" name="Сентимент" fill="#f0883e" />
                           <Bar dataKey="macro_weight" name="Macro" fill="#a371f7" />
-                          <Bar dataKey="orderbook_weight" name="Orderbook" fill="#f85149" />
+                          <Bar dataKey="orderbook_weight" name="Стакан" fill="#f85149" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -678,7 +678,7 @@ export function AgentDashboard() {
               ) : (
                 <div className="text-center py-12 text-[#8b949e]">
                   <Brain size={48} className="mx-auto mb-4" />
-                  <p>No signal weights configured yet.</p>
+                  <p>Веса сигналов пока не настроены.</p>
                 </div>
               )}
             </div>
@@ -688,12 +688,12 @@ export function AgentDashboard() {
           {activeTab === 'performance' && (
             <div className="space-y-6">
               {performanceLoading ? (
-                <div className="text-center py-8 text-[#8b949e]">Loading...</div>
+                <div className="text-center py-8 text-[#8b949e]">Загрузка...</div>
               ) : performance && performance.length > 0 ? (
                 <>
                   {/* Daily Performance Chart */}
                   <div className="bg-[#0f1419] rounded-lg p-4 border border-[#30363d]">
-                    <h4 className="font-semibold text-[#e6edf3] mb-4">Daily Performance (Last 30 Days)</h4>
+                    <h4 className="font-semibold text-[#e6edf3] mb-4">Дневная производительность (последние 30 дней)</h4>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={performance.slice().reverse()}>
@@ -705,8 +705,8 @@ export function AgentDashboard() {
                             labelStyle={{ color: '#e6edf3' }}
                           />
                           <Legend />
-                          <Bar dataKey="wins" name="Wins" fill="#238636" />
-                          <Bar dataKey="losses" name="Losses" fill="#f85149" />
+                          <Bar dataKey="wins" name="Победы" fill="#238636" />
+                          <Bar dataKey="losses" name="Убытки" fill="#f85149" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -714,7 +714,7 @@ export function AgentDashboard() {
 
                   {/* Win Rate Trend */}
                   <div className="bg-[#0f1419] rounded-lg p-4 border border-[#30363d]">
-                    <h4 className="font-semibold text-[#e6edf3] mb-4">Win Rate Trend</h4>
+                    <h4 className="font-semibold text-[#e6edf3] mb-4">Тренд винрейта</h4>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={performance.slice().reverse()}>
@@ -725,7 +725,7 @@ export function AgentDashboard() {
                             contentStyle={{ backgroundColor: '#161b22', border: '1px solid #30363d' }}
                             labelStyle={{ color: '#e6edf3' }}
                           />
-                          <Line type="monotone" dataKey="win_rate" name="Win Rate %" stroke="#58a6ff" strokeWidth={2} />
+                          <Line type="monotone" dataKey="win_rate" name="Винрейт %" stroke="#58a6ff" strokeWidth={2} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -733,18 +733,18 @@ export function AgentDashboard() {
 
                   {/* Performance Table */}
                   <div className="bg-[#0f1419] rounded-lg p-4 border border-[#30363d]">
-                    <h4 className="font-semibold text-[#e6edf3] mb-4">Daily Performance Details</h4>
+                    <h4 className="font-semibold text-[#e6edf3] mb-4">Детали дневной производительности</h4>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-[#30363d]">
-                            <th className="text-left py-3 text-[#8b949e] font-medium">Date</th>
-                            <th className="text-right text-[#8b949e] font-medium">Signals</th>
-                            <th className="text-right text-[#8b949e] font-medium">Wins</th>
-                            <th className="text-right text-[#8b949e] font-medium">Losses</th>
-                            <th className="text-right text-[#8b949e] font-medium">Win Rate</th>
-                            <th className="text-right text-[#8b949e] font-medium">Avg Profit</th>
-                            <th className="text-right text-[#8b949e] font-medium">Total Profit</th>
+                            <th className="text-left py-3 text-[#8b949e] font-medium">Дата</th>
+                            <th className="text-right text-[#8b949e] font-medium">Сигналы</th>
+                            <th className="text-right text-[#8b949e] font-medium">Победы</th>
+                            <th className="text-right text-[#8b949e] font-medium">Убытки</th>
+                            <th className="text-right text-[#8b949e] font-medium">Винрейт</th>
+                            <th className="text-right text-[#8b949e] font-medium">Средняя прибыль</th>
+                            <th className="text-right text-[#8b949e] font-medium">Общая прибыль</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -773,7 +773,7 @@ export function AgentDashboard() {
               ) : (
                 <div className="text-center py-12 text-[#8b949e]">
                   <TrendingUp size={48} className="mx-auto mb-4" />
-                  <p>No performance data available yet.</p>
+                  <p>Данные производительности пока недоступны.</p>
                 </div>
               )}
             </div>

@@ -43,7 +43,7 @@ interface Tab {
 const tabs: Tab[] = [
   {
     id: 'overview',
-    label: 'Overview',
+    label: 'Обзор',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -52,7 +52,7 @@ const tabs: Tab[] = [
   },
   {
     id: 'trades',
-    label: 'Trades',
+    label: 'Сделки',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -61,7 +61,7 @@ const tabs: Tab[] = [
   },
   {
     id: 'analytics',
-    label: 'Analytics',
+    label: 'Аналитика',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -70,7 +70,7 @@ const tabs: Tab[] = [
   },
   {
     id: 'health',
-    label: 'Health',
+    label: 'Состояние',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -79,7 +79,7 @@ const tabs: Tab[] = [
   },
   {
     id: 'settings',
-    label: 'Settings',
+    label: 'Настройки',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -112,7 +112,7 @@ export function BotDetail() {
       navigate('/');
     },
     onError: (error: any) => {
-      alert(error.message || 'Failed to delete bot');
+      alert(error.message || 'Не удалось удалить бота');
     },
   });
 
@@ -128,16 +128,16 @@ export function BotDetail() {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          Bot Not Found
+          Бот не найден
         </h2>
         <p className="text-gray-500 dark:text-gray-400 mb-4">
-          The bot you're looking for doesn't exist or has been removed.
+          Бот, который вы ищете, не существует или уже удален.
         </p>
         <button
           onClick={() => navigate('/')}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
         >
-          Back to Dashboard
+          Назад к дашборду
         </button>
       </div>
     );
@@ -148,7 +148,7 @@ export function BotDetail() {
       {/* Breadcrumb */}
       <nav className="flex items-center space-x-2 text-sm">
         <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-          Dashboard
+          Дашборд
         </Link>
         <span className="text-gray-400">/</span>
         <span className="text-gray-900 dark:text-white">{bot.name}</span>
@@ -186,7 +186,7 @@ export function BotDetail() {
                 )}
                 {bot.is_dryrun && (
                   <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded">
-                    Dry Run
+                    Демо
                   </span>
                 )}
                 {getFreqUIUrl(bot.api_url) && (
@@ -204,7 +204,7 @@ export function BotDetail() {
                 )}
                 <button
                   onClick={() => {
-                    if (confirm(`Are you sure you want to delete "${bot.name}"?\n\nThis will only remove it from the dashboard, not stop the actual bot.`)) {
+                    if (confirm(`Удалить "${bot.name}"?\n\nБот будет удален только из дашборда и продолжит работать.`)) {
                       deleteBot.mutate();
                     }
                   }}
@@ -214,7 +214,7 @@ export function BotDetail() {
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  Delete
+                  Удалить
                 </button>
               </div>
             </div>
@@ -224,7 +224,7 @@ export function BotDetail() {
           {metrics && (
             <div className="hidden md:flex items-center gap-6 text-right">
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Profit</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Прибыль</p>
                 <p className={`text-lg font-semibold ${
                   (metrics.profit_pct ?? 0) >= 0
                     ? 'text-green-600 dark:text-green-400'
@@ -234,13 +234,13 @@ export function BotDetail() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Open</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Открыто</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {metrics.open_positions}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Trades</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Сделки</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {metrics.closed_trades}
                 </p>
@@ -261,12 +261,12 @@ export function BotDetail() {
             {bot.api_url ? (
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                API Connected
+                API подключен
               </span>
             ) : (
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-                No API Connection
+                Нет подключения к API
               </span>
             )}
           </div>

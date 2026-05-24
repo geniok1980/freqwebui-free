@@ -3,12 +3,12 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { strategyLabApi } from '../../services/strategyLabApi';
 import { Monitor, ExternalLink, RefreshCw } from 'lucide-react';
 
-const API_BASE = 'http://192.168.0.210:8000/api/v1';
+const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 const MODES = [
-  { id: 'ml_training', label: '🤖 ML Training', description: 'Train ML models on each pair' },
-  { id: 'fullbacktest_batch', label: '⚡ Full Backtest (Batch)', description: 'Fast batch backtest all pairs at once' },
-  { id: 'fullbacktest_individual', label: '🔬 Full Backtest (Individual)', description: 'Detailed individual backtest per pair (slower)' },
+  { id: 'ml_training', label: '🤖 ML-обучение', description: 'Обучение ML-моделей по каждой паре' },
+  { id: 'fullbacktest_batch', label: '⚡ Полный бэктест (пакетный)', description: 'Быстрый пакетный бэктест всех пар сразу' },
+  { id: 'fullbacktest_individual', label: '🔬 Полный бэктест (индивидуальный)', description: 'Детальный бэктест по каждой паре (медленнее)' },
 ];
 
 export function PairlistRunner() {
@@ -49,11 +49,11 @@ export function PairlistRunner() {
         },
         body: JSON.stringify(params)
       });
-      if (!res.ok) throw new Error('Failed to start');
+      if (!res.ok) throw new Error('Не удалось запустить');
       return res.json();
     },
     onSuccess: () => {
-      setMessage('✅ Pairlist optimizer started!');
+      setMessage('✅ Оптимизатор pairlist запущен!');
       refetchJobs();
     },
     onError: (err: any) => {
@@ -63,7 +63,7 @@ export function PairlistRunner() {
   
   const handleRun = () => {
     if (!selectedStrategy) {
-      setMessage('❌ Please select a strategy');
+      setMessage('❌ Выберите стратегию');
       return;
     }
     runMutation.mutate({
@@ -84,13 +84,13 @@ export function PairlistRunner() {
         {/* Strategy & Mode */}
         <div className="xl:col-span-2 space-y-6">
           <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
-            <label className="block text-sm font-medium text-gray-300 mb-3">Strategy</label>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Стратегия</label>
             <select
               value={selectedStrategy}
               onChange={(e) => setSelectedStrategy(e.target.value)}
               className="w-full px-4 py-3 bg-[#0f1419] border border-[#30363d] rounded-lg text-white"
             >
-              <option value="">-- Select strategy --</option>
+              <option value="">-- Выберите стратегию --</option>
               {strategies?.map((s: any) => (
                 <option key={s.name} value={s.name}>{s.name}</option>
               ))}
@@ -98,7 +98,7 @@ export function PairlistRunner() {
           </div>
           
           <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
-            <label className="block text-sm font-medium text-gray-300 mb-3">Evaluation Mode</label>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Режим оценки</label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {MODES.map((mode) => (
                 <label
@@ -125,7 +125,7 @@ export function PairlistRunner() {
           </div>
           
           <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
-            <label className="block text-sm font-medium text-gray-300 mb-3">Config File</label>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Файл конфигурации</label>
             <input
               type="text"
               value={configFile}
@@ -137,11 +137,11 @@ export function PairlistRunner() {
         
         {/* Parameters */}
         <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
-          <h3 className="text-lg font-medium text-white mb-6">Parameters</h3>
+          <h3 className="text-lg font-medium text-white mb-6">Параметры</h3>
           
           <div className="space-y-6">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Target Pairs: {nPairs}</label>
+              <label className="block text-sm text-gray-300 mb-2">Целевые пары: {nPairs}</label>
               <input
                 type="range"
                 min="10"
@@ -154,7 +154,7 @@ export function PairlistRunner() {
             </div>
             
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Max Pairs to Evaluate: {maxPairs}</label>
+              <label className="block text-sm text-gray-300 mb-2">Макс. пар для оценки: {maxPairs}</label>
               <input
                 type="range"
                 min="100"
@@ -167,7 +167,7 @@ export function PairlistRunner() {
             </div>
             
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Download Days</label>
+              <label className="block text-sm text-gray-300 mb-2">Дни загрузки</label>
               <input
                 type="number"
                 min="30"
@@ -179,10 +179,10 @@ export function PairlistRunner() {
             </div>
             
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Backtest Days (optional)</label>
+              <label className="block text-sm text-gray-300 mb-2">Дни бэктеста (необязательно)</label>
               <input
                 type="number"
-                placeholder="All available data"
+                placeholder="Все доступные данные"
                 value={backtestDays}
                 onChange={(e) => setBacktestDays(e.target.value)}
                 className="w-full px-4 py-2 bg-[#0f1419] border border-[#30363d] rounded-lg text-white"
@@ -199,7 +199,7 @@ export function PairlistRunner() {
           disabled={runMutation.isPending || !selectedStrategy}
           className="px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold rounded-lg text-lg"
         >
-          {runMutation.isPending ? '🚀 Starting...' : '🚀 Run Pairlist Optimizer'}
+          {runMutation.isPending ? '🚀 Запуск...' : '🚀 Запустить оптимизатор pairlist'}
         </button>
         
         {message && (
@@ -210,7 +210,7 @@ export function PairlistRunner() {
       {/* Running Jobs */}
       {jobs?.length > 0 && (
         <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
-          <h3 className="text-lg font-medium text-white mb-4">Running Jobs</h3>
+          <h3 className="text-lg font-medium text-white mb-4">Запущенные задачи</h3>
           <div className="space-y-3">
             {jobs.map((job: any) => (
               <div

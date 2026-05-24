@@ -9,7 +9,7 @@ import {
 interface Bot {
   id: string;
   name: string;
-  api_url: string;  // e.g., "http://192.168.0.210:9010"
+  api_url: string;  // e.g., "http://localhost:9010"
   api_port?: number;
   host?: string;
   status?: string;
@@ -17,7 +17,7 @@ interface Bot {
   exchange?: string;
 }
 
-const API_BASE = 'http://192.168.0.210:8000/api/v1';
+const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 export function FreqtradeBots() {
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
@@ -59,7 +59,7 @@ export function FreqtradeBots() {
       <div className="h-screen flex items-center justify-center bg-[#0f1419]">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-500">Loading bots from database...</p>
+          <p className="text-gray-500">Загрузка ботов из базы данных...</p>
         </div>
       </div>
     );
@@ -70,8 +70,8 @@ export function FreqtradeBots() {
       <div className="h-screen flex items-center justify-center bg-[#0f1419]">
         <div className="text-center text-gray-500">
           <Monitor className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p>No bots found with api_url configured</p>
-          <p className="text-sm mt-2">Check the 'bots' table in database</p>
+          <p>Боты с настроенным api_url не найдены</p>
+          <p className="text-sm mt-2">Проверьте таблицу 'bots' в базе данных</p>
         </div>
       </div>
     );
@@ -89,7 +89,7 @@ export function FreqtradeBots() {
       <div className="bg-[#161b22] border-b border-[#30363d] px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Monitor className="w-5 h-5 text-blue-500" />
-          <h1 className="text-lg font-bold text-white">Freqtrade Bots</h1>
+          <h1 className="text-lg font-bold text-white">Боты Freqtrade</h1>
           
           {/* Bot Selector */}
           <select
@@ -120,7 +120,7 @@ export function FreqtradeBots() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
-              Open Dashboard
+              Открыть дашборд
             </a>
           )}
         </div>
@@ -132,7 +132,7 @@ export function FreqtradeBots() {
           <div className="absolute inset-0 flex items-center justify-center bg-[#0f1419] z-10">
             <div className="text-center">
               <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-              <p className="text-gray-500">Loading {selectedBot?.name} dashboard...</p>
+              <p className="text-gray-500">Загрузка дашборда {selectedBot?.name}...</p>
             </div>
           </div>
         )}

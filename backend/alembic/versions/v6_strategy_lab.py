@@ -9,7 +9,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = 'v6_strategy_lab'
-down_revision = None  # Set to last V5 migration
+down_revision = '003'
 branch_labels = None
 depends_on = None
 

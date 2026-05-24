@@ -118,13 +118,13 @@ export function Compare() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Compare Bots</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Сравнение ботов</h1>
         {selectedBots.length > 0 && (
           <button
             onClick={clearAll}
             className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
           >
-            Clear All
+            Очистить всё
           </button>
         )}
       </div>
@@ -132,9 +132,9 @@ export function Compare() {
       {/* Bot Selection */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Select Bots to Compare
+          Выбор ботов для сравнения
           <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
-            ({selectedBots.length}/5 selected)
+            ({selectedBots.length}/5 выбрано)
           </span>
         </h2>
 
@@ -144,7 +144,7 @@ export function Compare() {
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search bots by name, exchange, or strategy..."
+            placeholder="Поиск ботов по имени, бирже или стратегии..."
             className="w-full max-w-md px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -213,7 +213,7 @@ export function Compare() {
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-                  {bot.exchange || 'N/A'} / {bot.strategy || 'N/A'}
+                  {bot.exchange || '-'} / {bot.strategy || '-'}
                 </p>
               </button>
             ))}
@@ -226,7 +226,7 @@ export function Compare() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Performance Comparison
+              Сравнение производительности
             </h2>
           </div>
 
@@ -419,7 +419,7 @@ export function Compare() {
           <div className="px-6 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
             <p className="text-xs text-gray-500 dark:text-gray-400">
               <span className="inline-block w-3 h-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded mr-1"></span>
-              Best performing value
+              Лучшее значение
             </p>
           </div>
         </div>
@@ -442,10 +442,10 @@ export function Compare() {
             />
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-            Select at least 2 bots to compare
+            Выберите минимум 2 бота для сравнения
           </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Choose up to 5 bots from the list above to see a side-by-side comparison of their performance.
+            Выберите до 5 ботов из списка выше, чтобы увидеть сравнение их производительности.
           </p>
         </div>
       )}

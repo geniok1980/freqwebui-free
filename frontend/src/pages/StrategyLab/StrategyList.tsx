@@ -8,6 +8,8 @@ interface Strategy {
   file_path?: string;
 }
 
+const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
+
 export function StrategyList() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ export function StrategyList() {
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
-    fetch('http://192.168.0.210:8000/api/v1/strategy-lab/strategies', {
+    fetch(`${API_BASE}/strategy-lab/strategies`, {
       headers: {'Authorization': 'Bearer ' + token}
     })
     .then(r => r.json())
@@ -31,7 +33,7 @@ export function StrategyList() {
     <div className="p-6 flex items-center justify-center h-64">
       <div className="text-center">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-500">Loading strategies...</p>
+        <p className="text-gray-500">Загрузка стратегий...</p>
       </div>
     </div>
   );
@@ -48,7 +50,7 @@ export function StrategyList() {
 
   // Group by family
   const grouped = filtered.reduce((acc, s) => {
-    const family = s.family || 'Other';
+    const family = s.family || 'Другое';
     if (!acc[family]) acc[family] = [];
     acc[family].push(s);
     return acc;
@@ -59,11 +61,11 @@ export function StrategyList() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">📋 Strategies</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{strategies.length} strategies available for optimization</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">📋 Стратегии</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">{strategies.length} стратегий доступно для оптимизации</p>
         </div>
         <Link to="/strategy-lab" className="text-blue-600 dark:text-blue-400 hover:text-blue-700">
-          ← Back to Strategy Lab
+          ← Назад в лабораторию стратегий
         </Link>
       </div>
 
@@ -71,7 +73,7 @@ export function StrategyList() {
       <div className="flex gap-4 mb-6">
         <input
           type="text"
-          placeholder="Search strategies..."
+          placeholder="Поиск стратегий..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -83,7 +85,7 @@ export function StrategyList() {
         >
           {families.map(f => (
             <option key={f} value={f}>
-              {f === 'all' ? 'All Families' : f}
+              {f === 'all' ? 'Все семейства' : f}
             </option>
           ))}
         </select>
@@ -123,13 +125,13 @@ export function StrategyList() {
                       to={`/strategy-lab/workflow?strategy=${strategy.name}&steps=backtest`}
                       className="flex-1 text-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
                     >
-                      📊 Backtest
+                      📊 Бэктест
                     </Link>
                     <Link
                       to={`/strategy-lab/hyperopt/${strategy.name}`}
                       className="flex-1 text-center px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded"
                     >
-                      🔍 Hyperopt
+                      🔍 Гиперопт
                     </Link>
                   </div>
                 </div>
@@ -141,7 +143,7 @@ export function StrategyList() {
 
       {filtered.length === 0 && (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          No strategies match your filters
+          Нет стратегий по выбранным фильтрам
         </div>
       )}
     </div>

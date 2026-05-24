@@ -142,7 +142,7 @@ export function NotificationBell() {
             ? 'bg-gray-200 dark:bg-gray-700'
             : 'hover:bg-gray-100 dark:hover:bg-gray-700'
         }`}
-        title={`${unreadCount} unread notifications`}
+        title={`${unreadCount} непрочитанных уведомлений`}
       >
         <svg
           className={`w-6 h-6 ${hasCritical ? 'text-red-500 animate-pulse' : 'text-gray-600 dark:text-gray-400'}`}
@@ -176,7 +176,7 @@ export function NotificationBell() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Notifications
+              Уведомления
             </h3>
             {unreadCount > 0 && (
               <button
@@ -184,7 +184,7 @@ export function NotificationBell() {
                 className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                 disabled={markAllReadMutation.isPending}
               >
-                Mark all as read
+                Прочитать все
               </button>
             )}
           </div>
@@ -205,7 +205,7 @@ export function NotificationBell() {
                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                   />
                 </svg>
-                <p className="text-sm">No notifications</p>
+                <p className="text-sm">Уведомлений нет</p>
               </div>
             ) : (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -236,7 +236,7 @@ export function NotificationBell() {
                               dismissMutation.mutate([alert.id]);
                             }}
                             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
-                            title="Dismiss"
+                            title="Скрыть"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -261,7 +261,7 @@ export function NotificationBell() {
           {alertsData && alertsData.total > 10 && (
             <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {alertsData.total} total notifications
+                Всего уведомлений: {alertsData.total}
               </span>
             </div>
           )}

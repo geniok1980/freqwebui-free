@@ -22,6 +22,7 @@ class User(Base):
     """Dashboard user account with role-based permissions."""
 
     __tablename__ = "users"
+    __table_args__ = {"schema": "public"}
 
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)

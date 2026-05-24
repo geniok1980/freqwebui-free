@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Save, Server, Info, Lock, User } from 'lucide-react';
+import { Save, Server, Info, Lock } from 'lucide-react';
 
-const API_BASE = 'http://192.168.0.210:8000/api/v1';
+const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 export function DiscoverySettings() {
   const [hostIp, setHostIp] = useState('');
@@ -95,24 +95,24 @@ export function DiscoverySettings() {
     <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
       <div className="flex items-center gap-3 mb-6">
         <Server className="w-6 h-6 text-blue-500" />
-        <h3 className="text-lg font-bold text-white">Discovery Settings</h3>
+        <h3 className="text-lg font-bold text-white">Настройки обнаружения</h3>
       </div>
       
       <div className="space-y-4">
         <div>
           <label className="block text-sm text-gray-400 mb-2">
-            Discovery Host IP
+            IP хоста для обнаружения
           </label>
           <input
             type="text"
             value={hostIp}
             onChange={(e) => setHostIp(e.target.value)}
-            placeholder="192.168.0.210"
+            placeholder="localhost"
             className="w-full px-4 py-2 bg-[#0f1419] border border-[#30363d] rounded-lg text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
           <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
             <Info className="w-3 h-3" />
-            IP address for accessing Docker bots. Leave empty to use localhost.
+            IP адрес для доступа к Docker-ботам. Оставьте пустым для localhost.
           </p>
         </div>
         
@@ -120,7 +120,7 @@ export function DiscoverySettings() {
         <div className="pt-4 border-t border-[#30363d]">
           <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
             <Lock className="w-4 h-4" />
-            API Authentication
+            API авторизация
           </label>
           
           <div className="space-y-3">
@@ -128,19 +128,19 @@ export function DiscoverySettings() {
               type="text"
               value={apiUsername}
               onChange={(e) => setApiUsername(e.target.value)}
-              placeholder="API Username"
+              placeholder="Логин API"
               className="w-full px-4 py-2 bg-[#0f1419] border border-[#30363d] rounded-lg text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
             <input
               type="password"
               value={apiPassword}
               onChange={(e) => setApiPassword(e.target.value)}
-              placeholder="API Password (leave empty to keep current)"
+              placeholder="Пароль API (оставьте пустым, чтобы не менять)"
               className="w-full px-4 py-2 bg-[#0f1419] border border-[#30363d] rounded-lg text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Credentials for accessing Freqtrade bot APIs. Same for all bots.
+            Учетные данные для доступа к API Freqtrade. Общие для всех ботов.
           </p>
         </div>
         
@@ -151,7 +151,7 @@ export function DiscoverySettings() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
           >
             <Save className="w-4 h-4" />
-            {loading ? 'Saving...' : 'Save'}
+            {loading ? 'Сохранение...' : 'Сохранить'}
           </button>
           
           {message && (

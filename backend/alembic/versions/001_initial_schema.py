@@ -22,11 +22,11 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
     # Create enum types
-    op.execute("CREATE TYPE userrole AS ENUM ('admin', 'operator', 'readonly')")
-    op.execute("CREATE TYPE botenvironment AS ENUM ('docker', 'baremetal', 'k8s', 'manual')")
-    op.execute("CREATE TYPE healthstate AS ENUM ('healthy', 'degraded', 'unreachable', 'unknown')")
-    op.execute("CREATE TYPE sourcemode AS ENUM ('api', 'sqlite', 'mixed', 'auto')")
-    op.execute("CREATE TYPE tradingmode AS ENUM ('spot', 'futures', 'margin')")
+    op.execute("DO $$ BEGIN CREATE TYPE userrole AS ENUM ('admin', 'operator', 'readonly'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;")
+    op.execute("DO $$ BEGIN CREATE TYPE botenvironment AS ENUM ('docker', 'baremetal', 'k8s', 'manual'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;")
+    op.execute("DO $$ BEGIN CREATE TYPE healthstate AS ENUM ('healthy', 'degraded', 'unreachable', 'unknown'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;")
+    op.execute("DO $$ BEGIN CREATE TYPE sourcemode AS ENUM ('api', 'sqlite', 'mixed', 'auto'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;")
+    op.execute("DO $$ BEGIN CREATE TYPE tradingmode AS ENUM ('spot', 'futures', 'margin'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;")
 
     # Create users table
     op.create_table(

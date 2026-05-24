@@ -70,7 +70,7 @@ export function BotFilters() {
         <div className="flex-1 min-w-[200px]">
           <input
             type="text"
-            placeholder="Search bots..."
+            placeholder="Поиск ботов..."
             value={filters.search || ''}
             onChange={(e) => setFilter('search', e.target.value || undefined)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -88,11 +88,11 @@ export function BotFilters() {
           }
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">All Environments</option>
+          <option value="">Все окружения</option>
           <option value="docker">Docker</option>
-          <option value="baremetal">Bare Metal</option>
+          <option value="baremetal">Без контейнера</option>
           <option value="k8s">Kubernetes</option>
-          <option value="manual">Manual</option>
+          <option value="manual">Вручную</option>
         </select>
 
         {/* Health Filter */}
@@ -106,10 +106,10 @@ export function BotFilters() {
           }
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">All Health States</option>
-          <option value="healthy">Healthy</option>
-          <option value="degraded">Degraded</option>
-          <option value="unreachable">Unreachable</option>
+          <option value="">Все статусы</option>
+          <option value="healthy">Здоров</option>
+          <option value="degraded">Деградирован</option>
+          <option value="unreachable">Недоступен</option>
         </select>
 
         {/* Sort By */}
@@ -118,18 +118,18 @@ export function BotFilters() {
           onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
-          <option value="name">Sort by Name</option>
-          <option value="profit">Sort by Profit</option>
-          <option value="health">Sort by Health</option>
-          <option value="exchange">Sort by Exchange</option>
-          <option value="strategy">Sort by Strategy</option>
+          <option value="name">Сортировать по имени</option>
+          <option value="profit">Сортировать по прибыли</option>
+          <option value="health">Сортировать по статусу</option>
+          <option value="exchange">Сортировать по бирже</option>
+          <option value="strategy">Сортировать по стратегии</option>
         </select>
 
         {/* Sort Order Toggle */}
         <button
           onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
           className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-          title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+          title={sortOrder === 'asc' ? 'По возрастанию' : 'По убыванию'}
         >
           {sortOrder === 'asc' ? (
             <svg
@@ -171,7 +171,7 @@ export function BotFilters() {
                 ? 'bg-blue-500 text-white'
                 : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
             }`}
-            title="Grid view"
+            title="Плитка"
           >
             <svg
               className="w-5 h-5"
@@ -194,7 +194,7 @@ export function BotFilters() {
                 ? 'bg-blue-500 text-white'
                 : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
             }`}
-            title="List view"
+            title="Список"
           >
             <svg
               className="w-5 h-5"
@@ -218,7 +218,7 @@ export function BotFilters() {
             onClick={clearFilters}
             className="px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
           >
-            Clear ({activeFilterCount})
+            Очистить ({activeFilterCount})
           </button>
         )}
 
@@ -235,7 +235,7 @@ export function BotFilters() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-          {showAdvanced ? 'Hide' : 'More'} Filters
+          {showAdvanced ? 'Скрыть' : 'Больше'} фильтров
         </button>
       </div>
 
@@ -247,7 +247,7 @@ export function BotFilters() {
             {filterOptions.exchanges.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Exchange
+                  Биржа
                 </label>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {filterOptions.exchanges.map(exchange => (
@@ -273,7 +273,7 @@ export function BotFilters() {
             {filterOptions.strategies.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Strategy
+                  Стратегия
                 </label>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
                   {filterOptions.strategies.map(strategy => (
@@ -301,7 +301,7 @@ export function BotFilters() {
             {filterOptions.tags.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tags
+                  Теги
                 </label>
                 <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                   {filterOptions.tags.map(tag => {
@@ -335,32 +335,32 @@ export function BotFilters() {
             {/* Quick Stats */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quick Stats
+                Быстрая статистика
               </label>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
                   <span className="text-green-700 dark:text-green-400 font-medium">
                     {filterCounts.healthStates['healthy'] || 0}
                   </span>
-                  <span className="text-green-600 dark:text-green-500 ml-1">Healthy</span>
+                  <span className="text-green-600 dark:text-green-500 ml-1">Здоров</span>
                 </div>
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">
                   <span className="text-yellow-700 dark:text-yellow-400 font-medium">
                     {filterCounts.healthStates['degraded'] || 0}
                   </span>
-                  <span className="text-yellow-600 dark:text-yellow-500 ml-1">Degraded</span>
+                  <span className="text-yellow-600 dark:text-yellow-500 ml-1">Деградирован</span>
                 </div>
                 <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded">
                   <span className="text-red-700 dark:text-red-400 font-medium">
                     {filterCounts.healthStates['unreachable'] || 0}
                   </span>
-                  <span className="text-red-600 dark:text-red-500 ml-1">Offline</span>
+                  <span className="text-red-600 dark:text-red-500 ml-1">Офлайн</span>
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
                   <span className="text-blue-700 dark:text-blue-400 font-medium">
                     {bots.length}
                   </span>
-                  <span className="text-blue-600 dark:text-blue-500 ml-1">Total</span>
+                  <span className="text-blue-600 dark:text-blue-500 ml-1">Всего</span>
                 </div>
               </div>
             </div>

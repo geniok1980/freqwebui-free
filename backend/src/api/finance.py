@@ -9,19 +9,22 @@ from datetime import datetime, timedelta
 import asyncpg
 from pydantic import BaseModel
 
-# Auth removed for public access
+from src.tenancy import get_current_tenant_schema
+from src.api.deps import CurrentUser
 
 router = APIRouter(prefix="/finance", tags=["finance"])
 
 # Database connection
 async def get_db_pool():
     """Get database connection pool."""
+    tenant_schema = get_current_tenant_schema()
     return await asyncpg.create_pool(
         host="192.168.0.210",
         port=5432,
         user="dashboard",
         password="dashboard",
-        database="financial_data"
+        database="financial_data",
+        server_settings={"search_path": f"{tenant_schema},public"},
     )
 
 # Pydantic models
@@ -89,7 +92,7 @@ class BybitOrderbook(BaseModel):
 
 @router.get("/crypto/prices", response_model=List[CryptoPrice])
 async def get_crypto_prices(
-    # Removed auth for public access
+    _: CurrentUser,
     limit: int = 100,
 ):
     """Get latest crypto prices."""
@@ -116,7 +119,7 @@ async def get_crypto_prices(
 
 @router.get("/crypto/movers")
 async def get_crypto_movers(
-    # Removed auth for public access
+    _: CurrentUser,
     category: str = "gainers",
     limit: int = 10,
 ):
@@ -138,7 +141,7 @@ async def get_crypto_movers(
 
 @router.get("/stocks", response_model=List[Stock])
 async def get_stocks(
-    # Removed auth for public access
+    _: CurrentUser,
     limit: int = 100,
     sector: Optional[str] = None,
 ):
@@ -171,7 +174,7 @@ async def get_stocks(
 
 @router.get("/news", response_model=List[NewsItem])
 async def get_news(
-    # Removed auth for public access
+    _: CurrentUser,
     limit: int = 50,
     category: Optional[str] = None,
     symbol: Optional[str] = None,
@@ -199,7 +202,7 @@ async def get_news(
 
 @router.get("/economic", response_model=List[EconomicIndicator])
 async def get_economic_indicators(
-    # Public access
+    _: CurrentUser,
 ):
     """Get latest economic indicators."""
     pool = await get_db_pool()
@@ -216,7 +219,7 @@ async def get_economic_indicators(
 
 @router.get("/bybit/orderbook", response_model=List[BybitOrderbook])
 async def get_bybit_orderbook(
-    # Removed auth for public access
+    _: CurrentUser,
     symbol: Optional[str] = None,
 ):
     """Get Bybit orderbook data."""
@@ -246,7 +249,7 @@ async def get_bybit_orderbook(
 
 @router.get("/portfolio/summary")
 async def get_portfolio_summary(
-    # Public access
+    _: CurrentUser,
 ):
     """Get portfolio summary."""
     pool = await get_db_pool()
@@ -264,7 +267,7 @@ async def get_portfolio_summary(
 
 @router.get("/sync/status")
 async def get_sync_status(
-    # Public access
+    _: CurrentUser,
 ):
     """Get data sync status."""
     pool = await get_db_pool()
@@ -282,7 +285,7 @@ async def get_sync_status(
 @router.post("/sync/trigger")
 async def trigger_sync(
     source: str,
-    # Public access
+    _: CurrentUser,
 ):
     """Trigger data sync for a source."""
     # This would trigger the AlexFinanceData collector

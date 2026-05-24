@@ -1,16 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { strategyLabApi } from '../../services/strategyLabApi';
+import { strategyLabApi, type Strategy } from '../../services/strategyLabApi';
 
-const API_BASE = 'http://192.168.0.210:8000/api/v1';
-
-interface Strategy {
-  name: string;
-  family: string;
-  version: string;
-  description?: string;
-  file_path: string;
-}
+const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 export function StrategiesList() {
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
@@ -75,12 +67,12 @@ export function StrategiesList() {
   };
   
   // Group strategies by family
-  const groupedStrategies = strategies?.reduce((acc: any, strategy: Strategy) => {
+  const groupedStrategies = strategies?.reduce((acc: Record<string, Strategy[]>, strategy: Strategy) => {
     const family = strategy.family || 'Other';
     if (!acc[family]) acc[family] = [];
     acc[family].push(strategy);
     return acc;
-  }, {}) || {};
+  }, {} as Record<string, Strategy[]>) || {};
   
   if (isLoading) {
     return (
@@ -107,7 +99,7 @@ export function StrategiesList() {
       )}
       
       <div className="space-y-6">
-        {Object.entries(groupedStrategies).map(([family, familyStrategies]: [string, any]) => (
+        {Object.entries(groupedStrategies).map(([family, familyStrategies]) => (
           <div key={family} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">📁 {family}</h2>

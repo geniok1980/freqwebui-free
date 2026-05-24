@@ -64,7 +64,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
                 </span>
                 {bot.is_dryrun && (
                   <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded-full">
-                    Dry Run
+                    Демо
                   </span>
                 )}
               </div>
@@ -79,7 +79,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-1.5 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                title="Open FreqUI"
+                title="Открыть FreqUI"
                 onClick={(e) => e.stopPropagation()}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +119,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
         <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Profit */}
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Profit</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Прибыль</p>
             {metricsLoading ? (
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : (
@@ -132,21 +132,21 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
 
           {/* Win Rate */}
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Win Rate</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Винрейт</p>
             {metricsLoading ? (
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : (
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
                 {metrics?.win_rate
                   ? `${formatNumber(metrics.win_rate * 100)}%`
-                  : 'N/A'}
+                  : 'Н/Д'}
               </p>
             )}
           </div>
 
           {/* Open Positions */}
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Positions</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Позиции</p>
             {metricsLoading ? (
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : (
@@ -158,7 +158,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
 
           {/* Trades */}
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Trades</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Сделки</p>
             {metricsLoading ? (
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : (
@@ -209,7 +209,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
                   : 'text-yellow-600 dark:text-yellow-400'
               }`}
             >
-              Data: {metrics.data_source.toUpperCase()}
+              Данные: {metrics.data_source.toUpperCase()}
             </span>
           </div>
         )}
@@ -225,11 +225,11 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
           to={`/bots/${bot.id}`}
           className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
         >
-          View Details
+          Детали
         </Link>
         {bot.last_seen && (
           <span className="text-xs text-gray-400">
-            Last seen: {new Date(bot.last_seen).toLocaleTimeString('de-AT', { timeZone: 'Europe/Vienna' })}
+            Последняя активность: {new Date(bot.last_seen).toLocaleTimeString('de-AT', { timeZone: 'Europe/Vienna' })}
           </span>
         )}
       </div>

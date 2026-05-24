@@ -3,7 +3,7 @@
  */
 
 import { useState, FormEvent } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
 export default function Login() {
@@ -12,6 +12,7 @@ export default function Login() {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [tenantSlug, setTenantSlug] = useState('default');
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -23,7 +24,7 @@ export default function Login() {
     clearError();
 
     try {
-      await login(username, password);
+      await login(username.trim(), password.trim(), tenantSlug.trim() || 'default');
       navigate('/');
     } catch {
       // Error is handled by the store
@@ -36,10 +37,10 @@ export default function Login() {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Freqtrade Dashboard
+            Панель Freqtrade
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Sign in to your account
+            Войдите в аккаунт
           </p>
         </div>
 
@@ -56,10 +57,30 @@ export default function Login() {
             {/* Username field */}
             <div>
               <label
+                htmlFor="tenantSlug"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Тенант
+              </label>
+              <input
+                id="tenantSlug"
+                name="tenantSlug"
+                type="text"
+                required
+                value={tenantSlug}
+                onChange={(e) => setTenantSlug(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                placeholder="default"
+              />
+            </div>
+
+            {/* Username field */}
+            <div>
+              <label
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Username
+                Логин
               </label>
               <input
                 id="username"
@@ -70,7 +91,7 @@ export default function Login() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter your username"
+                placeholder="Введите логин"
               />
             </div>
 
@@ -80,7 +101,7 @@ export default function Login() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Password
+                Пароль
               </label>
               <input
                 id="password"
@@ -91,7 +112,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter your password"
+                placeholder="Введите пароль"
               />
             </div>
           </div>
@@ -124,17 +145,23 @@ export default function Login() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Signing in...
+                Вход...
               </span>
             ) : (
-              'Sign in'
+              'Войти'
             )}
           </button>
         </form>
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>Multi-Bot Monitoring Dashboard</p>
+          <p>Панель мониторинга мульти-ботов</p>
+          <p className="mt-2">
+            Нет аккаунта?{' '}
+            <Link to="/signup" className="text-blue-600 dark:text-blue-400 hover:underline">
+              Зарегистрироваться
+            </Link>
+          </p>
         </div>
       </div>
     </div>

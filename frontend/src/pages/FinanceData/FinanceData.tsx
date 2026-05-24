@@ -158,7 +158,7 @@ export function FinanceData() {
       if (syncRes.status === 'fulfilled') {
         const response = syncRes.value;
         const data = response.data || response;
-        setSyncStatus(data || {});
+        setSyncStatus((data || {}) as SyncStatus);
       }
 
       setLastUpdate(new Date());
@@ -202,12 +202,12 @@ export function FinanceData() {
   };
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'crypto', label: 'Crypto', icon: BarChart3 },
-    { id: 'stocks', label: 'Stocks', icon: DollarSign },
-    { id: 'bybit', label: 'Bybit Orderbook', icon: Globe },
-    { id: 'economic', label: 'Economic', icon: TrendingUp },
-    { id: 'news', label: 'News', icon: Newspaper },
+    { id: 'overview', label: 'Обзор', icon: Activity },
+    { id: 'crypto', label: 'Крипто', icon: BarChart3 },
+    { id: 'stocks', label: 'Акции', icon: DollarSign },
+    { id: 'bybit', label: 'Стакан Bybit', icon: Globe },
+    { id: 'economic', label: 'Макро', icon: TrendingUp },
+    { id: 'news', label: 'Новости', icon: Newspaper },
   ];
 
   const isSyncError = (source: string) => {
@@ -222,12 +222,12 @@ export function FinanceData() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gradient">FinanceData</h1>
-              <p className="text-[#8b949e] mt-1">Real-time financial intelligence</p>
+              <p className="text-[#8b949e] mt-1">Финансовая аналитика в реальном времени</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-[#8b949e] text-sm">
                 <Clock size={16} />
-                <span>Last update: {lastUpdate.toLocaleTimeString()}</span>
+                <span>Обновлено: {lastUpdate.toLocaleTimeString()}</span>
               </div>
               <button
                 onClick={fetchAllData}
@@ -235,7 +235,7 @@ export function FinanceData() {
                 className="flex items-center gap-2 btn-secondary"
               >
                 <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-                Refresh
+                Обновить
               </button>
             </div>
           </div>
@@ -283,7 +283,7 @@ export function FinanceData() {
               <div className="card-af p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[#8b949e] text-sm">BTC Price</p>
+                    <p className="text-[#8b949e] text-sm">Цена BTC</p>
                     <p className="text-2xl font-bold text-[#e6edf3]">
                       {formatCurrency(cryptoData[0]?.price_usd)}
                     </p>
@@ -303,7 +303,7 @@ export function FinanceData() {
               <div className="card-af p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[#8b949e] text-sm">ETH Price</p>
+                    <p className="text-[#8b949e] text-sm">Цена ETH</p>
                     <p className="text-2xl font-bold text-[#e6edf3]">
                       {formatCurrency(cryptoData[1]?.price_usd)}
                     </p>
@@ -320,7 +320,7 @@ export function FinanceData() {
               <div className="card-af p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[#8b949e] text-sm">Fed Funds Rate</p>
+                    <p className="text-[#8b949e] text-sm">Ставка ФРС</p>
                     <p className="text-2xl font-bold text-[#e6edf3]">
                       {economicData[0]?.value ? `${economicData[0].value}%` : '-'}
                     </p>
@@ -337,9 +337,9 @@ export function FinanceData() {
               <div className="card-af p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[#8b949e] text-sm">Latest News</p>
+                    <p className="text-[#8b949e] text-sm">Последние новости</p>
                     <p className="text-2xl font-bold text-[#e6edf3]">{newsData.length || 0}</p>
-                    <p className="text-sm text-[#8b949e]">Today</p>
+                    <p className="text-sm text-[#8b949e]">Сегодня</p>
                   </div>
                   <div className="w-12 h-12 rounded-lg bg-[#d29922]/10 flex items-center justify-center">
                     <Newspaper size={24} style={{ color: financeColors.news }} />

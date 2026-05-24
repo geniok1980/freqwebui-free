@@ -143,35 +143,35 @@ export function Historic() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Historic Data
+          Исторические данные
         </h1>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          From Analytics DB (192.168.0.210)
+          Из Analytics DB (localhost)
         </span>
       </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Bots</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Всего ботов</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {botsData?.length || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Trades</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Всего сделок</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {snapshots?.reduce((acc, s) => acc + (s.trade_count || 0), 0) || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Open Trades</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Открытые сделки</p>
           <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
             {snapshots?.reduce((acc, s) => acc + (s.open_trades || 0), 0) || 0}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Profit</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Общая прибыль</p>
           <p className={`text-2xl font-bold ${
             (snapshots?.reduce((acc, s) => acc + Number(s.profit_all || 0), 0) || 0) >= 0
               ? 'text-green-600 dark:text-green-400'
@@ -186,7 +186,7 @@ export function Historic() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Bot Snapshots
+            Снимки ботов
           </h2>
         </div>
         <div className="overflow-x-auto">
@@ -194,22 +194,22 @@ export function Historic() {
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Bot Name
+                  Бот
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Status
+                  Статус
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Last Update
+                  Последнее обновление
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Profit All
+                  Прибыль общая
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Winrate
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Trades
+                  Сделки
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Open
@@ -218,7 +218,7 @@ export function Historic() {
                   Balance
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Action
+                  Действие
                 </th>
               </tr>
             </thead>
@@ -226,13 +226,13 @@ export function Historic() {
               {botsLoading || snapshotsLoading ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
-                    Loading...
+                    Загрузка...
                   </td>
                 </tr>
               ) : !snapshots?.length ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
-                    No historic data available. Make sure analytics pipeline is running.
+                    Исторические данные отсутствуют. Убедитесь, что analytics pipeline запущен.
                   </td>
                 </tr>
               ) : (
@@ -253,11 +253,11 @@ export function Historic() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {botInfo?.is_active ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                          ● Active
+                          ● Активен
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                          ○ Inactive
+                          ○ Неактивен
                         </span>
                       )}
                     </td>
@@ -297,7 +297,7 @@ export function Historic() {
                           setSelectedBot(snapshot.bot_name);
                         }}
                       >
-                        View Chart
+                        Показать график
                       </button>
                     </td>
                   </tr>
@@ -314,23 +314,23 @@ export function Historic() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {selectedBot} - Profit History
+              {selectedBot} - История прибыли
             </h2>
             <button
               onClick={() => setSelectedBot(null)}
               className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
             >
-              Close
+              Закрыть
             </button>
           </div>
 
           {!seriesData ? (
             <div className="h-64 flex items-center justify-center text-gray-500">
-              Loading chart data...
+              Загрузка данных графика...
             </div>
           ) : !chartData.length ? (
             <div className="h-64 flex items-center justify-center text-gray-500">
-              No chart data available
+              Нет данных графика
             </div>
           ) : (
             <div className="h-80">
@@ -362,7 +362,7 @@ export function Historic() {
                       borderRadius: '8px',
                     }}
                     labelStyle={{ color: '#9CA3AF' }}
-                    formatter={(value: number) => [formatProfit(value), 'Profit']}
+                    formatter={(value: number) => [formatProfit(value), 'Прибыль']}
                   />
                   <Area
                     type="monotone"
@@ -381,7 +381,7 @@ export function Historic() {
           {chartData.length > 0 && (
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Winrate History
+                История винрейта
               </h3>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -407,7 +407,7 @@ export function Historic() {
                         borderRadius: '8px',
                       }}
                       labelStyle={{ color: '#9CA3AF' }}
-                      formatter={(value: number) => [formatWinrate(value), 'Winrate']}
+                      formatter={(value: number) => [formatWinrate(value), 'Винрейт']}
                     />
                     <Line
                       type="monotone"
@@ -427,12 +427,12 @@ export function Historic() {
       {/* Info Box */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-1">
-          About Historic Data
+          О разделе Исторические данные
         </h3>
         <p className="text-sm text-blue-700 dark:text-blue-300">
-          This data comes from the analytics database (192.168.0.210) which stores historical snapshots
-          of your trading bots. The pipeline runs every 5 minutes to capture bot metrics.
-          Click on a bot row or "View Chart" to see profit/winrate history over time.
+          Эти данные приходят из analytics database (localhost), где хранятся исторические
+          снимки ваших торговых ботов. Конвейер запускается каждые 5 минут и сохраняет метрики.
+          Нажмите на строку бота или «Показать график», чтобы увидеть историю прибыли/винрейта.
         </p>
       </div>
     </div>

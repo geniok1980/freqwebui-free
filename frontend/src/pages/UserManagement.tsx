@@ -40,13 +40,13 @@ export function UserManagement() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('User created successfully');
+      toast.success('Пользователь успешно создан');
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setShowCreateModal(false);
       resetForm();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Failed to create user');
+      toast.error(error.response?.data?.detail || 'Не удалось создать пользователя');
     },
   });
 
@@ -56,13 +56,13 @@ export function UserManagement() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('User updated successfully');
+      toast.success('Пользователь успешно обновлен');
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setEditingUser(null);
       resetForm();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Failed to update user');
+      toast.error(error.response?.data?.detail || 'Не удалось обновить пользователя');
     },
   });
 
@@ -72,12 +72,12 @@ export function UserManagement() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('User deleted successfully');
+      toast.success('Пользователь успешно удален');
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDeleteConfirm(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Failed to delete user');
+      toast.error(error.response?.data?.detail || 'Не удалось удалить пользователя');
     },
   });
 
@@ -89,7 +89,7 @@ export function UserManagement() {
 
   const handleCreate = () => {
     if (!formUsername || !formPassword) {
-      toast.error('Username and password are required');
+      toast.error('Требуются логин и пароль');
       return;
     }
     createUser.mutate({
@@ -112,7 +112,7 @@ export function UserManagement() {
       data.role = formRole;
     }
     if (Object.keys(data).length === 0) {
-      toast.info('No changes to save');
+      toast.info('Нет изменений для сохранения');
       return;
     }
     updateUser.mutate({ id: editingUser.id, data });
@@ -138,7 +138,7 @@ export function UserManagement() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-500">Failed to load users. Make sure you have admin access.</p>
+        <p className="text-red-500">Не удалось загрузить пользователей. Проверьте права администратора.</p>
       </div>
     );
   }
@@ -146,12 +146,12 @@ export function UserManagement() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Управление пользователями</h1>
         <button
           onClick={() => setShowCreateModal(true)}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
         >
-          Add User
+          Добавить пользователя
         </button>
       </div>
 
@@ -161,16 +161,16 @@ export function UserManagement() {
           <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Username
+                Логин
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Role
+                Роль
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Created
+                Создан
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Actions
+                Действия
               </th>
             </tr>
           </thead>
@@ -210,13 +210,13 @@ export function UserManagement() {
                     onClick={() => openEditModal(user)}
                     className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mr-4"
                   >
-                    Edit
+                    Изменить
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(user.id)}
                     className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                   >
-                    Delete
+                    Удалить
                   </button>
                 </td>
               </tr>
@@ -226,7 +226,7 @@ export function UserManagement() {
 
         {users.length === 0 && (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            No users found
+            Пользователи не найдены
           </div>
         )}
       </div>
@@ -234,13 +234,13 @@ export function UserManagement() {
       {/* Create User Modal */}
       {showCreateModal && (
         <Modal
-          title="Create User"
+          title="Создать пользователя"
           onClose={() => {
             setShowCreateModal(false);
             resetForm();
           }}
           isLoading={createUser.isPending}
-          loadingText="Creating user..."
+          loadingText="Создание пользователя..."
         >
           <UserForm
             username={formUsername}
@@ -251,7 +251,7 @@ export function UserManagement() {
             setRole={setFormRole}
             onSubmit={handleCreate}
             isLoading={createUser.isPending}
-            submitLabel="Create"
+            submitLabel="Создать"
             requirePassword
           />
         </Modal>
@@ -260,13 +260,13 @@ export function UserManagement() {
       {/* Edit User Modal */}
       {editingUser && (
         <Modal
-          title="Edit User"
+          title="Редактировать пользователя"
           onClose={() => {
             setEditingUser(null);
             resetForm();
           }}
           isLoading={updateUser.isPending}
-          loadingText="Saving changes..."
+          loadingText="Сохранение изменений..."
         >
           <UserForm
             username={formUsername}
@@ -277,7 +277,7 @@ export function UserManagement() {
             setRole={setFormRole}
             onSubmit={handleUpdate}
             isLoading={updateUser.isPending}
-            submitLabel="Save Changes"
+            submitLabel="Сохранить изменения"
           />
         </Modal>
       )}
@@ -285,13 +285,13 @@ export function UserManagement() {
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <Modal
-          title="Delete User"
+          title="Удалить пользователя"
           onClose={() => setDeleteConfirm(null)}
           isLoading={deleteUser.isPending}
-          loadingText="Deleting user..."
+          loadingText="Удаление пользователя..."
         >
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Are you sure you want to delete this user? This action cannot be undone.
+            Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить.
           </p>
           <div className="flex justify-end gap-3">
             <button
@@ -299,14 +299,14 @@ export function UserManagement() {
               disabled={deleteUser.isPending}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
             >
-              Cancel
+              Отмена
             </button>
             <button
               onClick={() => deleteUser.mutate(deleteConfirm)}
               disabled={deleteUser.isPending}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg"
             >
-              Delete
+              Удалить
             </button>
           </div>
         </Modal>
@@ -341,7 +341,7 @@ function Modal({
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {loadingText || 'Processing...'}
+                {loadingText || 'Обработка...'}
               </span>
             </div>
           </div>
@@ -392,7 +392,7 @@ function UserForm({
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Username
+          Логин
         </label>
         <input
           type="text"
@@ -404,7 +404,7 @@ function UserForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Password {!requirePassword && '(leave empty to keep current)'}
+          Пароль {!requirePassword && '(оставьте пустым, чтобы не менять)'}
         </label>
         <input
           type="password"
@@ -416,19 +416,19 @@ function UserForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Role
+          Роль
         </label>
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
           className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="readonly">Read Only</option>
-          <option value="operator">Operator</option>
-          <option value="admin">Admin</option>
+          <option value="readonly">Только чтение</option>
+          <option value="operator">Оператор</option>
+          <option value="admin">Админ</option>
         </select>
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Admin: Full access | Operator: Can control bots | Read Only: View only
+          Админ: полный доступ | Оператор: управление ботами | Только чтение: просмотр
         </p>
       </div>
 
@@ -438,7 +438,7 @@ function UserForm({
           disabled={isLoading}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg"
         >
-          {isLoading ? 'Saving...' : submitLabel}
+          {isLoading ? 'Сохранение...' : submitLabel}
         </button>
       </div>
     </div>

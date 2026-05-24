@@ -9,21 +9,29 @@ from typing import List, Optional
 import asyncpg
 import json
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.services.agent_docker import AgentDockerController
+from src.api.deps import get_current_active_user
+from src.tenancy import get_current_tenant_schema
 
-router = APIRouter(prefix="/agent", tags=["agent"])
+router = APIRouter(
+    prefix="/agent",
+    tags=["agent"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 # Database connection - SAME as finance.py
 async def get_db_pool():
     """Get database connection pool for financial_data."""
+    tenant_schema = get_current_tenant_schema()
     return await asyncpg.create_pool(
         host="192.168.0.210",
         port=5432,
         user="dashboard",
         password="dashboard",
-        database="financial_data"
+        database="financial_data",
+        server_settings={"search_path": f"{tenant_schema},public"},
     )
 
 

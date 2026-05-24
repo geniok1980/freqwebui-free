@@ -8,20 +8,22 @@ interface LayoutProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: '📊' },
-  { name: 'Freqtrade Bots', href: '/freqtrade-bots', icon: '🖥️' },
-  { name: 'Historic Bots', href: '/historic', icon: '📈' },
-  { name: 'Financal Data', href: '/financedata', icon: '💰' },
-  { name: 'Strategy Lab', href: '/strategy-lab', icon: '🔬' },
-  { name: 'Pairlist Optimizer', href: '/pairlist-selector', icon: '🎯' },
-  { name: 'Backtest Results', href: '/backtest', icon: '📉' },
-  { name: 'Compare', href: '/compare', icon: '⚖️' },
-  { name: 'Discovery', href: '/discovery', icon: '🔍' },
-  { name: 'Alerts', href: '/alerts', icon: '🔔' },
-  { name: 'Settings', href: '/settings', icon: '⚙️' },
+  { name: 'Панель', href: '/', icon: '📊' },
+  { name: 'Боты Freqtrade', href: '/freqtrade-bots', icon: '🖥️' },
+  { name: 'История ботов', href: '/historic', icon: '📈' },
+  { name: 'Финансовые данные', href: '/financedata', icon: '💰' },
+  { name: 'Лаборатория стратегий', href: '/strategy-lab', icon: '🔬' },
+  { name: 'Оптимизатор pairlist', href: '/pairlist-selector', icon: '🎯' },
+  { name: 'Результаты бэктеста', href: '/backtest', icon: '📉' },
+  { name: 'Сравнение', href: '/compare', icon: '⚖️' },
+  { name: 'Обнаружение', href: '/discovery', icon: '🔍' },
+  { name: 'Оповещения', href: '/alerts', icon: '🔔' },
+  { name: 'Настройки', href: '/settings', icon: '⚙️' },
 ];
 
-const adminNavigation = [{ name: 'Users', href: '/users', icon: '👥' }];
+const adminNavigation = [
+  { name: 'Пользователи', href: '/users', icon: '👥' },
+];
 
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -100,7 +102,7 @@ export function Layout({ children }: LayoutProps) {
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 w-full mt-4 border-t border-[#30363d] pt-4"
           >
             <span className="text-lg">🚪</span>
-            <span className="font-medium">Logout</span>
+            <span className="font-medium">Выход</span>
           </button>
         </nav>
       </div>
@@ -142,7 +144,7 @@ export function Layout({ children }: LayoutProps) {
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 w-full"
           >
             <span className="text-lg">🚪</span>
-            <span className="font-medium">Logout</span>
+            <span className="font-medium">Выход</span>
           </button>
         </div>
       </aside>
