@@ -191,13 +191,27 @@ class DiscoveryOrchestrator:
     async def _update_bot(self, bot: Bot, result: DiscoveryResult, db: AsyncSession) -> None:
         """Update existing bot with discovery result."""
         # Update fields that may have changed
-        bot.host = result.host
-        bot.container_id = result.container_id
-        bot.user_data_path = result.user_data_path
-        bot.api_url = result.api_url
-        bot.api_port = result.api_port
-        bot.exchange = result.exchange
-        bot.strategy = result.strategy
+        if result.host:
+            bot.host = result.host
+        if result.container_id:
+            bot.container_id = result.container_id
+        if result.user_data_path:
+            bot.user_data_path = result.user_data_path
+
+        # Avoid wiping previously known API URL/port when discovery couldn't extract it.
+        if result.api_port is not None:
+            bot.api_port = result.api_port
+
+        if result.api_url:
+            bot.api_url = result.api_url
+        elif bot.api_url is None and result.host and result.api_port is not None:
+            bot.api_url = f"http://{result.host}:{result.api_port}"
+
+        if result.exchange:
+            bot.exchange = result.exchange
+        if result.strategy:
+            bot.strategy = result.strategy
+
         bot.is_dryrun = result.is_dryrun
         bot.last_seen = utc_naive_now()
 

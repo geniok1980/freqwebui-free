@@ -57,7 +57,7 @@ export function Layout({ children }: LayoutProps) {
               className="h-10 w-10 object-contain rounded"
             />
             <span className="text-lg font-bold text-[#e6edf3]">
-              FreqAlphaDeck
+              FreqDashboard
             </span>
           </div>
           <button
@@ -116,7 +116,7 @@ export function Layout({ children }: LayoutProps) {
             className="h-10 w-10 object-contain rounded"
           />
           <span className="text-lg font-bold text-[#e6edf3]">
-            FreqAlphaDeck
+            FreqDashboard
           </span>
         </div>
         

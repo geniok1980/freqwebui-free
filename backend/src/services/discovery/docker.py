@@ -8,7 +8,7 @@ from typing import Optional
 import structlog
 
 from src.config import settings
-from src.services.discovery import BaseDiscovery, DiscoveryResult
+from src.services.discovery import BaseDiscovery, DiscoveryResult, map_user_data_path_for_backend
 
 logger = structlog.get_logger()
 
@@ -190,7 +190,7 @@ class DockerDiscovery(BaseDiscovery):
             api_url = f"http://{host}:{api_port}" if api_port else None
 
             # Extract user_data path from mounts
-            user_data_path = self._extract_user_data_path(attrs)
+            user_data_path = map_user_data_path_for_backend(self._extract_user_data_path(attrs))
 
             # Extract config from labels or environment
             exchange = labels.get("com.freqtrade.exchange")

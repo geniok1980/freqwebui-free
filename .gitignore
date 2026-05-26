@@ -66,9 +66,12 @@ logs/
 # Database
 *.sqlite
 *.db
+db/postgres_data/
+db/redis_data/
 
 # Docker
 .docker/
+freqtrade_docker/
 
 # Secrets
 *.key

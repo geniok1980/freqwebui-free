@@ -1,14 +1,19 @@
 """Bot management API endpoints."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def utc_naive_now() -> datetime:
     """UTC timestamp without tzinfo (safe for TIMESTAMP WITHOUT TIME ZONE columns)."""
     return datetime.utcnow()
+import asyncio
+import json
+import os
+import re
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,6 +39,250 @@ from src.services.health import health_monitor
 from src.services.cache import cache, bot_metrics_key, bot_health_key
 
 router = APIRouter()
+
+_DOCKER_CONFIG_CANDIDATES: list[str] = [
+    "/freqtrade/user_data/config.json",
+    "/freqtrade/user_data/config/config.json",
+    "/freqtrade/user_data/configs/config.json",
+]
+
+
+class BotConfigUpdateRequest(BaseModel):
+    config: dict
+
+
+class BotDeployRequest(BaseModel):
+    name: str
+    strategy_name: str
+    host_port: int = 8081
+    dry_run: bool = True
+
+
+async def _run_cmd(cmd: list[str], stdin: bytes | None = None, timeout: int = 20) -> tuple[int, str, str]:
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdin=asyncio.subprocess.PIPE if stdin is not None else None,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    try:
+        stdout, stderr = await asyncio.wait_for(proc.communicate(input=stdin), timeout=timeout)
+    except asyncio.TimeoutError:
+        proc.kill()
+        raise
+    return proc.returncode or 0, (stdout or b"").decode(errors="replace"), (stderr or b"").decode(errors="replace")
+
+
+async def _docker_exec(container_id: str, args: list[str], stdin: bytes | None = None, timeout: int = 20) -> tuple[int, str, str]:
+    return await _run_cmd(["docker", "exec", *([] if stdin is None else ["-i"]), container_id, *args], stdin=stdin, timeout=timeout)
+
+
+async def _docker_find_config_path(container_id: str) -> str:
+    for p in _DOCKER_CONFIG_CANDIDATES:
+        code, _, _ = await _docker_exec(container_id, ["sh", "-c", f'test -f "{p}"'])
+        if code == 0:
+            return p
+
+    code, _, err = await _docker_exec(container_id, ["sh", "-c", "ls -la /freqtrade/user_data || true"], timeout=10)
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Config file not found in container. Tried: {', '.join(_DOCKER_CONFIG_CANDIDATES)}. {err}".strip(),
+    )
+
+
+async def _read_bot_config(bot: Bot) -> tuple[str | None, dict]:
+    if bot.environment == BotEnvironment.DOCKER and bot.container_id:
+        path = await _docker_find_config_path(bot.container_id)
+        code, out, err = await _docker_exec(bot.container_id, ["cat", path], timeout=20)
+        if code != 0:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to read config: {err}".strip())
+        try:
+            return path, json.loads(out)
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Invalid JSON in config: {e}")
+
+    candidates: list[str] = []
+    if bot.user_data_path:
+        candidates.extend(
+            [
+                os.path.join(bot.user_data_path, "config.json"),
+                os.path.join(bot.user_data_path, "config", "config.json"),
+                os.path.join(bot.user_data_path, "configs", "config.json"),
+            ]
+        )
+    for p in candidates:
+        if p and os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    return p, json.load(f)
+            except Exception as e:
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to read config file: {e}")
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Config file not found for this bot")
+
+
+async def _write_bot_config(bot: Bot, config: dict) -> str:
+    payload = json.dumps(config, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
+    if len(payload) > 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Config too large (max 1MB)")
+
+    if bot.environment == BotEnvironment.DOCKER and bot.container_id:
+        path = await _docker_find_config_path(bot.container_id)
+        code, _, err = await _docker_exec(bot.container_id, ["sh", "-c", f'cat > "{path}"'], stdin=payload, timeout=20)
+        if code != 0:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to write config: {err}".strip())
+        return path
+
+    if bot.user_data_path:
+        candidates = [
+            os.path.join(bot.user_data_path, "config.json"),
+            os.path.join(bot.user_data_path, "config", "config.json"),
+            os.path.join(bot.user_data_path, "configs", "config.json"),
+        ]
+        for p in candidates:
+            if p and os.path.exists(os.path.dirname(p)):
+                try:
+                    with open(p, "wb") as f:
+                        f.write(payload)
+                    return p
+                except Exception as e:
+                    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to write config file: {e}")
+
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bot config is not writable (missing container_id or user_data_path)")
+
+
+def _dt_to_iso_z(dt: datetime | None) -> str | None:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def _sanitize_bot_name(raw: str) -> str:
+    name = (raw or "").strip()
+    if not name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bot name is required")
+    if len(name) > 40:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bot name is too long (max 40 chars)")
+    if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_-]*", name):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid bot name. Use letters, digits, '-' and '_' only (must start with letter/digit).",
+        )
+    return name
+
+
+def _get_strategies_root() -> str:
+    env_path = os.getenv("STRATEGIES_PATH") or os.getenv("DASHBOARD_STRATEGIES_PATH")
+    candidates = [
+        env_path,
+        "/opt/Multibotdashboard/Strategies",
+        "/app/Strategies",
+        "/opt/MultibotdashboardV5/Strategies",
+    ]
+    for p in candidates:
+        if p and os.path.isdir(p):
+            return p
+    return "/opt/Multibotdashboard/Strategies"
+
+
+def _find_strategy_file(strategy_name: str) -> str:
+    strategies_root = _get_strategies_root()
+    target = f"{strategy_name}.py"
+    for root, _, files in os.walk(strategies_root):
+        if target in files:
+            return os.path.join(root, target)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Strategy file not found: {target}")
+
+
+def _detect_strategy_class(source_code: str, fallback: str) -> str:
+    m = re.search(r"class\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*IStrategy\s*\)\s*:", source_code)
+    if m:
+        return m.group(1)
+    return fallback
+
+
+async def _docker_container_exists(name: str) -> bool:
+    code, out, _ = await _run_cmd(["docker", "ps", "-a", "--filter", f"name=^{name}$", "--format", "{{.Names}}"], timeout=10)
+    if code != 0:
+        return False
+    return any(line.strip() == name for line in out.splitlines())
+
+
+async def _get_freqtrade_image() -> str:
+    code, out, _ = await _run_cmd(["docker", "inspect", "freqtrade-bot1", "--format", "{{.Config.Image}}"], timeout=10)
+    if code == 0 and out.strip():
+        return out.strip()
+    return os.getenv("FREQTRADE_DOCKER_IMAGE") or "freqtradeorg/freqtrade:stable"
+
+
+async def _get_host_user_data_root() -> str:
+    fmt = "{{range .Mounts}}{{if eq .Destination \"/freqtrade/user_data\"}}{{.Source}}{{end}}{{end}}"
+    code, out, err = await _run_cmd(["docker", "inspect", "freqtrade-bot1", "--format", fmt], timeout=10)
+    if code != 0 or not out.strip():
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unable to resolve host user_data path from freqtrade-bot1. {err}".strip(),
+        )
+    source = out.strip().replace("\\", "/")
+    return os.path.dirname(source)
+
+
+def _get_backend_secrets_root() -> str:
+    return os.getenv("FREQTRADE_SECRETS_PATH") or "/opt/freqtrade_secrets"
+
+
+def _build_default_config(template: dict, *, bot_name: str, strategy_class: str, host_port: int, dry_run: bool) -> dict:
+    cfg = json.loads(json.dumps(template))
+    cfg["bot_name"] = bot_name
+    cfg["strategy"] = strategy_class
+    cfg["dry_run"] = bool(dry_run)
+    cfg["db_url"] = "sqlite:///user_data/tradesv3.sqlite"
+    if isinstance(cfg.get("api_server"), dict):
+        cfg["api_server"]["enabled"] = True
+        cfg["api_server"]["listen_ip_address"] = "0.0.0.0"
+        cfg["api_server"]["listen_port"] = 8080
+        if "jwt_secret_key" in cfg["api_server"]:
+            cfg["api_server"]["jwt_secret_key"] = f"dev-{bot_name}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        if "ws_token" in cfg["api_server"]:
+            cfg["api_server"]["ws_token"] = f"dev-{bot_name}-ws-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+
+    cfg["strategy_path"] = "user_data/strategies"
+    cfg["initial_state"] = "running"
+
+    return cfg
+
+
+def _load_template_config() -> dict:
+    backend_root = _get_backend_secrets_root()
+    candidates = [
+        os.path.join(backend_root, "bot1", "config.json"),
+        os.path.join(backend_root, "ftbot1", "config.json"),
+    ]
+    for p in candidates:
+        if os.path.isfile(p):
+            with open(p, "r", encoding="utf-8") as f:
+                return json.load(f)
+    return {
+        "dry_run": True,
+        "dry_run_wallet": 1000,
+        "max_open_trades": 1,
+        "stake_currency": "USDT",
+        "stake_amount": 10,
+        "timeframe": "5m",
+        "trading_mode": "spot",
+        "exchange": {"name": "binance", "key": "", "secret": "", "pair_whitelist": ["BTC/USDT"], "pair_blacklist": []},
+        "pairlists": [{"method": "StaticPairList"}],
+        "api_server": {"enabled": True, "listen_ip_address": "0.0.0.0", "listen_port": 8080, "username": "freqtrader", "password": "freqtrader"},
+        "bot_name": "ftbot",
+        "db_url": "sqlite:///user_data/tradesv3.sqlite",
+        "strategy": "SampleStrategy",
+        "strategy_path": "user_data/strategies",
+        "initial_state": "running",
+    }
 
 
 @router.get("/search", response_model=BotListResponse)
@@ -116,6 +365,138 @@ async def list_bots(
     bots = [BotResponse.model_validate(bot) for bot in all_bots]
 
     return BotListResponse(data=bots)
+
+
+@router.post("/deploy", response_model=BotDetailResponse)
+async def deploy_docker_bot(
+    request: BotDeployRequest,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> BotDetailResponse:
+    if current_user.role.value not in {"admin", "operator"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+
+    bot_name = _sanitize_bot_name(request.name)
+    if request.host_port < 1024 or request.host_port > 65535:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid host_port")
+
+    existing = await db.execute(select(Bot).where(Bot.name == bot_name))
+    if existing.scalar_one_or_none() is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Bot with this name already exists")
+
+    container_name = f"freqtrade-{bot_name}"
+    if await _docker_container_exists(container_name):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Docker container already exists: {container_name}")
+
+    strategy_file = _find_strategy_file(request.strategy_name)
+    with open(strategy_file, "r", encoding="utf-8", errors="replace") as f:
+        source = f.read()
+    strategy_class = _detect_strategy_class(source, request.strategy_name)
+
+    backend_secrets_root = _get_backend_secrets_root()
+    host_user_data_root = await _get_host_user_data_root()
+
+    backend_bot_dir = os.path.join(backend_secrets_root, bot_name)
+    backend_strategies_dir = os.path.join(backend_bot_dir, "strategies")
+    os.makedirs(backend_strategies_dir, exist_ok=True)
+
+    template = _load_template_config()
+    cfg = _build_default_config(
+        template,
+        bot_name=bot_name,
+        strategy_class=strategy_class,
+        host_port=request.host_port,
+        dry_run=request.dry_run,
+    )
+    config_path = os.path.join(backend_bot_dir, "config.json")
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+    strategy_dst = os.path.join(backend_strategies_dir, os.path.basename(strategy_file))
+    with open(strategy_dst, "w", encoding="utf-8") as f:
+        f.write(source)
+
+    host_bot_dir = f"{host_user_data_root}/{bot_name}"
+
+    image = await _get_freqtrade_image()
+    cmd = [
+        "docker",
+        "run",
+        "-d",
+        "--name",
+        container_name,
+        "--restart",
+        "unless-stopped",
+        "--label",
+        f"com.freqtrade.bot_name={bot_name}",
+        "--label",
+        f"com.freqtrade.strategy={strategy_class}",
+        "-p",
+        f"{request.host_port}:8080",
+        "-v",
+        f"{host_bot_dir}:/freqtrade/user_data",
+        image,
+        "trade",
+        "--config",
+        "/freqtrade/user_data/config.json",
+        "--strategy",
+        strategy_class,
+    ]
+
+    code, out, err = await _run_cmd(cmd, timeout=30)
+    if code != 0:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to start container: {err}".strip())
+    container_id = out.strip()
+
+    api_url = f"http://localhost:{request.host_port}"
+    new_bot = Bot(
+        name=bot_name,
+        environment=BotEnvironment.DOCKER,
+        host="localhost",
+        container_id=container_id,
+        user_data_path=backend_bot_dir,
+        api_url=api_url,
+        api_port=request.host_port,
+        exchange=(cfg.get("exchange") or {}).get("name"),
+        strategy=strategy_class,
+        is_dryrun=bool(cfg.get("dry_run", True)),
+        health_state=HealthState.UNKNOWN,
+        source_mode=SourceMode.AUTO,
+        last_seen=utc_naive_now(),
+        discovered_at=utc_naive_now(),
+        tags=[],
+    )
+    db.add(new_bot)
+    await db.commit()
+    await db.refresh(new_bot)
+
+    try:
+        await health_monitor.trigger_check(new_bot.id)
+    except Exception:
+        pass
+
+    return BotDetailResponse(
+        data=BotDetailData(
+            id=new_bot.id,
+            name=new_bot.name,
+            environment=new_bot.environment,
+            host=new_bot.host,
+            api_url=new_bot.api_url,
+            health_state=new_bot.health_state,
+            source_mode=new_bot.source_mode,
+            exchange=new_bot.exchange,
+            strategy=new_bot.strategy,
+            trading_mode=new_bot.trading_mode,
+            is_dryrun=new_bot.is_dryrun,
+            tags=new_bot.tags,
+            last_seen=new_bot.last_seen,
+            container_id=new_bot.container_id,
+            user_data_path=new_bot.user_data_path,
+            discovered_at=new_bot.discovered_at,
+            created_at=new_bot.created_at,
+        )
+    )
 
 
 @router.get("/{bot_id}", response_model=BotDetailResponse)
@@ -227,6 +608,43 @@ async def update_bot(
             created_at=bot.created_at,
         )
     )
+
+
+@router.get("/{bot_id}/config")
+async def get_bot_config(
+    bot_id: str,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    if current_user.role.value not in {"admin", "operator"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+
+    result = await db.execute(select(Bot).where(Bot.id == bot_id))
+    bot = result.scalar_one_or_none()
+    if bot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bot not found")
+
+    path, cfg = await _read_bot_config(bot)
+    return {"status": "success", "data": {"path": path, "config": cfg}}
+
+
+@router.put("/{bot_id}/config")
+async def update_bot_config_file(
+    bot_id: str,
+    payload: BotConfigUpdateRequest,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    if current_user.role.value not in {"admin", "operator"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+
+    result = await db.execute(select(Bot).where(Bot.id == bot_id))
+    bot = result.scalar_one_or_none()
+    if bot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bot not found")
+
+    path = await _write_bot_config(bot, payload.config)
+    return {"status": "success", "data": {"path": path}}
 
 
 @router.put("/{bot_id}/credentials", response_model=BotCredentialsResponse)
@@ -394,7 +812,7 @@ async def get_bot_metrics(
         )
 
     # Get connector and fetch metrics
-    connector, source = await connector_manager.get_connector(bot)
+    connector, source = await connector_manager.get_connector(bot, session=db)
 
     profit_result = await connector.get_profit()
     balance_result = await connector.get_balance()
@@ -409,6 +827,12 @@ async def get_bot_metrics(
             win_rate = profit.winning_trades / total_closed
 
     # Build metrics data
+    balance_value = None
+    if balance_result.success and balance_result.data:
+        balance_value = balance_result.data.stake_currency_balance
+        if not balance_value:
+            balance_value = balance_result.data.used
+
     metrics_data = BotMetricsData(
         bot_id=bot.id,
         timestamp=datetime.utcnow(),
@@ -422,7 +846,7 @@ async def get_bot_metrics(
         open_positions=len(open_trades_result.data) if open_trades_result.success else 0,
         closed_trades=profit_result.data.closed_trade_count if profit_result.success else 0,
         win_rate=win_rate,
-        balance=balance_result.data.stake_currency_balance if balance_result.success else None,
+        balance=balance_value,
         data_source=source,
         health_state=bot.health_state,
     )
@@ -475,7 +899,7 @@ async def get_bot_health(
     metrics = health_monitor.get_metrics(bot_id)
 
     # Determine active source
-    _, active_source = await connector_manager.get_connector(bot)
+    _, active_source = await connector_manager.get_connector(bot, session=db)
 
     if metrics:
         health_data = BotHealthData(
@@ -551,7 +975,7 @@ async def trigger_health_check(
     # Refresh bot to get updated state
     await db.refresh(bot)
 
-    _, active_source = await connector_manager.get_connector(bot)
+    _, active_source = await connector_manager.get_connector(bot, session=db)
 
     if metrics:
         return BotHealthResponse(
@@ -618,7 +1042,7 @@ async def get_bot_trades(
         )
 
     # Get connector and fetch trades
-    connector, source = await connector_manager.get_connector(bot)
+    connector, source = await connector_manager.get_connector(bot, session=db)
 
     if is_open is True:
         trades_result = await connector.get_open_trades()
@@ -642,8 +1066,8 @@ async def get_bot_trades(
                     "id": t.trade_id,
                     "pair": t.pair,
                     "is_open": t.is_open,
-                    "open_date": t.open_date.isoformat() if t.open_date else None,
-                    "close_date": t.close_date.isoformat() if t.close_date else None,
+                    "open_date": _dt_to_iso_z(t.open_date),
+                    "close_date": _dt_to_iso_z(t.close_date),
                     "open_rate": t.open_rate,
                     "close_rate": t.close_rate,
                     "amount": t.amount,
@@ -670,8 +1094,8 @@ async def get_bot_trades(
                 "id": t.trade_id,
                 "pair": t.pair,
                 "is_open": t.is_open,
-                "open_date": t.open_date.isoformat() if t.open_date else None,
-                "close_date": t.close_date.isoformat() if t.close_date else None,
+                "open_date": _dt_to_iso_z(t.open_date),
+                "close_date": _dt_to_iso_z(t.close_date),
                 "open_rate": t.open_rate,
                 "close_rate": t.close_rate,
                 "amount": t.amount,
@@ -724,7 +1148,7 @@ async def get_bot_status(
             detail="Bot API is not available",
         )
 
-    connector, _ = await connector_manager.get_connector(bot)
+    connector, _ = await connector_manager.get_connector(bot, session=db)
     status_result = await connector.get_status()
 
     if not status_result.success:
@@ -776,7 +1200,7 @@ async def get_bot_performance(
         )
 
     # Get connector and fetch trades
-    connector, source = await connector_manager.get_connector(bot)
+    connector, source = await connector_manager.get_connector(bot, session=db)
     closed_result = await connector.get_closed_trades()
 
     if not closed_result.success or not closed_result.data:
@@ -864,7 +1288,7 @@ async def start_bot(
             detail="Bot API is not available",
         )
 
-    connector, _ = await connector_manager.get_connector(bot)
+    connector, _ = await connector_manager.get_connector(bot, session=db)
 
     # APIConnector has start_bot method
     from src.services.connectors.api import APIConnector
@@ -926,7 +1350,7 @@ async def stop_bot(
             detail="Bot API is not available",
         )
 
-    connector, _ = await connector_manager.get_connector(bot)
+    connector, _ = await connector_manager.get_connector(bot, session=db)
 
     from src.services.connectors.api import APIConnector
     if not isinstance(connector, APIConnector):
@@ -987,7 +1411,7 @@ async def reload_bot_config(
             detail="Bot API is not available",
         )
 
-    connector, _ = await connector_manager.get_connector(bot)
+    connector, _ = await connector_manager.get_connector(bot, session=db)
 
     from src.services.connectors.api import APIConnector
     if not isinstance(connector, APIConnector):
@@ -1048,7 +1472,7 @@ async def force_exit_all(
             detail="Bot API is not available",
         )
 
-    connector, _ = await connector_manager.get_connector(bot)
+    connector, _ = await connector_manager.get_connector(bot, session=db)
 
     from src.services.connectors.api import APIConnector
     if not isinstance(connector, APIConnector):

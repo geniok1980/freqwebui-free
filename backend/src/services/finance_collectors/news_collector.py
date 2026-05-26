@@ -6,6 +6,7 @@ Fetches financial news from various sources
 import asyncio
 import aiohttp
 import asyncpg
+import os
 from datetime import datetime, timedelta
 from typing import List, Dict
 import logging
@@ -16,12 +17,17 @@ class NewsCollector:
     """Collects financial news."""
     
     def __init__(self):
+        host = os.getenv("FINANCE_DB_HOST") or os.getenv("DB_HOST") or "postgres"
+        port = int(os.getenv("FINANCE_DB_PORT") or os.getenv("DB_PORT") or "5432")
+        user = os.getenv("FINANCE_DB_USER") or os.getenv("DB_USER") or "dashboard"
+        password = os.getenv("FINANCE_DB_PASSWORD") or os.getenv("DB_PASSWORD") or "dashboard"
+        database = os.getenv("FINANCE_DB_NAME") or "financial_data"
         self.db_config = {
-            'host': '192.168.0.210',
-            'port': 5432,
-            'user': 'dashboard',
-            'password': 'dashboard',
-            'database': 'financial_data'
+            "host": host,
+            "port": port,
+            "user": user,
+            "password": password,
+            "database": database,
         }
         # Using NewsAPI (free tier) - user can add their API key
         self.newsapi_key = None  # Add to config if available
@@ -30,7 +36,7 @@ class NewsCollector:
         """Fetch crypto news from CryptoPanic or similar."""
         # Free endpoint without API key
         url = "https://cryptopanic.com/api/v1/posts/"
-        params = {'auth_token': None, 'public': 'true'}
+        params = {"public": "true"}
         
         async with aiohttp.ClientSession() as session:
             try:
@@ -61,7 +67,7 @@ class NewsCollector:
                 'title': 'Fed Signals Potential Rate Cuts in Coming Months',
                 'source': 'Bloomberg',
                 'url': 'https://bloomberg.com',
-                'category': 'economic',
+                'category': 'market',
                 'published_at': datetime.now().isoformat(),
                 'sentiment_score': 0.5
             },

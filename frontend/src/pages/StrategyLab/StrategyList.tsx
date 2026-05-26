@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { strategyLabApi } from '../../services/strategyLabApi';
+import { Card } from '../../components/common/Card';
 
 interface Strategy {
   name: string;
@@ -8,45 +11,50 @@ interface Strategy {
   file_path?: string;
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
-
 export function StrategyList() {
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedFamily, setSelectedFamily] = useState('all');
+  const [uploadFamily, setUploadFamily] = useState('Custom');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    fetch(`${API_BASE}/strategy-lab/strategies`, {
-      headers: {'Authorization': 'Bearer ' + token}
-    })
-    .then(r => r.json())
-    .then(data => {
-      setStrategies(data || []);
-      setLoading(false);
-    })
-    .catch(() => setLoading(false));
-  }, []);
-
-  if (loading) return (
-    <div className="p-6 flex items-center justify-center h-64">
-      <div className="text-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-500">Загрузка стратегий...</p>
-      </div>
-    </div>
-  );
-
-  // Get unique families
-  const families = ['all', ...new Set(strategies.map(s => s.family).filter(Boolean))];
-
-  // Filter strategies
-  const filtered = strategies.filter(s => {
-    const matchesSearch = !search || s.name.toLowerCase().includes(search.toLowerCase());
-    const matchesFamily = selectedFamily === 'all' || s.family === selectedFamily;
-    return matchesSearch && matchesFamily;
+  const {
+    data: strategies = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['strategies'],
+    queryFn: () => strategyLabApi.getStrategies() as Promise<Strategy[]>,
   });
+
+  const uploadMutation = useMutation({
+    mutationFn: async () => {
+      if (!uploadFile) throw new Error('Файл не выбран');
+      setUploadError(null);
+      await strategyLabApi.uploadStrategy(uploadFile, uploadFamily);
+    },
+    onSuccess: async () => {
+      setUploadFile(null);
+      await queryClient.invalidateQueries({ queryKey: ['strategies'] });
+    },
+    onError: (e: any) => {
+      setUploadError(e?.message || 'Не удалось загрузить стратегию');
+    },
+  });
+
+  const families = useMemo(() => {
+    return ['all', ...new Set(strategies.map((s) => s.family).filter(Boolean) as string[])];
+  }, [strategies]);
+
+  const filtered = useMemo(() => {
+    return strategies.filter((s) => {
+      const matchesSearch = !search || s.name.toLowerCase().includes(search.toLowerCase());
+      const matchesFamily = selectedFamily === 'all' || s.family === selectedFamily;
+      return matchesSearch && matchesFamily;
+    });
+  }, [strategies, search, selectedFamily]);
 
   // Group by family
   const grouped = filtered.reduce((acc, s) => {
@@ -68,6 +76,78 @@ export function StrategyList() {
           ← Назад в лабораторию стратегий
         </Link>
       </div>
+
+      {/* Upload */}
+      <Card className="mb-6 p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Загрузка стратегии
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Загрузите готовый файл стратегии (.py) в папку Strategies
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Файл стратегии (.py)
+            </label>
+            <input
+              type="file"
+              accept=".py"
+              onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {uploadFile && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Выбрано: <span className="font-mono">{uploadFile.name}</span>
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Папка (family)
+            </label>
+            <input
+              type="text"
+              value={uploadFamily}
+              onChange={(e) => setUploadFamily(e.target.value)}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Custom"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {uploadError ? <span className="text-red-500">{uploadError}</span> : null}
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setUploadFile(null);
+                setUploadError(null);
+              }}
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm"
+            >
+              Сбросить
+            </button>
+            <button
+              type="button"
+              disabled={!uploadFile || uploadMutation.isPending}
+              onClick={() => uploadMutation.mutate()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
+            >
+              {uploadMutation.isPending ? 'Загрузка...' : 'Загрузить'}
+            </button>
+          </div>
+        </div>
+      </Card>
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">
@@ -91,8 +171,23 @@ export function StrategyList() {
         </select>
       </div>
 
+      {isLoading && (
+        <div className="p-6 flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-500">Загрузка стратегий...</p>
+          </div>
+        </div>
+      )}
+
+      {isError && (
+        <div className="p-6 text-center text-red-500">
+          {(error as Error)?.message || 'Не удалось загрузить стратегии'}
+        </div>
+      )}
+
       {/* Strategy Cards by Family */}
-      <div className="space-y-6">
+      {!isLoading && !isError && <div className="space-y-6">
         {Object.entries(grouped).map(([family, familyStrategies]) => (
           <div key={family}>
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
@@ -139,9 +234,9 @@ export function StrategyList() {
             </div>
           </div>
         ))}
-      </div>
+      </div>}
 
-      {filtered.length === 0 && (
+      {!isLoading && !isError && filtered.length === 0 && (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           Нет стратегий по выбранным фильтрам
         </div>

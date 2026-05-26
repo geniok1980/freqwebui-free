@@ -153,6 +153,8 @@ CREATE TABLE IF NOT EXISTS economic_indicators (
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE economic_indicators
+    ADD CONSTRAINT economic_indicators_indicator_date_key UNIQUE (indicator_id, date);
 CREATE INDEX IF NOT EXISTS idx_economic_indicator ON economic_indicators(indicator_id);
 CREATE INDEX IF NOT EXISTS idx_economic_time ON economic_indicators(timestamp DESC);
 

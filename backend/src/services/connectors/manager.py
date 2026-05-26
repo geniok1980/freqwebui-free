@@ -5,9 +5,12 @@ import os
 from typing import Optional
 
 import structlog
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
 from src.models.bot import Bot, SourceMode
+from src.models.settings import SystemSetting
 from src.services.connectors.api import APIConnector
 from src.services.connectors.base import BaseConnector, ConnectorResult
 from src.services.connectors.sqlite import SQLiteConnector
@@ -43,6 +46,7 @@ def find_sqlite_db(user_data_path: str) -> Optional[str]:
         os.path.join(user_data_path, "tradesv3*.sqlite"),
         os.path.join(user_data_path, "*.sqlite"),
         os.path.join(user_data_path, "dbs", "*.sqlite"),
+        os.path.join(user_data_path, "data", "*.sqlite"),
     ]
 
     candidates: list[tuple[str, float]] = []
@@ -89,7 +93,9 @@ class ConnectorManager:
         self._api_connectors: dict[str, APIConnector] = {}
         self._sqlite_connectors: dict[str, SQLiteConnector] = {}
 
-    async def get_connector(self, bot: Bot) -> tuple[BaseConnector, SourceMode]:
+    async def get_connector(
+        self, bot: Bot, session: AsyncSession | None = None
+    ) -> tuple[BaseConnector, SourceMode]:
         """Get the best available connector for a bot.
 
         Args:
@@ -100,7 +106,7 @@ class ConnectorManager:
         """
         # Check manual override
         if bot.source_mode == SourceMode.API:
-            connector = await self._get_api_connector(bot)
+            connector = await self._get_api_connector(bot, session=session)
             if connector:
                 return connector, SourceMode.API
 
@@ -110,13 +116,15 @@ class ConnectorManager:
                 return connector, SourceMode.SQLITE
 
         # Auto mode - use health metrics to decide
-        return await self._select_auto_source(bot)
+        return await self._select_auto_source(bot, session=session)
 
-    async def _select_auto_source(self, bot: Bot) -> tuple[BaseConnector, SourceMode]:
+    async def _select_auto_source(
+        self, bot: Bot, session: AsyncSession | None = None
+    ) -> tuple[BaseConnector, SourceMode]:
         """Select best source automatically based on health.
 
-        In AUTO mode, SQLITE is preferred when available (durable data).
-        API is used as fallback when SQLite is unavailable.
+        In AUTO mode, API is preferred when available (real-time data).
+        SQLite is used as a fallback when API is unavailable.
 
         Args:
             bot: Bot to select source for.
@@ -124,14 +132,8 @@ class ConnectorManager:
         Returns:
             Tuple of (connector, selected_source).
         """
-        # Prefer SQLite first in auto mode (durable data)
-        sqlite_connector = await self._get_sqlite_connector(bot)
-        if sqlite_connector:
-            # If SQLite exists, use it regardless of API health.
-            return sqlite_connector, SourceMode.SQLITE
-
-        # SQLite not available - try API
-        api_connector = await self._get_api_connector(bot)
+        # Prefer API first in auto mode (real-time data)
+        api_connector = await self._get_api_connector(bot, session=session)
         if api_connector:
             metrics = health_monitor.get_metrics(bot.id)
             api_available = metrics is None or metrics.api_available
@@ -140,31 +142,77 @@ class ConnectorManager:
                 return api_connector, SourceMode.API
 
             logger.debug(
-                "SQLite unavailable and API unhealthy",
+                "API unhealthy, falling back to SQLite when available",
                 bot_id=bot.id,
                 api_error=metrics.last_api_error if metrics else None,
             )
+            sqlite_connector = await self._get_sqlite_connector(bot)
+            if sqlite_connector:
+                return sqlite_connector, SourceMode.SQLITE
             return api_connector, SourceMode.API
 
-        # Nothing available - create a new API connector for error handling
-        return await self._create_api_connector(bot), SourceMode.API
+        # API not available - try SQLite
+        sqlite_connector = await self._get_sqlite_connector(bot)
+        if sqlite_connector:
+            return sqlite_connector, SourceMode.SQLITE
 
-    async def _get_api_connector(self, bot: Bot) -> Optional[APIConnector]:
+        # Nothing available - create a new API connector for error handling
+        return await self._create_api_connector(bot, session=session), SourceMode.API
+
+    async def _get_api_connector(
+        self, bot: Bot, session: AsyncSession | None = None
+    ) -> Optional[APIConnector]:
         """Get or create API connector for bot."""
         if not bot.api_url:
             return None
 
+        if session is not None and bot.id in self._api_connectors:
+            username, password = await self._load_api_credentials(session)
+            existing = self._api_connectors[bot.id]
+            if existing.username != username or existing.password != password:
+                await existing.close()
+                del self._api_connectors[bot.id]
+
         if bot.id not in self._api_connectors:
-            self._api_connectors[bot.id] = await self._create_api_connector(bot)
+            self._api_connectors[bot.id] = await self._create_api_connector(
+                bot, session=session
+            )
 
         return self._api_connectors[bot.id]
 
-    async def _create_api_connector(self, bot: Bot) -> APIConnector:
+    async def _load_api_credentials(
+        self, session: AsyncSession
+    ) -> tuple[str | None, str | None]:
+        username_result = await session.execute(
+            select(SystemSetting).where(SystemSetting.key == "api_username")
+        )
+        password_result = await session.execute(
+            select(SystemSetting).where(SystemSetting.key == "api_password")
+        )
+
+        username_setting = username_result.scalar_one_or_none()
+        password_setting = password_result.scalar_one_or_none()
+
+        username = (username_setting.value or "").strip() if username_setting else ""
+        password = (password_setting.value or "").strip() if password_setting else ""
+
+        if not username:
+            username = (settings.api_defaults.username or "").strip()
+        if not password:
+            password = (settings.api_defaults.password or "").strip()
+
+        return (username or None, password or None)
+
+    async def _create_api_connector(
+        self, bot: Bot, session: AsyncSession | None = None
+    ) -> APIConnector:
         """Create new API connector for bot."""
-        # Use default credentials from settings
-        # TODO: Implement per-bot credentials from credentials_enc field
-        username = settings.api_defaults.username
-        password = settings.api_defaults.password
+        if session is not None:
+            username, password = await self._load_api_credentials(session)
+        else:
+            username = settings.api_defaults.username
+            password = settings.api_defaults.password
+
         timeout = settings.api_defaults.timeout_seconds
 
         logger.debug(
@@ -184,17 +232,20 @@ class ConnectorManager:
 
     async def _get_sqlite_connector(self, bot: Bot) -> Optional[SQLiteConnector]:
         """Get or create SQLite connector for bot."""
-        if not bot.user_data_path:
+        from src.services.discovery import map_user_data_path_for_backend
+
+        user_data_path = map_user_data_path_for_backend(bot.user_data_path)
+        if not user_data_path:
             return None
 
         # Find the actual SQLite database file
-        db_path = find_sqlite_db(bot.user_data_path)
+        db_path = find_sqlite_db(user_data_path)
 
         if not db_path:
             logger.debug(
                 "No SQLite database found",
                 bot_id=bot.id,
-                user_data_path=bot.user_data_path,
+                user_data_path=user_data_path,
             )
             return None
 

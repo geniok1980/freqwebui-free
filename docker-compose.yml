@@ -100,6 +100,7 @@ services:
       
       # Features
       DISABLE_ALERTS: ${DISABLE_ALERTS:-true}
+      DISABLE_FINANCE_COLLECTORS: "false"
       
       # Freqtrade API Defaults
       DASHBOARD_API_DEFAULTS__USERNAME: ${FREQTRADE_USERNAME:-}
@@ -117,6 +118,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       # Freqtrade data access - RW
       - ${FREQTRADE_BASE_PATH:-/opt}:/opt:rw
+      - ./secrets/freqtrade:/opt/freqtrade_secrets:rw
+      - ./Strategies:/opt/Multibotdashboard/Strategies:rw
       # Backend code (for development) - RW
       - ./backend/src:/app/src:rw
       # Config files - RW

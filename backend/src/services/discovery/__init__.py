@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+import os
 from typing import Optional
 
 
@@ -37,6 +38,23 @@ class BaseDiscovery(ABC):
             List of discovered bots.
         """
         pass
+
+
+def map_user_data_path_for_backend(user_data_path: str | None) -> str | None:
+    if not user_data_path:
+        return None
+
+    normalized = user_data_path.replace("\\", "/")
+
+    mount_root = os.getenv("DASHBOARD_FREQTRADE_SECRETS_MOUNT", "/opt/freqtrade_secrets").rstrip("/")
+    marker = "/secrets/freqtrade/"
+    idx = normalized.lower().find(marker)
+    if idx != -1:
+        suffix = normalized[idx + len(marker) :].lstrip("/")
+        if suffix:
+            return f"{mount_root}/{suffix}"
+
+    return user_data_path
 
     @abstractmethod
     async def is_available(self) -> bool:

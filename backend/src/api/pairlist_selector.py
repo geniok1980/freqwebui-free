@@ -24,6 +24,25 @@ router = APIRouter()
 # Track running jobs
 running_jobs: Dict[str, Dict[str, Any]] = {}
 
+
+def _get_strategies_root() -> str:
+    candidates: list[str] = []
+    env_path = os.getenv("STRATEGIES_PATH") or os.getenv("DASHBOARD_STRATEGIES_PATH")
+    if env_path:
+        candidates.append(env_path)
+    candidates.extend(
+        [
+            "/opt/Multibotdashboard/Strategies",
+            "/app/Strategies",
+            "/opt/MultibotdashboardV5/Strategies",
+        ]
+    )
+    for path in candidates:
+        if path and os.path.exists(path):
+            return path
+    return candidates[0]
+
+
 class PairlistRequest(BaseModel):
     strategy: str
     mode: str = "fullbacktest_batch"  # ml_training, fullbacktest_batch, fullbacktest_individual
@@ -128,7 +147,7 @@ async def _run_pairlist_job(job_id: str, cmd: List[str], session: AsyncSession):
         strategy_name = job_info["strategy"]
         
         # Find the strategy file
-        strategies_path = "/opt/Multibotdashboard/Strategies"
+        strategies_path = _get_strategies_root()
         dest_path = f"/opt/Freqtrade/user_data/strategies/{strategy_name}.py"
         
         found = False
@@ -144,7 +163,7 @@ async def _run_pairlist_job(job_id: str, cmd: List[str], session: AsyncSession):
             logger.warning(f"Strategy file {strategy_name}.py not found in {strategies_path}")
         
         # Copy pairlist selector script
-        pairlist_src = "/opt/Multibotdashboard/Strategies/Alex_Pairlist_SelectorV6.py"
+        pairlist_src = os.path.join(strategies_path, "Alex_Pairlist_SelectorV6.py")
         pairlist_dest = "/opt/Freqtrade/user_data/strategies/Alex_Pairlist_SelectorV6.py"
         if os.path.exists(pairlist_src):
             shutil.copy2(pairlist_src, pairlist_dest)

@@ -400,8 +400,16 @@ class HealthMonitor:
             username_setting = username_result.scalar_one_or_none()
             password_setting = password_result.scalar_one_or_none()
             
-            username = username_setting.value if username_setting else None
-            password = password_setting.value if password_setting else None
+            username = (username_setting.value or "").strip() if username_setting else ""
+            password = (password_setting.value or "").strip() if password_setting else ""
+
+            if not username:
+                username = (settings.api_defaults.username or "").strip()
+            if not password:
+                password = (settings.api_defaults.password or "").strip()
+
+            username = username or None
+            password = password or None
             
             logger.info(
                 "API credentials loaded",
@@ -423,13 +431,15 @@ class HealthMonitor:
     async def _check_sqlite(self, bot: Bot) -> ConnectorResult:
         """Check SQLite database availability."""
         import os
+        from src.services.discovery import map_user_data_path_for_backend
+        from src.services.connectors.manager import find_sqlite_db
 
-        if not bot.user_data_path:
+        user_data_path = map_user_data_path_for_backend(bot.user_data_path)
+        if not user_data_path:
             return ConnectorResult(success=False, error="No database path")
 
-        db_path = os.path.join(bot.user_data_path, "tradesv3.sqlite")
-
-        if not os.path.exists(db_path):
+        db_path = find_sqlite_db(user_data_path)
+        if not db_path:
             return ConnectorResult(success=False, error="Database not found")
 
         # Just check file exists and is readable

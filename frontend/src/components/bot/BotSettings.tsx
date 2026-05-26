@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUpdateBot, useDeleteBot } from '../../hooks/useBots';
 import { api } from '../../services/api';
 import type { Bot, SourceMode } from '../../types';
@@ -43,6 +43,49 @@ export function BotSettings({ bot }: BotSettingsProps) {
   const [password, setPassword] = useState('');
   const [credentialsError, setCredentialsError] = useState<string | null>(null);
   const [credentialsSuccess, setCredentialsSuccess] = useState<string | null>(null);
+  const [showConfigEditor, setShowConfigEditor] = useState(false);
+  const [configText, setConfigText] = useState('');
+  const [configPath, setConfigPath] = useState<string | null>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
+  const [configSuccess, setConfigSuccess] = useState<string | null>(null);
+
+  const botConfigQuery = useQuery({
+    queryKey: ['bot', bot.id, 'config'],
+    queryFn: async (): Promise<{ path?: string; config: any }> => {
+      const res = await api.get<{ path?: string; config: any }>(`/bots/${bot.id}/config`);
+      return res.data;
+    },
+    enabled: false,
+    retry: 0,
+  });
+
+  const saveConfig = useMutation({
+    mutationFn: async () => {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(configText);
+      } catch {
+        throw new Error('Некорректный JSON');
+      }
+      const res = await api.put<{ path?: string }>(`/bots/${bot.id}/config`, { config: parsed });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      setConfigSuccess(`Сохранено: ${data.path || configPath || ''}`.trim());
+      setConfigError(null);
+      queryClient.invalidateQueries({ queryKey: ['bot', bot.id] });
+    },
+    onError: (e: any) => {
+      setConfigError(e?.message || 'Не удалось сохранить config.json');
+      setConfigSuccess(null);
+    },
+  });
+
+  const reloadBot = useMutation({
+    mutationFn: async () => {
+      await api.post(`/bots/${bot.id}/reload`);
+    },
+  });
 
   const updateCredentials = useMutation({
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
@@ -313,6 +356,111 @@ export function BotSettings({ bot }: BotSettingsProps) {
           </div>
         </div>
       )}
+
+      {/* Bot Config Editor */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            Конфиг бота (config.json)
+          </h3>
+          <button
+            type="button"
+            onClick={() => {
+              setShowConfigEditor((v) => !v);
+              setConfigError(null);
+              setConfigSuccess(null);
+            }}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            {showConfigEditor ? 'Скрыть' : 'Открыть'}
+          </button>
+        </div>
+
+        {showConfigEditor && (
+          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 space-y-3">
+            {configSuccess && (
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-800 dark:text-green-200">
+                {configSuccess}
+              </div>
+            )}
+
+            {configError && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-800 dark:text-red-200">
+                {configError}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  setConfigError(null);
+                  setConfigSuccess(null);
+                  const data = await botConfigQuery.refetch();
+                  if (data.data) {
+                    setConfigPath(data.data.path || null);
+                    setConfigText(JSON.stringify(data.data.config ?? {}, null, 2));
+                  } else if (data.error) {
+                    setConfigError((data.error as Error).message);
+                  }
+                }}
+                disabled={botConfigQuery.isFetching}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm rounded-lg"
+              >
+                {botConfigQuery.isFetching ? 'Загрузка...' : 'Загрузить'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setConfigText('');
+                  setConfigPath(null);
+                  setConfigError(null);
+                  setConfigSuccess(null);
+                }}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors text-sm"
+              >
+                Очистить
+              </button>
+
+              <button
+                type="button"
+                onClick={() => saveConfig.mutate()}
+                disabled={saveConfig.isPending || !configText.trim()}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm rounded-lg"
+              >
+                {saveConfig.isPending ? 'Сохранение...' : 'Сохранить'}
+              </button>
+
+              {bot.api_url && (
+                <button
+                  type="button"
+                  onClick={() => reloadBot.mutate()}
+                  disabled={reloadBot.isPending}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm rounded-lg"
+                >
+                  {reloadBot.isPending ? 'Перезагрузка...' : 'Reload в боте'}
+                </button>
+              )}
+            </div>
+
+            {configPath && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Путь: <span className="font-mono">{configPath}</span>
+              </p>
+            )}
+
+            <textarea
+              value={configText}
+              onChange={(e) => setConfigText(e.target.value)}
+              className="w-full h-80 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-xs focus:ring-2 focus:ring-blue-500"
+              placeholder={`{
+  "max_open_trades": 3
+}`}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Save/Reset Buttons */}
       {hasChanges && (

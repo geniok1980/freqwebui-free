@@ -3,6 +3,8 @@
  * Connects frontend to Strategy Lab backend endpoints
  */
 
+import { getTenantSlug } from './api';
+
 // Get API base URL from env or default
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
@@ -12,6 +14,7 @@ async function apiGet(endpoint: string) {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     headers: {
       'Authorization': token ? `Bearer ${token}` : '',
+      'X-Tenant-Slug': getTenantSlug(),
       'Content-Type': 'application/json'
     }
   });
@@ -25,12 +28,28 @@ async function apiPost(endpoint: string, data?: any) {
     method: 'POST',
     headers: {
       'Authorization': token ? `Bearer ${token}` : '',
+      'X-Tenant-Slug': getTenantSlug(),
       'Content-Type': 'application/json'
     },
     body: data ? JSON.stringify(data) : undefined
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json();
+}
+
+async function apiPostForm(endpoint: string, form: FormData) {
+  const token = localStorage.getItem('access_token');
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+      'X-Tenant-Slug': getTenantSlug(),
+    },
+    body: form,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.detail || data?.error || `HTTP ${response.status}`);
+  return data;
 }
 
 // === Types ===
@@ -106,6 +125,13 @@ export const strategyLabApi = {
       console.error('Failed to fetch strategies:', error);
       return [];
     }
+  },
+
+  async uploadStrategy(file: File, family?: string): Promise<void> {
+    const form = new FormData();
+    form.append('file', file);
+    if (family) form.append('family', family);
+    await apiPostForm('/strategy-lab/strategies/upload', form);
   },
 
   /**

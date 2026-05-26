@@ -6,6 +6,7 @@ Fetches L2 orderbook data from Bybit API
 import asyncio
 import aiohttp
 import asyncpg
+import os
 from datetime import datetime
 from typing import List, Dict, Optional
 import logging
@@ -14,21 +15,16 @@ logger = logging.getLogger(__name__)
 
 # Default trading pairs
 DEFAULT_PAIRS = [
-    'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'DOGEUSDT', 'ADAUSDT', 'DOTUSDT',
-    'LINKUSDT', 'AVAXUSDT', 'TRXUSDT', 'MATICUSDT', 'TONUSDT', 'ICPUSDT', 'SHIBUSDT',
-    'LTCUSDT', 'BCHUSDT', 'ETCUSDT', 'UNIUSDT', 'NEARUSDT', 'APTUSDT', 'LEOUSDT',
-    'ATOMUSDT', 'FILUSDT', 'IMXUSDT', 'RNDRUSDT', 'HBARUSDT', 'ARBUSDT', 'OPUSDT',
-    'MKRUSDT', 'AAVEUSDT', 'GRTUSDT', 'STXUSDT', 'INJUSDT', 'EGLDUSDT', 'FTMUSDT',
-    'ALGOUSDT', 'THETAUSDT', 'MANAUSDT', 'SANDUSDT', 'FLOWUSDT', 'XTZUSDT', 'NEOUSDT',
-    'KAVAUSDT', 'CRVUSDT', 'CHZUSDT', 'GALAUSDT', 'DYDXUSDT', 'SUIUSDT', 'PEPEUSDT',
-    'FLOKIUSDT', 'BONKUSDT', 'WIFUSDT', 'JASMYUSDT', 'XECUSDT', 'CSPRUSDT', 'MINAUSDT',
-    'CAKEUSDT', '1INCHUSDT', 'LRCUSDT', 'ZILUSDT', 'ENJUSDT', 'BATUSDT', 'GMTUSDT',
-    'ZRXUSDT', 'COMPUSDT', 'YFIUSDT', 'SUSHIUSDT', 'BALUSDT', 'RENUSDT', 'OCEANUSDT',
-    'LPTUSDT', 'API3USDT', 'MASKUSDT', 'CELRUSDT', 'SKLUSDT', 'STORJUSDT', 'ANKRUSDT',
-    'AUDIOUSDT', 'RLCUSDT', 'NMRUSDT', 'BANDUSDT', 'CVCUSDT', 'OXTUSDT', 'REPUSDT',
-    'UMAUSDT', 'GNOUSDT', 'LSKUSDT', 'WAVESUSDT', 'KSMUSDT', 'QTUMUSDT', 'ICXUSDT',
-    'DASHUSDT', 'ZENUSDT', 'XEMUSDT', 'ONTUSDT', 'IOTXUSDT', 'RVNUSDT', 'SXPUSDT',
-    'VETUSDT', 'ONEUSDT', 'HOTUSDT', 'BTTUSDT', 'WINUSDT', 'DENTUSDT', 'COTIUSDT'
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "DOGEUSDT",
+    "ADAUSDT",
+    "DOTUSDT",
+    "LINKUSDT",
+    "AVAXUSDT",
+    "TRXUSDT",
 ]
 
 
@@ -37,12 +33,17 @@ class BybitCollector:
     
     def __init__(self):
         self.base_url = "https://api.bybit.com"
+        host = os.getenv("FINANCE_DB_HOST") or os.getenv("DB_HOST") or "postgres"
+        port = int(os.getenv("FINANCE_DB_PORT") or os.getenv("DB_PORT") or "5432")
+        user = os.getenv("FINANCE_DB_USER") or os.getenv("DB_USER") or "dashboard"
+        password = os.getenv("FINANCE_DB_PASSWORD") or os.getenv("DB_PASSWORD") or "dashboard"
+        database = os.getenv("FINANCE_DB_NAME") or "financial_data"
         self.db_config = {
-            'host': '192.168.0.210',
-            'port': 5432,
-            'user': 'dashboard',
-            'password': 'dashboard',
-            'database': 'financial_data'
+            "host": host,
+            "port": port,
+            "user": user,
+            "password": password,
+            "database": database,
         }
     
     async def fetch_orderbook(self, symbol: str) -> Optional[Dict]:

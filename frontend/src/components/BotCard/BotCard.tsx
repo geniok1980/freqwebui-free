@@ -13,7 +13,11 @@ function getFreqUIUrl(apiUrl: string | undefined): string | null {
   try {
     const url = new URL(apiUrl);
     // Replace localhost/127.0.0.1 with current browser hostname
-    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    if (
+      url.hostname === 'localhost' ||
+      url.hostname === '127.0.0.1' ||
+      url.hostname === 'host.docker.internal'
+    ) {
       url.hostname = window.location.hostname;
     }
     return url.toString();

@@ -2,12 +2,17 @@
 
 from datetime import datetime
 
+import sqlalchemy as sa
 from sqlalchemy import ForeignKey, Index, Integer, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models import Base
 from src.models.bot import SourceMode
+
+
+def _enum_values(enum_cls):
+    return [e.value for e in enum_cls]
 
 
 class BotMetrics(Base):
@@ -39,7 +44,10 @@ class BotMetrics(Base):
     win_rate: Mapped[float | None] = mapped_column(Numeric(5, 2))
 
     # Data source tracking
-    data_source: Mapped[SourceMode] = mapped_column(nullable=False)
+    data_source: Mapped[SourceMode] = mapped_column(
+        sa.Enum(SourceMode, name="sourcemode", values_callable=_enum_values),
+        nullable=False,
+    )
 
     # Relationships
     bot = relationship("Bot", back_populates="metrics")

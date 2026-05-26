@@ -441,6 +441,8 @@ export function BotTrades({ botId }: BotTradesProps) {
 }
 
 function TradeRow({ trade }: { trade: Trade }) {
+  const hasProfitPct = typeof trade.close_profit === 'number';
+  const hasProfitAbs = typeof trade.close_profit_abs === 'number';
   const isProfit = (trade.close_profit ?? 0) >= 0;
   const openDate = new Date(trade.open_date);
   const closeDate = trade.close_date ? new Date(trade.close_date) : null;
@@ -508,12 +510,12 @@ function TradeRow({ trade }: { trade: Trade }) {
         {trade.close_rate?.toFixed(trade.close_rate < 1 ? 6 : 2) || '-'}
       </td>
       <td className="px-4 py-3">
-        {trade.close_profit !== undefined ? (
+        {hasProfitPct ? (
           <div className={`text-sm font-medium ${isProfit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-            {isProfit ? '+' : ''}{(trade.close_profit * 100).toFixed(2)}%
-            {trade.close_profit_abs !== undefined && (
+            {isProfit ? '+' : ''}{(((trade.close_profit as number) || 0) * 100).toFixed(2)}%
+            {hasProfitAbs && (
               <span className="block text-xs opacity-75">
-                {isProfit ? '+' : ''}{trade.close_profit_abs.toFixed(4)}
+                {isProfit ? '+' : ''}{(trade.close_profit_abs as number).toFixed(4)}
               </span>
             )}
           </div>

@@ -3,7 +3,7 @@ Strategy Lab API for Multibotdashboard V6
 Integrates ftmanager workflow engine with dashboard
 """
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, Form, status
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 from src.models import get_db
 from src.models.bot import Bot
 from src.schemas.bot import BotResponse
+from src.api.deps import require_operator
 
 router = APIRouter(prefix="/strategy-lab", tags=["strategy-lab"])
 
@@ -37,6 +38,24 @@ hyperopt_monitor: Optional[HyperoptMonitor] = None
 async def async_subprocess_run(cmd, **kwargs):
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, lambda: subprocess.run(cmd, **kwargs))
+
+
+def _get_strategies_root() -> str:
+    candidates: list[str] = []
+    env_path = os.getenv("STRATEGIES_PATH") or os.getenv("DASHBOARD_STRATEGIES_PATH")
+    if env_path:
+        candidates.append(env_path)
+    candidates.extend(
+        [
+            "/opt/Multibotdashboard/Strategies",
+            "/app/Strategies",
+            "/opt/MultibotdashboardV5/Strategies",
+        ]
+    )
+    for path in candidates:
+        if path and os.path.exists(path):
+            return path
+    return candidates[0]
 
 
 
@@ -66,11 +85,7 @@ async def get_strategies(
 ) -> List[dict]:
     """Get all strategies by scanning Strategies folder"""
     strategies = []
-    strategies_path = "/opt/Multibotdashboard/Strategies"
-    
-    # Fallback to V5 path if not found
-    if not os.path.exists(strategies_path):
-        strategies_path = "/opt/MultibotdashboardV5/Strategies"
+    strategies_path = _get_strategies_root()
     
     print(f"DEBUG: Looking for strategies at: {strategies_path}", flush=True)
     
@@ -117,6 +132,62 @@ async def get_strategies(
     print(f"DEBUG: Total .py files found: {py_files_found}, strategies added: {len(strategies)}", flush=True)
     strategies.sort(key=lambda x: x["name"])
     return strategies
+
+
+def _sanitize_strategy_filename(filename: str) -> str:
+    base = os.path.basename(filename or "").strip()
+    if not base:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing filename")
+    if not base.lower().endswith(".py"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only .py files are allowed")
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+\.py", base):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid filename")
+    return base
+
+
+def _sanitize_strategy_family(family: str | None) -> str:
+    f = (family or "").strip()
+    if not f:
+        return "Custom"
+    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", f):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid family name")
+    return f
+
+
+@router.post("/strategies/upload")
+async def upload_strategy(
+    file: UploadFile = File(...),
+    family: str | None = Form(None),
+    _: object = Depends(require_operator),
+) -> dict:
+    strategies_root = _get_strategies_root()
+    filename = _sanitize_strategy_filename(file.filename)
+    family_dir = _sanitize_strategy_family(family)
+
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty file")
+    if len(data) > 512 * 1024:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="File too large (max 512KB)")
+
+    dest_dir = os.path.join(strategies_root, family_dir)
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, filename)
+
+    try:
+        with open(dest_path, "wb") as f:
+            f.write(data)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to save file: {e}")
+
+    return {
+        "status": "success",
+        "data": {
+            "strategy_name": filename[:-3],
+            "family": family_dir,
+            "path": dest_path,
+        },
+    }
 
 
 

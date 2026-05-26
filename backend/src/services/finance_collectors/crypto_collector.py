@@ -6,6 +6,7 @@ Fetches data from CoinGecko API
 import asyncio
 import aiohttp
 import asyncpg
+import os
 from datetime import datetime
 from typing import List, Dict, Any
 import logging
@@ -69,12 +70,17 @@ class CryptoCollector:
     
     def __init__(self):
         self.base_url = "https://api.coingecko.com/api/v3"
+        host = os.getenv("FINANCE_DB_HOST") or os.getenv("DB_HOST") or "postgres"
+        port = int(os.getenv("FINANCE_DB_PORT") or os.getenv("DB_PORT") or "5432")
+        user = os.getenv("FINANCE_DB_USER") or os.getenv("DB_USER") or "dashboard"
+        password = os.getenv("FINANCE_DB_PASSWORD") or os.getenv("DB_PASSWORD") or "dashboard"
+        database = os.getenv("FINANCE_DB_NAME") or "financial_data"
         self.db_config = {
-            'host': '192.168.0.210',
-            'port': 5432,
-            'user': 'dashboard',
-            'password': 'dashboard',
-            'database': 'financial_data'
+            "host": host,
+            "port": port,
+            "user": user,
+            "password": password,
+            "database": database,
         }
     
     async def fetch_prices(self) -> List[Dict]:
