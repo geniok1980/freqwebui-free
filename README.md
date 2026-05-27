@@ -1,50 +1,50 @@
-# 🤖 AlexFreqAlphaDeck - Complete Installation Guide
+# 📊 FreqDash — Multi-Bot Dashboard для Freqtrade
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://docker.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)](https://postgresql.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green?logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react)](https://react.dev)
 
-> **Complete Docker-based deployment package for the Freqtrade Multi-Bot Dashboard**
+> **Современная панель управления для мониторинга нескольких Freqtrade-ботов из одного интерфейса**
 
 ---
 
-## 📋 Table of Contents
+## 📋 Содержание
 
-- [Overview](#overview)
-- [System Requirements](#system-requirements)
-- [Quick Start](#quick-start)
-- [Installation Methods](#installation-methods)
-- [Configuration](#configuration)
-- [Database Schema](#database-schema)
-- [Usage](#usage)
-- [Troubleshooting](#troubleshooting)
-- [Security](#security)
-- [Upgrading](#upgrading)
+- [Обзор](#обзор)
+- [Возможности](#возможности)
+- [Системные требования](#системные-требования)
+- [Быстрый старт](#быстрый-старт)
+- [Методы установки](#методы-установки)
+- [Конфигурация](#конфигурация)
+- [Использование](#использование)
+- [Устранение неполадок](#устранение-неполадок)
+- [Безопасность](#безопасность)
+- [Обновление](#обновление)
 
 ---
 
-## 🎯 Overview
+## 🎯 Обзор
 
-Multibotdashboard V10 is a modern, real-time dashboard for monitoring and controlling multiple [Freqtrade](https://www.freqtrade.io/) trading bots from a single interface.
+**FreqDash** — это многофункциональная панель для управления и мониторинга сразу нескольких торговых ботов [Freqtrade](https://www.freqtrade.io/) в реальном времени.
 
-### ✨ Features
+### ✨ Возможности
 
-- **Multi-Bot Management** - Monitor unlimited Freqtrade bots from one dashboard
-- **Real-Time Updates** - Live WebSocket data streaming
-- **Auto-Discovery** - Automatically detects bots via Docker or filesystem
-- **Portfolio Analytics** - Aggregated performance metrics
-- **Trade History** - Detailed logs with filtering and export
-- **Health Monitoring** - Track uptime, latency, and errors
-- **Dark/Light Mode** - Beautiful responsive UI
-- **Mobile Ready** - Works on desktop and mobile
+- **Multi-Bot Management** — управляйте неограниченным количеством Freqtrade-ботов
+- **Real-Time Updates** — данные в реальном времени через WebSocket
+- **Auto-Discovery** — автоматическое обнаружение ботов через Docker или файловую систему
+- **Portfolio Analytics** — агрегированная статистика по всем ботам
+- **Trade History** — детальная история сделок с фильтрацией и экспортом
+- **Health Monitoring** — контроль uptime, задержек и ошибок
+- **Тёмная/светлая тема** — адаптивный интерфейс
+- **Mobile Ready** — работает на десктопе и мобильных устройствах
 
-### 🏗️ Architecture
+### 🏗️ Архитектура
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                              CLIENT                                      │
-│                     (Browser / Mobile App)                               │
+│                     (Browser / Mobile)                                   │
 └─────────────────────────────┬───────────────────────────────────────────┘
                               │ HTTP / WebSocket
 ┌─────────────────────────────▼───────────────────────────────────────────┐
@@ -69,109 +69,102 @@ Multibotdashboard V10 is a modern, real-time dashboard for monitoring and contro
 
 ---
 
-## 💻 System Requirements
+## 💻 Системные требования
 
-### Minimum Requirements
+### Минимальные требования
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| **CPU** | 2 cores | 4+ cores |
+| Компонент | Минимум | Рекомендуется |
+|-----------|---------|---------------|
+| **CPU** | 2 ядра | 4+ ядер |
 | **RAM** | 4 GB | 8+ GB |
-| **Disk** | 20 GB | 50+ GB SSD |
-| **OS** | Linux/macOS/Windows with Docker | Linux Ubuntu 22.04+ |
-| **Docker** | 20.10+ | Latest |
-| **Docker Compose** | 2.0+ | Latest |
+| **Диск** | 20 GB | 50+ GB SSD |
+| **ОС** | Linux/macOS/Windows с Docker | Linux Ubuntu 22.04+ |
+| **Docker** | 20.10+ | Последняя версия |
+| **Docker Compose** | 2.0+ | Последняя версия |
 
-### Network Requirements
+### Сетевые требования
 
-- Ports to open:
-  - `5000` - Dashboard UI
-  - `8000` - API (if accessing directly)
-  - `8090` - Adminer (optional, internal only recommended)
+- Порты для открытия:
+  - `5000` — панель управления
+  - `8000` — API
+  - `8090` — Adminer (опционально, только для внутреннего использования)
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Быстрый старт
 
-### 1. Clone/Download
+### 1. Клонирование
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/multibotdashboard-v10.git
-cd multibotdashboard-v10
-
-# OR download and extract the release
-wget https://github.com/yourusername/multibotdashboard-v10/releases/download/v10.0.0/multibotdashboard-v10.tar.gz
-tar -xzf multibotdashboard-v10.tar.gz
-cd multibotdashboard-v10
+git clone https://github.com/geniok1980/freqwebui-free.git
+cd freqwebui-free
 ```
 
-### 2. Run Installation
+### 2. Запуск установки
 
 ```bash
-# Make install script executable
 chmod +x install.sh
-
-# Run interactive installation
 ./install.sh
+```
 
-# OR with custom options
+Или с кастомными параметрами:
+
+```bash
 ./install.sh --db-password mypass --admin-password myadmin --production
 ```
 
-### 3. Access Dashboard
+### 3. Доступ к панели
 
 ```
-🌐 Dashboard UI:    http://localhost:5000
-📚 API Docs:        http://localhost:8000/docs
-🗄️  Adminer (DB):   http://localhost:8090
+🌐 Панель:     http://localhost:5000
+📚 API Docs:   http://localhost:8000/docs
+🗄️ Adminer:    http://localhost:8090
 ```
 
-**Default Login:**
+**Логин по умолчанию:**
 - Username: `admin`
-- Password: `admin` (change immediately!)
+- Password: `admin` (сменить при первом входе!)
 
 ---
 
-## 🔧 Installation Methods
+## 🔧 Методы установки
 
-### Method 1: Automated Installation (Recommended)
+### Метод 1: Автоматическая установка (рекомендуется)
 
 ```bash
 ./install.sh
 ```
 
-This will:
-1. Check prerequisites (Docker, Docker Compose)
-2. Generate secure passwords and secrets
-3. Create directory structure
-4. Set up database schemas
-5. Build and start all services
+Скрипт выполнит:
+1. Проверку зависимостей (Docker, Docker Compose)
+2. Генерацию паролей и секретов
+3. Создание структуры директорий
+4. Настройку схем БД
+5. Сборку и запуск всех сервисов
 
-### Method 2: Manual Installation
+### Метод 2: Ручная установка
 
 ```bash
-# 1. Create environment file
+# 1. Создать файл окружения
 cp .env.example .env
-nano .env  # Edit with your settings
+nano .env
 
-# 2. Create directories
+# 2. Создать директории
 mkdir -p {logs,backup_DB,data,db/init,db/init-analytics}
 
-# 3. Start databases first
+# 3. Запустить БД
 docker-compose up -d postgres postgres-analytics redis
 
-# 4. Wait for DB initialization (30 seconds)
+# 4. Дождаться инициализации БД (30 сек)
 sleep 30
 
-# 5. Start all services
+# 5. Запустить все сервисы
 docker-compose up -d
 ```
 
-### Method 3: Production Deployment
+### Метод 3: Production
 
 ```bash
-# Production mode with custom domain
 ./install.sh \
   --production \
   --db-password "$(openssl rand -base64 32)" \
@@ -181,39 +174,26 @@ docker-compose up -d
 
 ---
 
-## ⚙️ Configuration
+## ⚙️ Конфигурация
 
-### Environment Variables
+### Переменные окружения
 
-All configuration is done via the `.env` file:
+Настройки в файле `.env`:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PUBLIC_HOST` | Public hostname/IP | `localhost` |
-| `DB_PASSWORD` | PostgreSQL password | (auto-generated) |
-| `JWT_SECRET` | JWT signing key | (auto-generated) |
-| `ADMIN_USERNAME` | Admin username | `admin` |
-| `ADMIN_PASSWORD` | Admin password | `admin` |
-| `BACKEND_PORT` | API port | `8000` |
-| `FRONTEND_PORT` | UI port | `5000` |
-| `REDIS_PORT` | Redis port | `6379` |
-
-### Docker Compose Configuration
-
-Key settings in `docker-compose.yml`:
-
-```yaml
-# All volumes are mounted as RW (read-write) as requested
-volumes:
-  - /var/run/docker.sock:/var/run/docker.sock:rw  # Docker access
-  - /opt:/opt:rw                                    # Freqtrade data
-  - ./backend/src:/app/src:rw                      # Backend code
-  - ./config:/app/config:rw                        # Config files
-```
+| Переменная | Описание | По умолчанию |
+|-----------|----------|-------------|
+| `PUBLIC_HOST` | Публичный хост/IP | `localhost` |
+| `DB_PASSWORD` | Пароль PostgreSQL | (авто-генерация) |
+| `JWT_SECRET` | JWT ключ | (авто-генерация) |
+| `ADMIN_USERNAME` | Имя админа | `admin` |
+| `ADMIN_PASSWORD` | Пароль админа | `admin` |
+| `BACKEND_PORT` | Порт API | `8000` |
+| `FRONTEND_PORT` | Порт UI | `5000` |
+| `REDIS_PORT` | Порт Redis | `6379` |
 
 ### Dashboard YAML Config
 
-Create `config/dashboard.yaml`:
+Создать `config/dashboard.yaml`:
 
 ```yaml
 server:
@@ -223,7 +203,7 @@ server:
     - "http://localhost:5000"
 
 database:
-  url: "postgresql://dashboard:dashboard@postgres:5432/dashboard"
+  url: "postgresql://dashboard:***@postgres:5432/dashboard"
 
 discovery:
   docker:
@@ -242,224 +222,160 @@ api_defaults:
 
 ---
 
-## 🗄️ Database Schema
+## 🎮 Использование
 
-### Main Dashboard Database (`dashboard`)
+### Первый вход
 
-| Table | Purpose |
-|-------|---------|
-| `users` | User accounts and authentication |
-| `bots` | Registered Freqtrade bots |
-| `bot_snapshots` | Historical bot metrics |
-| `trades` | Trade history from all bots |
-| `alerts` | System alerts and notifications |
-| `settings` | Application configuration |
-| `audit_log` | Activity tracking |
+1. Откройте `http://localhost:5000`
+2. Войдите с учётными данными по умолчанию
+3. **Сразу смените пароль администратора!**
+4. Settings → Profile → Change Password
 
-### Analytics Database (`freqtrade_analytics`)
+### Добавление ботов
 
-| Table | Purpose |
-|-------|---------|
-| `crypto_prices` | Market price data |
-| `crypto_movers` | Top gainers/losers |
-| `stocks` | Stock market data |
-| `portfolio_snapshots` | Aggregated portfolio metrics |
-| `portfolio_trades` | Cross-bot trade history |
-| `news` | Market news and sentiment |
-| `economic_indicators` | Economic data |
-| `daily_performance` | Daily profit/loss tracking |
+**Метод 1: Авто-обнаружение**
+- Панель автоматически сканирует ботов каждые 60 секунд
+- Боты должны быть запущены в Docker или доступны по заданным путям
 
----
-
-## 🎮 Usage
-
-### First Login
-
-1. Navigate to `http://localhost:5000`
-2. Login with default credentials
-3. **Immediately change the admin password!**
-4. Go to Settings → Profile → Change Password
-
-### Adding Bots
-
-**Method 1: Auto-Discovery**
-- Dashboard automatically scans for bots every 60 seconds
-- Ensure your bots are running in Docker or accessible in scan paths
-
-**Method 2: Manual Registration**
-1. Go to Bots → Add Bot
-2. Enter bot details:
-   - Name: Unique identifier
+**Метод 2: Ручная регистрация**
+1. Bots → Add Bot
+2. Укажите данные бота:
+   - Name: уникальный идентификатор
    - API URL: `http://bot-host:8080`
-   - Username/Password: Freqtrade API credentials
-3. Click "Test Connection" then "Save"
+   - Username/Password: API-креды Freqtrade
+3. Test Connection → Save
 
-### Dashboard Views
+### Разделы панели
 
-| View | Description |
-|------|-------------|
-| **Overview** | Portfolio summary, P&L, active bots |
-| **Bots** | Individual bot status and controls |
-| **Trades** | Trade history with filters |
-| **Analytics** | Charts and performance metrics |
-| **Alerts** | System notifications |
-| **Settings** | Configuration and user management |
+| Раздел | Описание |
+|--------|----------|
+| **Overview** | Сводка портфеля, P&L, активные боты |
+| **Bots** | Статус и управление ботами |
+| **Trades** | История сделок с фильтрами |
+| **Analytics** | Графики и метрики производительности |
+| **Alerts** | Системные уведомления |
+| **Settings** | Конфигурация и управление пользователями |
 
 ---
 
-## 🔍 Troubleshooting
+## 🔍 Устранение неполадок
 
-### Container Won't Start
+### Контейнер не запускается
 
 ```bash
-# Check logs
+# Проверить логи
 docker-compose logs -f [service_name]
 
-# Common fixes
+# Типовое решение
 docker-compose down
 docker-compose pull
 docker-compose up -d
 ```
 
-### Database Connection Issues
+### Проблемы с подключением к БД
 
 ```bash
-# Check database health
+# Проверить здоровье БД
 docker-compose exec postgres pg_isready -U dashboard
 
-# Reset databases (WARNING: data loss!)
+# Сброс БД (все данные будут потеряны!)
 docker-compose down -v
 docker-compose up -d postgres postgres-analytics
 ```
 
-### Bot Discovery Not Working
+### Боты не обнаруживаются
 
 ```bash
-# Check Docker socket access
+# Проверить доступ к Docker socket
 docker-compose exec backend docker ps
 
-# Verify scan paths
+# Проверить пути сканирования
 docker-compose exec backend ls -la /opt
 ```
 
-### Common Errors
+### Частые ошибки
 
-| Error | Solution |
-|-------|----------|
-| `Connection refused` | Wait for services to start (30s) |
-| `Permission denied` | Check volume permissions: `chmod -R 755 data/` |
-| `JWT validation failed` | Regenerate JWT_SECRET in .env |
-| `Database locked` | Restart postgres: `docker-compose restart postgres` |
-
----
-
-## 🔒 Security
-
-### Production Checklist
-
-- [ ] Change default admin password
-- [ ] Generate strong JWT_SECRET
-- [ ] Use strong DB_PASSWORD
-- [ ] Enable HTTPS (reverse proxy)
-- [ ] Restrict Adminer access (VPN/internal only)
-- [ ] Set up firewall rules
-- [ ] Enable audit logging
-- [ ] Regular backups
-
-### Recommended Reverse Proxy (Nginx)
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name dashboard.yourdomain.com;
-    
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-    
-    location / {
-        proxy_pass http://localhost:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-    
-    location /api/ {
-        proxy_pass http://localhost:8000/api/;
-        proxy_set_header Host $host;
-    }
-}
-```
+| Ошибка | Решение |
+|--------|---------|
+| `Connection refused` | Дождитесь запуска сервисов (30 сек) |
+| `Permission denied` | Проверьте права: `chmod -R 755 data/` |
+| `JWT validation failed` | Сгенерируйте новый JWT_SECRET в .env |
+| `Database locked` | Перезапустите postgres |
 
 ---
 
-## 📈 Upgrading
+## 🔒 Безопасность
 
-### From V9 to V10
+### Production чеклист
+
+- [ ] Сменить пароль администратора
+- [ ] Сгенерировать сильный JWT_SECRET
+- [ ] Использовать надёжный DB_PASSWORD
+- [ ] Настроить HTTPS (reverse proxy)
+- [ ] Ограничить доступ к Adminer (VPN/internal)
+- [ ] Настроить firewall
+- [ ] Включить аудит логов
+- [ ] Регулярные бекапы
+
+---
+
+## 📈 Обновление
 
 ```bash
-# 1. Backup data
-docker-compose exec postgres pg_dump -U dashboard dashboard > backup_v9.sql
+# 1. Бекап данных
+docker-compose exec postgres pg_dump -U dashboard dashboard > backup.sql
 
-# 2. Pull latest version
+# 2. Стянуть последнюю версию
 git pull origin main
 
-# 3. Rebuild and restart
+# 3. Пересобрать и перезапустить
 docker-compose down
 docker-compose build --no-cache
 docker-compose up -d
 
-# 4. Run migrations (if any)
+# 4. Применить миграции (если есть)
 docker-compose exec backend alembic upgrade head
 ```
 
 ---
 
-## 📝 Useful Commands
+## 📝 Полезные команды
 
 ```bash
-# View all logs
+# Все логи
 docker-compose logs -f
 
-# View specific service
+# Логи конкретного сервиса
 docker-compose logs -f backend
 
-# Restart service
+# Рестарт сервиса
 docker-compose restart backend
 
-# Scale backend (if needed)
-docker-compose up -d --scale backend=2
-
-# Backup database
+# Бекап БД
 docker-compose exec postgres pg_dump -U dashboard dashboard > backup.sql
 
-# Restore database
+# Восстановление БД
 docker-compose exec -T postgres psql -U dashboard dashboard < backup.sql
 
-# Update images
+# Обновить образы
 docker-compose pull
 docker-compose up -d
-
-# Clean up unused data
-docker system prune -a
-docker volume prune
 ```
 
 ---
 
-## 🤝 Contributing
-Contacts: 
+## 📬 Контакты
 
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/alex15_08)
-[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/tju4JSDBTE)
+[![Telegram](https://img.shields.io/badge/-Telegram-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/geniok)
 
 ---
 
-## 📄 License
+## 📄 Лицензия
 
-MIT License - See [LICENSE](LICENSE) for details.
+MIT License
 
 ---
 
 <p align="center">
-  Made with ❤️ for the Freqtrade community<br>
-  <strong>AlexFreqAlphaDeck</strong>
+  Made with ❤️ for the Freqtrade community
 </p>
