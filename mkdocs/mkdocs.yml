@@ -1,0 +1,59 @@
+site_name: FreqDash Documentation
+site_description: User documentation for FreqDash — Multi-Bot Dashboard для Freqtrade
+site_author: geniok
+site_url: http://localhost:9500
+edit_uri: ""
+
+nav:
+  - Главная: index.md
+  - 🚀 Быстрый старт: getting-started.md
+  - 🤖 Управление ботами: bots.md
+  - 📈 Портфель: portfolio.md
+  - 🧪 Лаборатория стратегий: strategies.md
+  - 💰 Финансовые данные: finance.md
+  - 🤖 Агентская стратегия: agent.md
+  - 🤖 Telegram Bot: telegram-bot.md
+  - 📚 Интеграция с курсом: course-integration.md
+  - ⚙️ Дополнительные функции: advanced.md
+  - 📱 Мобильное приложение: mobile.md
+  - 🔍 Устранение неполадок: troubleshooting.md
+
+theme:
+  name: material
+  language: ru
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true

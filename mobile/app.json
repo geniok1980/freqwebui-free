@@ -1,0 +1,52 @@
+{
+  "name": "FreqdashMobile",
+  "displayName": "Freqdash Mobile",
+  "version": "1.0.0",
+  "slug": "freqdash-mobile",
+  "scheme": "freqdash",
+  "orientation": "default",
+  "userInterfaceStyle": "dark",
+  "backgroundColor": "#0f1419",
+  "icon": "./assets/icon.png",
+  "splash": {
+    "backgroundColor": "#0f1419",
+    "resizeMode": "contain",
+    "image": "./assets/splash-icon.png"
+  },
+  "ios": {
+    "supportsTablet": true,
+    "bundleIdentifier": "com.freqdash.mobile",
+    "infoPlist": {
+      "NSAppTransportSecurity": {
+        "NSAllowsArbitraryLoads": true
+      }
+    }
+  },
+  "android": {
+    "package": "com.freqdash.mobile",
+    "adaptiveIcon": {
+      "backgroundColor": "#0f1419",
+      "foregroundImage": "./assets/adaptive-icon.png"
+    }
+  },
+  "plugins": [
+    "expo-status-bar",
+    "expo-system-ui",
+    "expo-dev-client",
+    "expo-updates",
+    "expo-splash-screen"
+  ],
+  "extra": {
+    "eas": {
+      "projectId": "cfe606af-bb83-42af-8608-f130bc6e0608"
+    }
+  },
+  "owner": "geniok",
+  "updates": {
+    "url": "https://u.expo.dev/cfe606af-bb83-42af-8608-f130bc6e0608",
+    "enabled": true,
+    "fallbackToCacheTimeout": 0,
+    "checkAutomatically": "ON_LOAD"
+  },
+  "runtimeVersion": "1.0.0"
+}
