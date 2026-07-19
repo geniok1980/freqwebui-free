@@ -30,6 +30,11 @@ import { FinanceData } from './pages/FinanceData';
 import { AgentDashboard } from './pages/Agent';
 import { PairlistSelector } from './pages/PairlistSelector';
 import { FreqtradeBots } from './pages/FreqtradeBots';
+import { PreLaunchChecklist } from './pages/PreLaunchChecklist';
+import { ScoringDashboard } from './pages/ScoringDashboard';
+import { RiskDashboard } from './pages/RiskDashboard';
+import { TradingJournal } from './pages/TradingJournal';
+import { ComparisonView } from './pages/ComparisonView';
 import { setTenantSlug } from './services/api';
 
 // Create React Query client
@@ -275,6 +280,56 @@ function App() {
             element={
               <ProtectedRoute>
                 <AgentDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Чек-лист запуска */}
+          <Route
+            path="/checklist"
+            element={
+              <ProtectedRoute>
+                <PreLaunchChecklist />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Оценка стратегий */}
+          <Route
+            path="/scoring"
+            element={
+              <ProtectedRoute>
+                <ScoringDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Сравнение B↔D↔L */}
+          <Route
+            path="/comparison"
+            element={
+              <ProtectedRoute>
+                <ComparisonView />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Риски */}
+          <Route
+            path="/risk"
+            element={
+              <ProtectedRoute>
+                <RiskDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Журнал торговли */}
+          <Route
+            path="/journal"
+            element={
+              <ProtectedRoute>
+                <TradingJournal />
               </ProtectedRoute>
             }
           />

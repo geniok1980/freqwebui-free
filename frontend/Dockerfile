@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies)
-RUN npm ci
+RUN npm ci && npm install @rolldown/binding-linux-x64-musl --no-save
 
 # Copy source code
 COPY . .

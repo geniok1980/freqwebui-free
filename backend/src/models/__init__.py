@@ -85,6 +85,8 @@ from src.models.bot import Bot  # noqa: E402, F401
 from src.models.metrics import BotMetrics  # noqa: E402, F401
 from src.models.user import User  # noqa: E402, F401
 from src.models.alert import Alert  # noqa: E402, F401
+from src.models.checklist import LaunchChecklist  # noqa: E402, F401
+from src.models.journal import TradeJournal  # noqa: E402, F401
 from src.models.pairlist import PairlistJob, PairlistResult, PairlistPairResult  # noqa: E402, F401
 from src.models.settings import SystemSetting  # noqa: E402, F401
 from src.models.tenant import (  # noqa: E402, F401
@@ -105,6 +107,8 @@ __all__ = [
     "Bot",
     "BotMetrics",
     "Alert",
+    "LaunchChecklist",
+    "TradeJournal",
     "PairlistJob",
     "PairlistResult",
     "PairlistPairResult",

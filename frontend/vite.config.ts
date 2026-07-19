@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     port: 5000,
     host: true,
-    allowedHosts: ['dashboard.mechti.at'],
+    allowedHosts: ['freqdash.com', 'dashboard.mechti.at'],
     proxy: {
       '/api': {
         target: API_URL,

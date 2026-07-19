@@ -179,15 +179,18 @@ class DockerDiscovery(BaseDiscovery):
             # Check for custom name label
             bot_name = labels.get("com.freqtrade.bot_name", container_name)
 
-            # Extract port mappings
-            api_port = self._extract_api_port(attrs)
-            
-            # Use provided host or default to localhost
-            # Host is passed from orchestrator based on discovery_host_ip setting
-            host = kwargs.get('host', 'localhost')
+            # Extract port mappings: internal for health check, host for frontend
+            api_port = self._extract_api_port(attrs)     # e.g., 8080 (internal)
+            host_port = self._extract_host_port(attrs)   # e.g., 8082 (published)
 
-            # Build API URL if port found
+            # Use container name (Docker DNS) for internal health checks
+            host = container_name
+
+            # Build API URL using Docker DNS + internal port
             api_url = f"http://{host}:{api_port}" if api_port else None
+
+            # Display port for frontend should be the published host port
+            display_port = host_port or api_port
 
             # Extract user_data path from mounts
             user_data_path = map_user_data_path_for_backend(self._extract_user_data_path(attrs))
@@ -204,7 +207,7 @@ class DockerDiscovery(BaseDiscovery):
                 container_id=container.id,
                 user_data_path=user_data_path,
                 api_url=api_url,
-                api_port=api_port,
+                api_port=display_port,
                 api_available=container.status == "running" and api_port is not None,
                 sqlite_path=f"{user_data_path}/tradesv3.sqlite" if user_data_path else None,
                 sqlite_available=user_data_path is not None,
@@ -223,7 +226,37 @@ class DockerDiscovery(BaseDiscovery):
             return None
 
     def _extract_api_port(self, attrs: dict) -> Optional[int]:
-        """Extract API port from container port mappings.
+        """Extract internal API port from container port mappings.
+
+        Returns the CONTAINER-side port (e.g., 8080), NOT the HostPort.
+        This is used for health checks via Docker DNS.
+
+        Args:
+            attrs: Container attributes dict.
+
+        Returns:
+            Internal container port number or None.
+        """
+        try:
+            ports = attrs.get("NetworkSettings", {}).get("Ports", {})
+
+            for container_port, bindings in ports.items():
+                if bindings and container_port.startswith("8"):
+                    return int(container_port.split("/")[0])
+
+            for container_port, bindings in ports.items():
+                if bindings:
+                    return int(container_port.split("/")[0])
+
+        except Exception:
+            pass
+
+        return None
+
+    def _extract_host_port(self, attrs: dict) -> Optional[int]:
+        """Extract published host port from container port mappings.
+
+        Returns the HostPort (e.g., 8082) — used by frontend for iframe URLs.
 
         Args:
             attrs: Container attributes dict.
@@ -234,15 +267,12 @@ class DockerDiscovery(BaseDiscovery):
         try:
             ports = attrs.get("NetworkSettings", {}).get("Ports", {})
 
-            # Look for common Freqtrade API ports (8080, 8081, etc.)
             for container_port, bindings in ports.items():
                 if bindings and container_port.startswith("8"):
-                    # Get first binding's host port
                     host_port = bindings[0].get("HostPort")
                     if host_port:
                         return int(host_port)
 
-            # Fallback: any mapped port
             for container_port, bindings in ports.items():
                 if bindings:
                     host_port = bindings[0].get("HostPort")

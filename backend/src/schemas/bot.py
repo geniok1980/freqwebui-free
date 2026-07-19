@@ -29,6 +29,7 @@ class BotResponse(BaseModel):
     environment: BotEnvironment
     host: Optional[str] = None
     api_url: Optional[str] = None
+    api_port: Optional[int] = None
     health_state: HealthState
     source_mode: SourceMode
     exchange: Optional[str] = None
