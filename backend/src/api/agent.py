@@ -365,13 +365,13 @@ async def create_signal_performance(signal: dict):
             if signal.get('outcome') == 'win':
                 await conn.execute("""
                     UPDATE signal_weights 
-                    SET win_count = win_count + 1, total_trades = total_trades + 1
+                    SET win_count = win_count + 1, total_trades = total_trades + 1, last_updated = NOW()
                     WHERE regime = $1
                 """, signal.get('regime'))
             else:
                 await conn.execute("""
                     UPDATE signal_weights 
-                    SET total_trades = total_trades + 1
+                    SET total_trades = total_trades + 1, last_updated = NOW()
                     WHERE regime = $1
                 """, signal.get('regime'))
     return {"status": "success", "message": "Signal logged"}

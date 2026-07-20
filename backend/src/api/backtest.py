@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,8 +20,8 @@ def success_response(data: Any) -> dict[str, Any]:
 @router.get("")
 async def list_backtest_results(
     db: AsyncSession = Depends(get_db),
-    limit: int = 100,
-    offset: int = 0,
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ) -> dict[str, Any]:
     """List all backtest results sorted by profit."""
     result = await db.execute(

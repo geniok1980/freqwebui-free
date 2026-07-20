@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -105,7 +105,7 @@ async def get_latest_bot_snapshot(
 @router.get("/bot/{bot_name}/series")
 async def get_bot_time_series(
     bot_name: str,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_analytics_db),
 ) -> dict[str, Any]:
     """Get time series data for a bot (for charts)."""

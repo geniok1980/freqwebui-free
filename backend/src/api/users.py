@@ -215,7 +215,7 @@ async def create_user(
     # Create user
     user = User(
         username=user_data.username,
-        password_hash=hash_password(user_data.password),
+        password_hash=hash_password(user_data.password.strip()),
         role=role,
     )
     db.add(user)

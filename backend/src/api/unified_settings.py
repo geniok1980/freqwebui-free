@@ -29,9 +29,14 @@ async def get_all_settings(session: AsyncSession = Depends(get_db)):
     settings.update(db_settings)
     return {"settings": settings}
 
+VALID_KEYS = set(DEFAULT_SETTINGS.keys())
+
+
 @router.post("/batch")
 async def update_settings(settings: Dict[str, Any], session: AsyncSession = Depends(get_db)):
     for key, value in settings.items():
+        if key not in VALID_KEYS:
+            raise HTTPException(status_code=400, detail=f"Unknown setting key: {key}")
         result = await session.execute(select(SystemSetting).where(SystemSetting.key == key))
         setting = result.scalar_one_or_none()
         if setting:

@@ -221,7 +221,7 @@ async def get_workflow_status(
     
     return {
         "status": process.status.value,
-        "type": process.type.value,
+        "type": process.process_type.value,
         "started_at": process.started_at.isoformat() if process.started_at else None,
         "pid": process.pid,
         "stats": process.stats.to_dict() if process.stats else None

@@ -37,6 +37,8 @@ async def get_setting(key: str, session: AsyncSession = Depends(get_db)):
         if key == "api_password":
             return {"key": key, "value": "", "description": "Password for Freqtrade bot API authentication"}
         raise HTTPException(status_code=404, detail="Setting not found")
+    if setting.key == "api_password":
+        return {"key": setting.key, "value": "***", "description": setting.description}
     return {"key": setting.key, "value": setting.value, "description": setting.description}
 
 @router.post("/system")

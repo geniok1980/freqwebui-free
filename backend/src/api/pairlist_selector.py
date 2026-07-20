@@ -194,11 +194,9 @@ async def _run_pairlist_job(job_id: str, cmd: List[str]):
                 text=True
             )
             
-            # Stream output
-            stdout_lines = []
+            # Stream output (don't accumulate — avoid memory leak)
             for line in process.stdout:
                 line = line.strip()
-                stdout_lines.append(line)
                 job_info["progress"] = line[:200]  # Last line as progress
                 logger.info(f"[{job_id}] {line}")
             
@@ -237,6 +235,13 @@ async def _run_pairlist_job(job_id: str, cmd: List[str]):
                     db_job.error_message = str(e)[:1000]
                     await session.commit()
             except:
+                pass
+
+        finally:
+            # Cleanup Docker container
+            try:
+                subprocess.run(["docker", "rm", "-f", job_id], capture_output=True, timeout=10)
+            except Exception:
                 pass
 
 async def _save_pairlist_results(job_id: str, job_info: Dict, session: AsyncSession):
@@ -344,7 +349,8 @@ async def get_pairlist_results(job_id: str) -> Dict:
     
     # Try to read from JSON file
     results_dir = "/opt/Multibotdashboard/results/pairlists"
-    json_file = f"{results_dir}/optimal_pairs_{job_id}.json"
+    safe_job_id = os.path.basename(job_id)  # prevent path traversal
+    json_file = f"{results_dir}/optimal_pairs_{safe_job_id}.json"
     
     if os.path.exists(json_file):
         with open(json_file, 'r') as f:
