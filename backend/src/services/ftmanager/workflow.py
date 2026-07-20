@@ -64,6 +64,15 @@ class Workflow:
             self._cancel_events[strategy_name].set()
             self.state.set_workflow(strategy_name, WorkflowStatus.CANCELLED, "Cancelling...")
 
+    def stop_process(self, strategy_name: str) -> bool:
+        """Stop a running process for a strategy (delegates to ProcessManager)."""
+        from .state import ProcessType
+        if self.proc_mgr.is_running(ProcessType.HYPEROPT, strategy_name):
+            return self.proc_mgr.stop_process(ProcessType.HYPEROPT, strategy_name)
+        if self.proc_mgr.is_running(ProcessType.BACKTEST, strategy_name):
+            return self.proc_mgr.stop_process(ProcessType.BACKTEST, strategy_name)
+        return False
+
     def start(self, strategy: StrategyConfig):
         if self.is_running(strategy.name):
             logger.warning(f"Workflow already running for {strategy.name}")

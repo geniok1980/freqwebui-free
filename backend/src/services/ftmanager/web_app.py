@@ -216,7 +216,7 @@ def create_app(
     @app.get("/api/hyperopt/evaluate/{strategy_name}")
     async def evaluate_fthypt(strategy_name: str, file: str = ""):
         """Load a .fthypt file, parse all epochs, evaluate against current criteria."""
-        from manager.hyperopt_monitor import parse_fthypt_file, evaluate_criteria
+        from .hyperopt_monitor import parse_fthypt_file, evaluate_criteria
         cfg = cfg_holder.get()
         strat = cfg.get_strategy(strategy_name)
         if not strat:

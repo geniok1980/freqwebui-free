@@ -1,6 +1,6 @@
 """
 Process manager for FreqTrade - Docker/Linux adaptation for Multibotdashboard V6
-Replaces Windows-specific code with Docker container management
+Replaces Windows-specific code with Docker container management.
 """
 
 import os
@@ -29,42 +29,46 @@ def calc_timerange(start_days_ago: int, end_days_ago: int) -> str:
 
 class DockerProcessManager:
     """Manages freqtrade processes using Docker containers."""
-    
+
     def __init__(self, config: AppConfig, state: AppState):
         self.config = config
         self.state = state
         self.docker_client = docker.from_env()
         self._lock = threading.Lock()
-        
+        self._process_cache: dict[str, ProcessInfo] = {}
+
+    def _make_process_id(self, strategy_name: str, process_type: ProcessType) -> str:
+        """Generate a stable process ID for tracking."""
+        return f"{strategy_name}_{process_type.value}"
+
     def _get_container_name(self, strategy_name: str, process_type: ProcessType) -> str:
         """Generate unique container name for a process."""
         return f"ft_{strategy_name.lower()}_{process_type.value}_{int(time.time())}"
-    
+
     def _build_docker_cmd(
         self,
         process_type: ProcessType,
         strategy: StrategyConfig,
-        extra_args: list = None
+        extra_args: list = None,
     ) -> list:
         """Build Docker command for a process type."""
-        
         base_cmd = [
             "docker", "run", "--rm",
             "-v", f"{self.config.freqtrade.directory}/user_data:/freqtrade/user_data",
             "-v", f"{self.config.freqtrade.directory}/config:/freqtrade/config",
-            self.config.freqtrade.docker_image or "freqtradeorg/freqtrade:stable_freqaitorch"
+            self.config.freqtrade.docker_image or "freqtradeorg/freqtrade:stable_freqaitorch",
         ]
-        
+
         if process_type == ProcessType.TRADE:
             cmd = base_cmd + [
                 "trade",
                 "--config", strategy.config_path,
-                "--strategy", strategy.name
+                "--strategy", strategy.name,
             ]
         elif process_type == ProcessType.BACKTEST:
             timerange = calc_timerange(
                 strategy.backtest_timerange_start_days_ago,
-                strategy.backtest_timerange_end_days_ago
+                strategy.backtest_timerange_end_days_ago,
             )
             cmd = base_cmd + [
                 "backtesting",
@@ -72,12 +76,12 @@ class DockerProcessManager:
                 "--strategy", strategy.name,
                 "--timerange", timerange,
                 "--timeframe", strategy.timeframe or "15m",
-                "--cache", "none"
+                "--cache", "none",
             ]
         elif process_type == ProcessType.HYPEROPT:
             timerange = calc_timerange(
                 strategy.hyperopt_timerange_start_days_ago,
-                strategy.hyperopt_timerange_end_days_ago
+                strategy.hyperopt_timerange_end_days_ago,
             )
             cmd = base_cmd + [
                 "hyperopt",
@@ -88,58 +92,75 @@ class DockerProcessManager:
                 "--epochs", str(strategy.epochs or 30),
                 "--spaces", strategy.hyperopt_spaces or "buy sell",
                 "--hyperopt-loss", strategy.hyperopt_loss or "SharpeHyperOptLoss",
-                "-j", "4"  # 4 parallel jobs
+                "-j", "4",
             ]
-        elif process_type == ProcessType.DOWNLOAD_DATA:
+        elif process_type == ProcessType.DOWNLOAD_DATA or process_type == ProcessType.DOWNLOAD:
             cmd = base_cmd + [
                 "download-data",
                 "--config", strategy.config_path,
                 "--timeframe", strategy.timeframe or "15m",
-                "--days", "30"
+                "--days", "30",
             ]
         else:
             raise ValueError(f"Unknown process type: {process_type}")
-        
+
         if extra_args:
             cmd.extend(extra_args)
-            
+
         return cmd
-    
+
+    def build_hyperopt_show_cmd(self, strategy: StrategyConfig, epoch_num: int) -> list[str]:
+        """Build command to extract epoch params via hyperopt-show."""
+        return [
+            "docker", "run", "--rm",
+            "-v", f"{self.config.freqtrade.directory}/user_data:/freqtrade/user_data",
+            self.config.freqtrade.docker_image or "freqtradeorg/freqtrade:stable_freqaitorch",
+            "hyperopt-show",
+            "--config", strategy.config_path,
+            "--strategy", strategy.name,
+            "--epoch", str(epoch_num),
+        ]
+
+    def is_running(self, process_type: ProcessType, strategy_name: str) -> bool:
+        """Check if a process of given type is running for a strategy."""
+        info = self.state.get_process(self._make_process_id(strategy_name, process_type))
+        return info is not None and info.status == ProcessStatus.RUNNING
+
+    # ── Public API used by workflow.py and web_app.py ──
+
     def start_process(
         self,
-        process_id: str,
         process_type: ProcessType,
         strategy: StrategyConfig,
+        cmd: list = None,
         on_output: Callable[[str], None] = None,
-        on_complete: Callable[[int], None] = None
-    ) -> ProcessInfo:
-        """Start a Docker container for a process."""
-        
+        on_complete: Callable[[int], None] = None,
+    ) -> bool:
+        """Start a Docker container for a process. Returns True on success."""
+        process_id = self._make_process_id(strategy.name, process_type)
+
         with self._lock:
-            # Check if already running
             existing = self.state.get_process(process_id)
             if existing and existing.status == ProcessStatus.RUNNING:
                 logger.warning(f"Process {process_id} already running")
-                return existing
-            
-            # Build command
-            cmd = self._build_docker_cmd(process_type, strategy)
+                return False
+
+            if cmd is None:
+                cmd = self._build_docker_cmd(process_type, strategy)
+
             container_name = self._get_container_name(strategy.name, process_type)
-            
             logger.info(f"Starting {process_type.value} for {strategy.name}: {' '.join(cmd)}")
-            
+
             try:
-                # Start container
                 process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
                     bufsize=1,
-                    universal_newlines=True
+                    universal_newlines=True,
                 )
-                
-                # Create process info
+
                 info = ProcessInfo(
                     id=process_id,
                     type=process_type,
@@ -147,67 +168,202 @@ class DockerProcessManager:
                     pid=process.pid,
                     status=ProcessStatus.RUNNING,
                     started_at=datetime.now(),
-                    container_name=container_name
+                    container_name=container_name,
                 )
                 self.state.register_process(info)
-                
-                # Start output reader thread
+
                 if on_output:
                     threading.Thread(
                         target=self._read_output,
                         args=(process, process_id, on_output, on_complete),
-                        daemon=True
+                        daemon=True,
                     ).start()
                 else:
                     threading.Thread(
                         target=self._wait_process,
                         args=(process, process_id, on_complete),
-                        daemon=True
+                        daemon=True,
                     ).start()
-                
-                return info
-                
+
+                return True
+
             except Exception as e:
                 logger.error(f"Failed to start process {process_id}: {e}")
-                raise
-    
+                return False
+
+    def stop_process(
+        self,
+        process_type: ProcessType,
+        strategy_name: str,
+        timeout: int = 60,
+    ) -> bool:
+        """Stop a running process for a strategy."""
+        process_id = self._make_process_id(strategy_name, process_type)
+        with self._lock:
+            info = self.state.get_process(process_id)
+            if not info or info.status != ProcessStatus.RUNNING:
+                return False
+
+            try:
+                if info.container_name:
+                    subprocess.run(
+                        ["docker", "stop", "-t", str(timeout), info.container_name],
+                        capture_output=True,
+                        timeout=timeout + 10,
+                    )
+
+                self.state.update_process_status(process_id, ProcessStatus.STOPPED)
+                logger.info(f"Stopped process {process_id}")
+                return True
+
+            except Exception as e:
+                logger.error(f"Failed to stop process {process_id}: {e}")
+                try:
+                    if info.container_name:
+                        subprocess.run(
+                            ["docker", "kill", info.container_name],
+                            capture_output=True,
+                            timeout=10,
+                        )
+                except Exception:
+                    pass
+                self.state.update_process_status(process_id, ProcessStatus.ERROR)
+                return False
+
+    def run_and_wait(
+        self,
+        process_type: ProcessType,
+        strategy: StrategyConfig,
+        on_line: Callable[[str], None] = None,
+        timeout: int = 0,
+        cancel_event: threading.Event = None,
+        cmd: list = None,
+    ) -> int:
+        """Run a process synchronously and wait for completion. Returns exit code."""
+        process_id = self._make_process_id(strategy.name, process_type)
+
+        with self._lock:
+            if cmd is None:
+                cmd = self._build_docker_cmd(process_type, strategy)
+
+            container_name = self._get_container_name(strategy.name, process_type)
+            logger.info(f"Running {process_type.value} for {strategy.name}: {' '.join(cmd)}")
+
+            try:
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True,
+                )
+
+                info = ProcessInfo(
+                    id=process_id,
+                    type=process_type,
+                    strategy_name=strategy.name,
+                    pid=process.pid,
+                    status=ProcessStatus.RUNNING,
+                    started_at=datetime.now(),
+                    container_name=container_name,
+                )
+                self.state.register_process(info)
+            except Exception as e:
+                logger.error(f"Failed to start process {process_id}: {e}")
+                return -1
+
+        # Read output and wait
+        return_code = -1
+        cancelled = False
+        try:
+            start_time = time.time()
+            for raw_line in iter(process.stdout.readline, ""):
+                if cancel_event and cancel_event.is_set():
+                    cancelled = True
+                    process.terminate()
+                    try:
+                        process.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                    break
+
+                if timeout > 0 and (time.time() - start_time) > timeout:
+                    logger.warning(f"Process {process_id} timed out after {timeout}s")
+                    process.terminate()
+                    try:
+                        process.wait(timeout=10)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                    break
+
+                line = raw_line.rstrip()
+                if line and on_line:
+                    try:
+                        on_line(line)
+                    except Exception:
+                        pass
+
+            if not cancelled:
+                process.wait()
+            return_code = process.returncode or 0
+
+        except Exception as e:
+            logger.error(f"Error reading output for {process_id}: {e}")
+            return_code = -1
+
+        finally:
+            final_status = (
+                ProcessStatus.CANCELLED if cancelled
+                else ProcessStatus.COMPLETED if return_code == 0
+                else ProcessStatus.ERROR
+            )
+            self.state.update_process_status(process_id, final_status)
+
+        return return_code
+
+    # ── Internal helpers ──
+
     def _read_output(
         self,
         process: subprocess.Popen,
         process_id: str,
         on_output: Callable[[str], None],
-        on_complete: Callable[[int], None] = None
+        on_complete: Callable[[int], None] = None,
     ):
         """Read output from process and call callback."""
         try:
-            for line in iter(process.stdout.readline, ''):
+            for line in iter(process.stdout.readline, ""):
                 if line:
                     on_output(line.rstrip())
-                    
+
             process.wait()
-            return_code = process.returncode
-            
+            return_code = process.returncode or 0
+
         except Exception as e:
             logger.error(f"Error reading output for {process_id}: {e}")
             return_code = -1
-            
+
         finally:
-            self.state.update_process_status(process_id, ProcessStatus.COMPLETED if return_code == 0 else ProcessStatus.ERROR)
+            self.state.update_process_status(
+                process_id,
+                ProcessStatus.COMPLETED if return_code == 0 else ProcessStatus.ERROR,
+            )
             if on_complete:
                 on_complete(return_code)
-    
+
     def _wait_process(
         self,
         process: subprocess.Popen,
         process_id: str,
-        on_complete: Callable[[int], None] = None
+        on_complete: Callable[[int], None] = None,
     ):
         """Wait for process completion without reading output."""
         try:
-            return_code = process.wait()
+            return_code = process.wait() or 0
             self.state.update_process_status(
                 process_id,
-                ProcessStatus.COMPLETED if return_code == 0 else ProcessStatus.ERROR
+                ProcessStatus.COMPLETED if return_code == 0 else ProcessStatus.ERROR,
             )
             if on_complete:
                 on_complete(return_code)
@@ -216,120 +372,87 @@ class DockerProcessManager:
             self.state.update_process_status(process_id, ProcessStatus.ERROR)
             if on_complete:
                 on_complete(-1)
-    
-    def stop_process(self, process_id: str, timeout: int = 60) -> bool:
-        """Stop a running process (Docker container)."""
-        with self._lock:
-            info = self.state.get_process(process_id)
-            if not info or info.status != ProcessStatus.RUNNING:
-                return False
-            
-            try:
-                # Try graceful stop first
-                if info.container_name:
-                    subprocess.run(
-                        ["docker", "stop", "-t", str(timeout), info.container_name],
-                        capture_output=True,
-                        timeout=timeout + 10
-                    )
-                
-                # Update state
-                self.state.update_process_status(process_id, ProcessStatus.STOPPED)
-                logger.info(f"Stopped process {process_id}")
-                return True
-                
-            except Exception as e:
-                logger.error(f"Failed to stop process {process_id}: {e}")
-                # Force kill as fallback
-                try:
-                    if info.container_name:
-                        subprocess.run(
-                            ["docker", "kill", info.container_name],
-                            capture_output=True,
-                            timeout=10
-                        )
-                except:
-                    pass
-                return False
-    
+
     def get_process_stats(self, process_id: str) -> Optional[ProcessStats]:
         """Get current stats for a running process."""
         info = self.state.get_process(process_id)
         if not info or info.status != ProcessStatus.RUNNING:
             return None
-        
+
         try:
-            # Get container stats via docker
             if info.container_name:
                 result = subprocess.run(
-                    ["docker", "stats", info.container_name, "--no-stream", "--format", "{{.CPUPerc}},{{.MemUsage}}"],
+                    [
+                        "docker", "stats", info.container_name,
+                        "--no-stream", "--format", "{{.CPUPerc}},{{.MemUsage}}",
+                    ],
                     capture_output=True,
                     text=True,
-                    timeout=5
+                    timeout=5,
                 )
                 if result.returncode == 0:
-                    parts = result.stdout.strip().split(',')
-                    cpu_str = parts[0].replace('%', '').strip()
-                    mem_str = parts[1].split('/')[0].strip() if len(parts) > 1 else "0MiB"
-                    
-                    # Parse CPU
+                    parts = result.stdout.strip().split(",")
+                    cpu_str = parts[0].replace("%", "").strip() if parts else ""
+                    mem_str = parts[1].split("/")[0].strip() if len(parts) > 1 else "0MiB"
+
                     try:
                         cpu = float(cpu_str)
-                    except:
+                    except (ValueError, TypeError):
                         cpu = 0.0
-                    
-                    # Parse memory (convert to MB)
-                    mem_mb = 0
-                    if 'GiB' in mem_str:
-                        mem_mb = float(mem_str.replace('GiB', '')) * 1024
-                    elif 'MiB' in mem_str:
-                        mem_mb = float(mem_str.replace('MiB', ''))
-                    elif 'GB' in mem_str:
-                        mem_mb = float(mem_str.replace('GB', '')) * 1024
-                    elif 'MB' in mem_str:
-                        mem_mb = float(mem_str.replace('MB', ''))
-                    
+
+                    mem_mb = 0.0
+                    if "GiB" in mem_str:
+                        mem_mb = float(mem_str.replace("GiB", "")) * 1024
+                    elif "MiB" in mem_str:
+                        mem_mb = float(mem_str.replace("MiB", ""))
+                    elif "GB" in mem_str:
+                        mem_mb = float(mem_str.replace("GB", "")) * 1024
+                    elif "MB" in mem_str:
+                        mem_mb = float(mem_str.replace("MB", ""))
+
                     return ProcessStats(
                         cpu_percent=cpu,
                         memory_mb=mem_mb,
-                        timestamp=datetime.now()
+                        timestamp=datetime.now(),
                     )
         except Exception as e:
             logger.debug(f"Could not get stats for {process_id}: {e}")
-        
+
         return None
-    
+
     def cleanup_old_containers(self, strategy_name: str = None):
         """Clean up old/stopped freqtrade containers."""
         try:
             result = subprocess.run(
-                ["docker", "ps", "-a", "--filter", "ancestor=freqtradeorg/freqtrade", "--format", "{{.ID}} {{.Status}} {{.Names}}"],
+                [
+                    "docker", "ps", "-a",
+                    "--filter", f"ancestor={self.config.freqtrade.docker_image or 'freqtradeorg/freqtrade'}",
+                    "--format", "{{.ID}} {{.Status}} {{.Names}}",
+                ],
                 capture_output=True,
-                text=True
+                text=True,
             )
-            
             if result.returncode != 0:
                 return
-            
-            for line in result.stdout.strip().split('\n'):
+
+            for line in result.stdout.strip().split("\n"):
                 if not line:
                     continue
                 parts = line.split()
                 if len(parts) >= 2:
                     container_id = parts[0]
-                    status = ' '.join(parts[1:-1]) if len(parts) > 2 else parts[1]
-                    
-                    # Remove exited containers
-                    if 'Exited' in status:
+                    status = " ".join(parts[1:-1]) if len(parts) > 2 else parts[1]
+
+                    if "Exited" in status:
                         subprocess.run(
                             ["docker", "rm", container_id],
-                            capture_output=True
+                            capture_output=True,
                         )
                         logger.info(f"Cleaned up old container {container_id}")
-                        
+
         except Exception as e:
             logger.error(f"Container cleanup failed: {e}")
 
 
-# Backward compatibility - alias for old code
+# Backward compatibility alias
 ProcessManager = DockerProcessManager

@@ -29,12 +29,14 @@ router = APIRouter(prefix="/strategy-lab", tags=["strategy-lab"])
 from src.services.ftmanager.state import AppState, ProcessType, ProcessStatus
 from src.services.ftmanager.workflow import Workflow
 from src.services.ftmanager.hyperopt_monitor import HyperoptMonitor
+from src.services.ftmanager.process_manager import ProcessManager
 from src.services.ftmanager.config import AppConfig, StrategyConfig
 
 # Global state (initialized on startup)
 app_state: Optional[AppState] = None
 workflow_engine: Optional[Workflow] = None
 hyperopt_monitor: Optional[HyperoptMonitor] = None
+proc_mgr: Optional[ProcessManager] = None
 async def async_subprocess_run(cmd, **kwargs):
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, lambda: subprocess.run(cmd, **kwargs))
@@ -62,7 +64,7 @@ def _get_strategies_root() -> str:
 @router.on_event("startup")
 async def startup_strategy_lab():
     """Initialize ftmanager components on startup"""
-    global app_state, workflow_engine, hyperopt_monitor
+    global app_state, workflow_engine, hyperopt_monitor, proc_mgr
     
     # Create default config (customize as needed)
     config = AppConfig(
@@ -71,8 +73,9 @@ async def startup_strategy_lab():
     )
     
     app_state = AppState()
+    proc_mgr = ProcessManager(config, app_state)
     hyperopt_monitor = HyperoptMonitor(config, app_state)
-    workflow_engine = Workflow(config, app_state, None, hyperopt_monitor)
+    workflow_engine = Workflow(config, app_state, proc_mgr, hyperopt_monitor)
     
     # Start hyperopt file watcher
     # Note: start_monitoring requires strategy_name, called per-strategy when needed
