@@ -3,12 +3,12 @@
 import asyncio
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 
 def utc_naive_now() -> datetime:
     """UTC timestamp without tzinfo (safe for TIMESTAMP WITHOUT TIME ZONE columns)."""
-    return datetime.utcnow()
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 from typing import Optional
 
 import structlog
@@ -60,7 +60,7 @@ class HealthMetrics:
         self.api_results.append(result.success)
         if result.success:
             self.api_latencies.append(result.latency_ms)
-        self.last_check = datetime.utcnow()
+        self.last_check = datetime.now(timezone.utc)
 
     def record_sqlite_check(self, result: ConnectorResult) -> None:
         """Record a SQLite health check result."""
@@ -145,7 +145,7 @@ class HealthMetrics:
 
         # Track state changes
         if new_state != self.current_state:
-            self.state_changed_at = datetime.utcnow()
+            self.state_changed_at = datetime.now(timezone.utc)
             logger.info(
                 "Bot health state changed",
                 bot_id=self.bot_id,
@@ -356,7 +356,7 @@ class HealthMonitor:
             try:
                 bot_metrics = BotMetrics(
                     bot_id=bot.id,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                     profit_abs=profit.profit_all_coin,
                     profit_pct=profit.profit_all_percent,
                     balance=balance,

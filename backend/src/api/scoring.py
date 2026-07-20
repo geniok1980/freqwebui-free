@@ -1,6 +1,6 @@
 """Scoring Dashboard API — скоринг ботов (/scoring)."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -222,7 +222,7 @@ async def get_scoring_dashboard(
             strategy=bot.strategy,
             exchange=bot.exchange,
             is_dry_run=bot.is_dryrun,
-            timestamp=metrics.timestamp.isoformat() if metrics else datetime.utcnow().isoformat(),
+            timestamp=metrics.timestamp.isoformat() if metrics else datetime.now(timezone.utc).isoformat(),
             total_score=round(total_score, 2),
             total_percent=total_percent,
             groups=groups,

@@ -96,6 +96,13 @@ class BybitOrderbook(BaseModel):
 
 # API Routes
 
+def _validate_param(value: str, allowed: set[str]) -> str:
+    """Validate a parameter against a whitelist to prevent SQL injection."""
+    if value not in allowed:
+        raise HTTPException(status_code=400, detail=f"Invalid value: {value}")
+    return value
+
+
 @router.get("/crypto/prices", response_model=List[CryptoPrice])
 async def get_crypto_prices(
     _: CurrentUser,
@@ -103,17 +110,19 @@ async def get_crypto_prices(
 ):
     """Get latest crypto prices."""
     pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT DISTINCT ON (coin_id) *
-            FROM crypto_prices
-            ORDER BY coin_id, timestamp DESC
-            LIMIT $1
-            """,
-            limit
-        )
-    await pool.close()
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT DISTINCT ON (coin_id) *
+                FROM crypto_prices
+                ORDER BY coin_id, timestamp DESC
+                LIMIT $1
+                """,
+                limit
+            )
+    finally:
+        await pool.close()
     
     # Sort: bitcoin and ethereum first, then by market cap
     sorted_rows = sorted(rows, key=lambda x: (
@@ -130,19 +139,22 @@ async def get_crypto_movers(
     limit: int = 10,
 ):
     """Get top crypto gainers or losers."""
+    category = _validate_param(category, {"gainers", "losers"})
     pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT *
-            FROM crypto_movers
-            WHERE category = $1
-            ORDER BY timestamp DESC, change_24h_pct DESC
-            LIMIT $2
-            """,
-            category, limit
-        )
-    await pool.close()
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT *
+                FROM crypto_movers
+                WHERE category = $1
+                ORDER BY timestamp DESC, change_24h_pct DESC
+                LIMIT $2
+                """,
+                category, limit
+            )
+    finally:
+        await pool.close()
     return [dict(row) for row in rows]
 
 @router.get("/stocks", response_model=List[Stock])
@@ -153,29 +165,31 @@ async def get_stocks(
 ):
     """Get latest stock data."""
     pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        if sector:
-            rows = await conn.fetch(
-                """
-                SELECT DISTINCT ON (symbol) *
-                FROM stocks
-                WHERE sector = $1
-                ORDER BY symbol, timestamp DESC
-                LIMIT $2
-                """,
-                sector, limit
-            )
-        else:
-            rows = await conn.fetch(
-                """
-                SELECT DISTINCT ON (symbol) *
-                FROM stocks
-                ORDER BY symbol, timestamp DESC
-                LIMIT $1
-                """,
-                limit
-            )
-    await pool.close()
+    try:
+        async with pool.acquire() as conn:
+            if sector:
+                rows = await conn.fetch(
+                    """
+                    SELECT DISTINCT ON (symbol) *
+                    FROM stocks
+                    WHERE sector = $1
+                    ORDER BY symbol, timestamp DESC
+                    LIMIT $2
+                    """,
+                    sector, limit
+                )
+            else:
+                rows = await conn.fetch(
+                    """
+                    SELECT DISTINCT ON (symbol) *
+                    FROM stocks
+                    ORDER BY symbol, timestamp DESC
+                    LIMIT $1
+                    """,
+                    limit
+                )
+    finally:
+        await pool.close()
     return [dict(row) for row in rows]
 
 @router.get("/news", response_model=List[NewsItem])
@@ -187,23 +201,25 @@ async def get_news(
 ):
     """Get latest news."""
     pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        query = "SELECT * FROM news WHERE 1=1"
-        params = []
-        
-        if category:
-            params.append(category)
-            query += f" AND category = ${len(params)}"
-        
-        if symbol:
-            params.append(symbol)
-            query += f" AND symbol = ${len(params)}"
-        
-        query += " ORDER BY timestamp DESC LIMIT $" + str(len(params) + 1)
-        params.append(limit)
-        
-        rows = await conn.fetch(query, *params)
-    await pool.close()
+    try:
+        async with pool.acquire() as conn:
+            query = "SELECT * FROM news WHERE 1=1"
+            params = []
+            
+            if category:
+                params.append(category)
+                query += f" AND category = ${len(params)}"
+            
+            if symbol:
+                params.append(symbol)
+                query += f" AND symbol = ${len(params)}"
+            
+            query += " ORDER BY timestamp DESC LIMIT $" + str(len(params) + 1)
+            params.append(limit)
+            
+            rows = await conn.fetch(query, *params)
+    finally:
+        await pool.close()
     return [dict(row) for row in rows]
 
 @router.get("/economic", response_model=List[EconomicIndicator])
@@ -212,15 +228,17 @@ async def get_economic_indicators(
 ):
     """Get latest economic indicators."""
     pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT DISTINCT ON (indicator_id) *
-            FROM economic_indicators
-            ORDER BY indicator_id, timestamp DESC
-            """
-        )
-    await pool.close()
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT DISTINCT ON (indicator_id) *
+                FROM economic_indicators
+                ORDER BY indicator_id, timestamp DESC
+                """
+            )
+    finally:
+        await pool.close()
     return [dict(row) for row in rows]
 
 @router.get("/bybit/orderbook", response_model=List[BybitOrderbook])
@@ -230,27 +248,29 @@ async def get_bybit_orderbook(
 ):
     """Get Bybit orderbook data."""
     pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        if symbol:
-            rows = await conn.fetch(
-                """
-                SELECT *
-                FROM bybit_orderbook
-                WHERE symbol = $1
-                ORDER BY timestamp DESC
-                LIMIT 1
-                """,
-                symbol
-            )
-        else:
-            rows = await conn.fetch(
-                """
-                SELECT DISTINCT ON (symbol) *
-                FROM bybit_orderbook
-                ORDER BY symbol, timestamp DESC
-                """
-            )
-    await pool.close()
+    try:
+        async with pool.acquire() as conn:
+            if symbol:
+                rows = await conn.fetch(
+                    """
+                    SELECT *
+                    FROM bybit_orderbook
+                    WHERE symbol = $1
+                    ORDER BY timestamp DESC
+                    LIMIT 1
+                    """,
+                    symbol
+                )
+            else:
+                rows = await conn.fetch(
+                    """
+                    SELECT DISTINCT ON (symbol) *
+                    FROM bybit_orderbook
+                    ORDER BY symbol, timestamp DESC
+                    """
+                )
+    finally:
+        await pool.close()
     return [dict(row) for row in rows]
 
 @router.get("/portfolio/summary")
@@ -259,16 +279,18 @@ async def get_portfolio_summary(
 ):
     """Get portfolio summary."""
     pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            SELECT *
-            FROM portfolio_snapshots
-            ORDER BY timestamp DESC
-            LIMIT 1
-            """
-        )
-    await pool.close()
+    try:
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT *
+                FROM portfolio_snapshots
+                ORDER BY timestamp DESC
+                LIMIT 1
+                """
+            )
+    finally:
+        await pool.close()
     return dict(row) if row else {}
 
 @router.get("/sync/status")
@@ -277,15 +299,17 @@ async def get_sync_status(
 ):
     """Get data sync status."""
     pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT DISTINCT ON (source) *
-            FROM sync_log
-            ORDER BY source, created_at DESC
-            """
-        )
-    await pool.close()
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT DISTINCT ON (source) *
+                FROM sync_log
+                ORDER BY source, created_at DESC
+                """
+            )
+    finally:
+        await pool.close()
     return {row['source']: dict(row) for row in rows}
 
 @router.post("/sync/trigger")

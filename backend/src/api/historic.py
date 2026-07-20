@@ -1,6 +1,6 @@
 """Historic data API routes (read-only from analytics DB)."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -46,7 +46,7 @@ async def list_historic_bots(
         # This better reflects currently running vs stopped/renamed bots
         # last_seen comes from SQLAlchemy and may be naive (timestamp without tz).
         # Treat it as UTC consistently.
-        is_active = last_seen and (datetime.utcnow() - last_seen).total_seconds() < 3600
+        is_active = last_seen and (datetime.now(timezone.utc) - last_seen).total_seconds() < 3600
         bots.append({
             "name": bot_name,
             "last_seen": last_seen.isoformat() if last_seen else None,

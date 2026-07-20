@@ -50,19 +50,19 @@ class ActiveRateLimit:
         self.bot_name = bot_name
         self.exchange = exchange
         self.context = context
-        self.first_seen = datetime.utcnow()
-        self.last_seen = datetime.utcnow()
+        self.first_seen = datetime.now(timezone.utc)
+        self.last_seen = datetime.now(timezone.utc)
         self.occurrence_count = 1
 
     def update(self, context: str):
         """Update with new occurrence."""
-        self.last_seen = datetime.utcnow()
+        self.last_seen = datetime.now(timezone.utc)
         self.context = context
         self.occurrence_count += 1
 
     def is_expired(self, timeout_minutes: int = 10) -> bool:
         """Check if this rate limit has expired (no new occurrences)."""
-        return datetime.utcnow() - self.last_seen > timedelta(minutes=timeout_minutes)
+        return datetime.now(timezone.utc).replace(tzinfo=None) - self.last_seen > timedelta(minutes=timeout_minutes)
 
     def to_dict(self) -> dict:
         """Convert to dictionary for API response."""
@@ -74,7 +74,7 @@ class ActiveRateLimit:
             "first_seen": self.first_seen.isoformat(),
             "last_seen": self.last_seen.isoformat(),
             "occurrence_count": self.occurrence_count,
-            "age_seconds": (datetime.utcnow() - self.first_seen).total_seconds(),
+            "age_seconds": (datetime.now(timezone.utc) - self.first_seen).total_seconds(),
         }
 
 
@@ -240,10 +240,10 @@ class LogMonitor:
             if last_check:
                 since = last_check
             else:
-                since = datetime.utcnow() - timedelta(seconds=30)
+                since = datetime.now(timezone.utc) - timedelta(seconds=30)
 
             # Update last check time
-            self._last_check_time[bot_id] = datetime.utcnow()
+            self._last_check_time[bot_id] = datetime.now(timezone.utc)
 
             logs = await loop.run_in_executor(
                 None,
@@ -368,7 +368,7 @@ class LogMonitor:
                 "exchange": bot.exchange,
                 "message": f"Rate limit detected: {bot.name}",
                 "context": context[:100],
-                "timestamp": datetime.utcnow().isoformat() + 'Z',
+                "timestamp": datetime.now(timezone.utc).isoformat() + 'Z',
             })
         except Exception as e:
             logger.debug("Failed to broadcast rate limit alert", error=str(e))
@@ -383,7 +383,7 @@ class LogMonitor:
                 "bot_id": bot_id,
                 "bot_name": bot_name,
                 "message": f"Rate limit cleared: {bot_name}",
-                "timestamp": datetime.utcnow().isoformat() + 'Z',
+                "timestamp": datetime.now(timezone.utc).isoformat() + 'Z',
             })
         except Exception as e:
             logger.debug("Failed to broadcast rate limit cleared", error=str(e))

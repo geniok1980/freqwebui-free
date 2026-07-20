@@ -3,12 +3,12 @@ Discovery orchestrator combining Docker and filesystem discovery.
 V9: Added discovery_host_ip setting support
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def utc_naive_now() -> datetime:
     """UTC timestamp without tzinfo (safe for TIMESTAMP WITHOUT TIME ZONE columns)."""
-    return datetime.utcnow()
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 from typing import Optional
 from uuid import uuid4
 
@@ -59,7 +59,7 @@ class DiscoveryOrchestrator:
             Summary of discovery results.
         """
         logger.info("Starting discovery scan")
-        self._last_scan = datetime.utcnow()
+        self._last_scan = datetime.now(timezone.utc)
 
         # Get discovery host IP from settings
         discovery_host = await self._get_discovery_host(db)

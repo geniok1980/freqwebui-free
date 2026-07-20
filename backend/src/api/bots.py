@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 def utc_naive_now() -> datetime:
     """UTC timestamp without tzinfo (safe for TIMESTAMP WITHOUT TIME ZONE columns)."""
-    return datetime.utcnow()
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 import asyncio
 import json
 import os
@@ -246,9 +246,9 @@ def _build_default_config(template: dict, *, bot_name: str, strategy_class: str,
         cfg["api_server"]["listen_ip_address"] = "0.0.0.0"
         cfg["api_server"]["listen_port"] = 8080
         if "jwt_secret_key" in cfg["api_server"]:
-            cfg["api_server"]["jwt_secret_key"] = f"dev-{bot_name}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+            cfg["api_server"]["jwt_secret_key"] = f"dev-{bot_name}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         if "ws_token" in cfg["api_server"]:
-            cfg["api_server"]["ws_token"] = f"dev-{bot_name}-ws-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+            cfg["api_server"]["ws_token"] = f"dev-{bot_name}-ws-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
 
     cfg["strategy_path"] = "user_data/strategies"
     cfg["initial_state"] = "running"
@@ -835,7 +835,7 @@ async def get_bot_metrics(
 
     metrics_data = BotMetricsData(
         bot_id=bot.id,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         profit_abs=profit_result.data.profit_all_coin if profit_result.success else None,
         profit_pct=profit_result.data.profit_all_percent if profit_result.success else None,
         profit_realized=profit_result.data.profit_closed_coin if profit_result.success else None,

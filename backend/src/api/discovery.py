@@ -1,11 +1,11 @@
 """Discovery API endpoints."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def utc_naive_now() -> datetime:
     """UTC timestamp without tzinfo (safe for TIMESTAMP WITHOUT TIME ZONE columns)."""
-    return datetime.utcnow()
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -162,7 +162,7 @@ async def register_manual_bot(
             is_dryrun=bot_status.is_dryrun,
             health_state=HealthState.HEALTHY,
             source_mode=SourceMode.API,
-            discovered_at=datetime.utcnow(),
+            discovered_at=datetime.now(timezone.utc),
             last_seen=utc_naive_now(),
         )
 

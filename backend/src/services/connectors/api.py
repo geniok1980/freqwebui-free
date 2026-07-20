@@ -1,7 +1,7 @@
 """API connector for Freqtrade REST API access."""
 
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 import httpx
@@ -72,7 +72,7 @@ class APIConnector(BaseConnector):
 
         # Check if token is still valid
         if self._token and self._token_expires:
-            if datetime.utcnow() < self._token_expires:
+            if datetime.now(timezone.utc) < self._token_expires:
                 return True
 
         try:
@@ -87,7 +87,7 @@ class APIConnector(BaseConnector):
                 data = response.json()
                 self._token = data.get("access_token")
                 # Freqtrade tokens typically last 15 minutes
-                self._token_expires = datetime.utcnow()
+                self._token_expires = datetime.now(timezone.utc)
                 return True
 
             logger.warning(
@@ -207,7 +207,7 @@ class APIConnector(BaseConnector):
         result = await self._request("GET", "/api/v1/ping")
 
         if result.success:
-            self._last_check = datetime.utcnow()
+            self._last_check = datetime.now(timezone.utc)
 
         return result
 
@@ -370,7 +370,7 @@ class APIConnector(BaseConnector):
         """Parse trade data from API response."""
         open_date = datetime.fromisoformat(
             data["open_date"].replace("Z", "+00:00")
-        ) if data.get("open_date") else datetime.utcnow()
+        ) if data.get("open_date") else datetime.now(timezone.utc)
 
         close_date = None
         if data.get("close_date"):

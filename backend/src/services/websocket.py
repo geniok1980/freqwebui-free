@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 import structlog
@@ -162,7 +162,7 @@ class ConnectionManager:
             "type": event_type,
             "bot_id": bot_id,
             "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         # Broadcast to bot-specific channel
@@ -180,7 +180,7 @@ class ConnectionManager:
         message = {
             "type": "portfolio_update",
             "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         await self.broadcast_to_channel(message, "global")
 

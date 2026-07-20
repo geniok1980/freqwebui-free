@@ -2,7 +2,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from typing import Any, Optional
 
 import structlog
@@ -19,7 +19,7 @@ class CacheEntry:
 
     @property
     def is_expired(self) -> bool:
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc).replace(tzinfo=None) > self.expires_at
 
 
 class CacheService:
@@ -70,7 +70,7 @@ class CacheService:
 
     def _cleanup_expired(self) -> None:
         """Remove expired entries."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expired_keys = [
             key for key, entry in self._cache.items()
             if entry.is_expired
@@ -111,7 +111,7 @@ class CacheService:
             ttl_seconds: TTL in seconds (uses default if not specified).
         """
         ttl = ttl_seconds if ttl_seconds is not None else self._default_ttl
-        expires_at = datetime.utcnow() + timedelta(seconds=ttl)
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl)
         self._cache[key] = CacheEntry(value=value, expires_at=expires_at)
 
     def delete(self, key: str) -> bool:

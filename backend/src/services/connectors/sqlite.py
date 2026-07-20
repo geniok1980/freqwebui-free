@@ -2,7 +2,7 @@
 
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -146,7 +146,7 @@ class SQLiteConnector(BaseConnector):
         )
 
         if result.success:
-            self._last_check = datetime.utcnow()
+            self._last_check = datetime.now(timezone.utc)
 
         return result
 
@@ -360,7 +360,7 @@ class SQLiteConnector(BaseConnector):
 
     def _parse_trade(self, data: dict) -> Trade:
         """Parse trade data from database row."""
-        open_date = datetime.utcnow()
+        open_date = datetime.now(timezone.utc)
         if data.get("open_date"):
             try:
                 open_date = datetime.fromisoformat(str(data["open_date"]))
