@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models import get_db, SystemSetting
 from src.api.deps import get_current_active_user
 
-router = APIRouter(prefix="/settings", dependencies=[Depends(get_current_active_user)])
+router = APIRouter(prefix="/settings/unified", dependencies=[Depends(get_current_active_user)])
 
 DEFAULT_SETTINGS = {
     "refresh_interval": "30",

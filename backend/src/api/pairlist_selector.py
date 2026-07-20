@@ -16,7 +16,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models import get_db, PairlistJob, PairlistResult
+from src.models import get_db, PairlistJob, PairlistResult, PairlistPairResult, async_session_maker
 from src.api.deps import get_current_active_user
 
 logger = logging.getLogger(__name__)
@@ -128,7 +128,7 @@ async def run_pairlist_selector(
     }
     
     # Start job in background
-    background_tasks.add_task(_run_pairlist_job, job_id, cmd, session)
+    background_tasks.add_task(_run_pairlist_job, job_id, cmd)
     
     return PairlistResponse(
         job_id=job_id,
@@ -136,107 +136,108 @@ async def run_pairlist_selector(
         message=f"Pairlist selector started for {request.strategy}"
     )
 
-async def _run_pairlist_job(job_id: str, cmd: List[str], session: AsyncSession):
+async def _run_pairlist_job(job_id: str, cmd: List[str]):
     """Run the pairlist selector job and track progress"""
     
     job_info = running_jobs[job_id]
     job_info["status"] = "running"
     
-    try:
-        # Copy strategy file and pairlist selector to Freqtrade folder before starting
-        import shutil
-        strategy_name = job_info["strategy"]
-        
-        # Find the strategy file
-        strategies_path = _get_strategies_root()
-        dest_path = f"/opt/Freqtrade/user_data/strategies/{strategy_name}.py"
-        
-        found = False
-        for root, dirs, files in os.walk(strategies_path):
-            if f"{strategy_name}.py" in files:
-                src_file = os.path.join(root, f"{strategy_name}.py")
-                shutil.copy2(src_file, dest_path)
-                logger.info(f"Copied {strategy_name}.py to {dest_path}")
-                found = True
-                break
-        
-        if not found:
-            logger.warning(f"Strategy file {strategy_name}.py not found in {strategies_path}")
-        
-        # Copy pairlist selector script
-        pairlist_src = os.path.join(strategies_path, "Alex_Pairlist_SelectorV6.py")
-        pairlist_dest = "/opt/Freqtrade/user_data/strategies/Alex_Pairlist_SelectorV6.py"
-        if os.path.exists(pairlist_src):
-            shutil.copy2(pairlist_src, pairlist_dest)
-            logger.info(f"Copied Alex_Pairlist_SelectorV6.py to {pairlist_dest}")
-        else:
-            logger.warning(f"Alex_Pairlist_SelectorV6.py not found at {pairlist_src}")
-        
-        logger.info(f"Starting pairlist job {job_id}: {' '.join(cmd)}")
-        
-        # Create database entry
-        db_job = PairlistJob(
-            job_id=job_id,
-            strategy=job_info["strategy"],
-            mode=job_info["mode"],
-            status="running",
-            created_at=datetime.now()
-        )
-        session.add(db_job)
-        await session.commit()
-        
-        # Run Docker command
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        
-        # Stream output
-        stdout_lines = []
-        for line in process.stdout:
-            line = line.strip()
-            stdout_lines.append(line)
-            job_info["progress"] = line[:200]  # Last line as progress
-            logger.info(f"[{job_id}] {line}")
-        
-        # Wait for completion
-        return_code = process.wait()
-        stderr = process.stderr.read()
-        
-        if return_code != 0:
-            job_info["status"] = "failed"
-            job_info["error"] = stderr[:500]
-            db_job.status = "failed"
-            db_job.error_message = stderr[:1000]
-            logger.error(f"Pairlist job {job_id} failed: {stderr}")
-        else:
-            job_info["status"] = "completed"
-            job_info["completed_at"] = datetime.now().isoformat()
-            db_job.status = "completed"
-            db_job.completed_at = datetime.now()
-            
-            # Parse results and save to database
-            await _save_pairlist_results(job_id, job_info, session)
-            
-            logger.info(f"Pairlist job {job_id} completed successfully")
-        
-        await session.commit()
-        
-    except Exception as e:
-        job_info["status"] = "failed"
-        job_info["error"] = str(e)
-        logger.error(f"Pairlist job {job_id} error: {e}")
-        
+    async with async_session_maker() as session:
         try:
-            db_job = await session.get(PairlistJob, job_id)
-            if db_job:
+            # Copy strategy file and pairlist selector to Freqtrade folder before starting
+            import shutil
+            strategy_name = job_info["strategy"]
+            
+            # Find the strategy file
+            strategies_path = _get_strategies_root()
+            dest_path = f"/opt/Freqtrade/user_data/strategies/{strategy_name}.py"
+            
+            found = False
+            for root, dirs, files in os.walk(strategies_path):
+                if f"{strategy_name}.py" in files:
+                    src_file = os.path.join(root, f"{strategy_name}.py")
+                    shutil.copy2(src_file, dest_path)
+                    logger.info(f"Copied {strategy_name}.py to {dest_path}")
+                    found = True
+                    break
+            
+            if not found:
+                logger.warning(f"Strategy file {strategy_name}.py not found in {strategies_path}")
+            
+            # Copy pairlist selector script
+            pairlist_src = os.path.join(strategies_path, "Alex_Pairlist_SelectorV6.py")
+            pairlist_dest = "/opt/Freqtrade/user_data/strategies/Alex_Pairlist_SelectorV6.py"
+            if os.path.exists(pairlist_src):
+                shutil.copy2(pairlist_src, pairlist_dest)
+                logger.info(f"Copied Alex_Pairlist_SelectorV6.py to {pairlist_dest}")
+            else:
+                logger.warning(f"Alex_Pairlist_SelectorV6.py not found at {pairlist_src}")
+            
+            logger.info(f"Starting pairlist job {job_id}: {' '.join(cmd)}")
+            
+            # Create database entry
+            db_job = PairlistJob(
+                job_id=job_id,
+                strategy=job_info["strategy"],
+                mode=job_info["mode"],
+                status="running",
+                created_at=datetime.now()
+            )
+            session.add(db_job)
+            await session.commit()
+            
+            # Run Docker command
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Stream output
+            stdout_lines = []
+            for line in process.stdout:
+                line = line.strip()
+                stdout_lines.append(line)
+                job_info["progress"] = line[:200]  # Last line as progress
+                logger.info(f"[{job_id}] {line}")
+            
+            # Wait for completion
+            return_code = process.wait()
+            stderr = process.stderr.read()
+            
+            if return_code != 0:
+                job_info["status"] = "failed"
+                job_info["error"] = stderr[:500]
                 db_job.status = "failed"
-                db_job.error_message = str(e)[:1000]
-                await session.commit()
-        except:
-            pass
+                db_job.error_message = stderr[:1000]
+                logger.error(f"Pairlist job {job_id} failed: {stderr}")
+            else:
+                job_info["status"] = "completed"
+                job_info["completed_at"] = datetime.now().isoformat()
+                db_job.status = "completed"
+                db_job.completed_at = datetime.now()
+                
+                # Parse results and save to database
+                await _save_pairlist_results(job_id, job_info, session)
+                
+                logger.info(f"Pairlist job {job_id} completed successfully")
+            
+            await session.commit()
+            
+        except Exception as e:
+            job_info["status"] = "failed"
+            job_info["error"] = str(e)
+            logger.error(f"Pairlist job {job_id} error: {e}")
+            
+            try:
+                db_job = await session.get(PairlistJob, job_id)
+                if db_job:
+                    db_job.status = "failed"
+                    db_job.error_message = str(e)[:1000]
+                    await session.commit()
+            except:
+                pass
 
 async def _save_pairlist_results(job_id: str, job_info: Dict, session: AsyncSession):
     """Parse JSON results and save to database"""

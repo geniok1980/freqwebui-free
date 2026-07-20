@@ -233,6 +233,8 @@ async def signup(
             )
         )
 
+    await db.commit()
+
     token_data = await _build_token_payload(db, user, tenant)
     return TokenResponse(
         data={

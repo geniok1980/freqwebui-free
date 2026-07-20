@@ -46,7 +46,12 @@ async def list_historic_bots(
         # This better reflects currently running vs stopped/renamed bots
         # last_seen comes from SQLAlchemy and may be naive (timestamp without tz).
         # Treat it as UTC consistently.
-        is_active = last_seen and (datetime.now(timezone.utc) - last_seen).total_seconds() < 3600
+        is_active = False
+        if last_seen:
+            # last_seen may be naive (TIMESTAMP WITHOUT TIME ZONE); treat as UTC
+            if last_seen.tzinfo is None:
+                last_seen = last_seen.replace(tzinfo=timezone.utc)
+            is_active = (datetime.now(timezone.utc) - last_seen).total_seconds() < 3600
         bots.append({
             "name": bot_name,
             "last_seen": last_seen.isoformat() if last_seen else None,
