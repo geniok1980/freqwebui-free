@@ -17,9 +17,10 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import get_db, PairlistJob, PairlistResult
+from src.api.deps import get_current_active_user
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 # Track running jobs
 running_jobs: Dict[str, Dict[str, Any]] = {}

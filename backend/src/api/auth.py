@@ -54,6 +54,10 @@ class LoginRequest(BaseModel):
     tenant_slug: str
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
 def _normalize_slug(slug: str) -> str:
     value = slug.strip().lower()
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,60}[a-z0-9]", value):
@@ -112,16 +116,13 @@ async def login(
     tenant_slug = _normalize_slug((x_tenant_slug or "default").strip())
     tenant_result = await db.execute(select(Tenant).where(Tenant.slug == tenant_slug))
     tenant = tenant_result.scalar_one_or_none()
-    if tenant is None:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-
     result = await db.execute(select(User).where(User.username == form_data.username))
     user = result.scalar_one_or_none()
 
-    if user is None or not verify_password(form_data.password, user.password_hash):
+    if tenant is None or user is None or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -148,13 +149,10 @@ async def login_json(
     tenant_slug = _normalize_slug(payload.tenant_slug)
     tenant_result = await db.execute(select(Tenant).where(Tenant.slug == tenant_slug))
     tenant = tenant_result.scalar_one_or_none()
-    if tenant is None:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-
     user_result = await db.execute(select(User).where(User.username == payload.username))
     user = user_result.scalar_one_or_none()
-    if user is None or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    if tenant is None or user is None or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token_data = await _build_token_payload(db, user, tenant)
     return TokenResponse(
@@ -226,6 +224,9 @@ async def signup(
         )
     )
     for (table_name,) in rows.fetchall():
+        # Validate table_name to prevent SQL injection
+        if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", table_name):
+            continue
         await db.execute(
             text(
                 f'CREATE TABLE IF NOT EXISTS "{schema_name}"."{table_name}" (LIKE public."{table_name}" INCLUDING ALL)'
@@ -245,7 +246,7 @@ async def signup(
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_token(
-    refresh_token: str,
+    body: RefreshRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> TokenResponse:
     """Refresh access token using refresh token.
@@ -260,7 +261,7 @@ async def refresh_token(
     Raises:
         HTTPException: If refresh token is invalid.
     """
-    payload = decode_token(refresh_token)
+    payload = decode_token(body.refresh_token)
     if payload is None or payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

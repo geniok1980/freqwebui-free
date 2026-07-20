@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 import asyncpg
 import json
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -21,16 +22,21 @@ router = APIRouter(
     dependencies=[Depends(get_current_active_user)],
 )
 
-# Database connection - SAME as finance.py
+# Database connection
 async def get_db_pool():
     """Get database connection pool for financial_data."""
     tenant_schema = get_current_tenant_schema()
+    host = os.getenv("FINANCE_DB_HOST") or os.getenv("DB_HOST") or "postgres"
+    port = int(os.getenv("FINANCE_DB_PORT") or os.getenv("DB_PORT") or "5432")
+    user = os.getenv("FINANCE_DB_USER") or os.getenv("DB_USER") or "dashboard"
+    password = os.getenv("FINANCE_DB_PASSWORD") or os.getenv("DB_PASSWORD") or "dashboard"
+    database = os.getenv("FINANCE_DB_NAME") or "financial_data"
     return await asyncpg.create_pool(
-        host="192.168.0.210",
-        port=5432,
-        user="dashboard",
-        password="dashboard",
-        database="financial_data",
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        database=database,
         server_settings={"search_path": f"{tenant_schema},public"},
     )
 

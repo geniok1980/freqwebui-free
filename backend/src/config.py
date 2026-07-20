@@ -89,13 +89,13 @@ class ApiDefaultsConfig(BaseModel):
 
     timeout_seconds: int = 5
     username: str = "user"
-    password: str = "pass"
+    password: str = ""  # Override via DASHBOARD_API_DEFAULTS__PASSWORD env
 
 
 class AuthConfig(BaseModel):
     """Authentication configuration."""
 
-    jwt_secret: str = "development-secret-change-in-production"
+    jwt_secret: str = ""  # REQUIRED: set via JWT_SECRET env or dashboard.yaml
     jwt_algorithm: str = "HS256"
     token_expire_minutes: int = 10080  # 7 days (7 * 24 * 60)
     refresh_expire_days: int = 30  # Extended to 30 days

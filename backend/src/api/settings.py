@@ -8,8 +8,9 @@ from pydantic import BaseModel
 from typing import Optional
 
 from src.models import get_db, SystemSetting
+from src.api.deps import get_current_active_user
 
-router = APIRouter(prefix="/settings", tags=["settings"])
+router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[Depends(get_current_active_user)])
 
 class SettingRequest(BaseModel):
     key: str

@@ -2,7 +2,7 @@
 
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +19,7 @@ class UserCreate(BaseModel):
     """Schema for creating a new user."""
 
     username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=6)
+    password: str = Field(..., min_length=8)
     role: str = Field(default="readonly")
 
 
@@ -27,7 +27,7 @@ class UserUpdate(BaseModel):
     """Schema for updating a user."""
 
     username: Optional[str] = Field(None, min_length=3, max_length=50)
-    password: Optional[str] = Field(None, min_length=6)
+    password: Optional[str] = Field(None, min_length=8)
     role: Optional[str] = None
 
 
@@ -54,6 +54,82 @@ class UserOut(BaseModel):
     preferences: dict
     created_at: str
 
+
+class PasswordChangeRequest(BaseModel):
+    """Schema for changing password."""
+
+    current_password: str
+    new_password: str = Field(..., min_length=8)
+
+
+# ── /me/* routes MUST be before /{user_id} to avoid route conflict ──
+
+@router.patch("/me/preferences")
+async def update_my_preferences(
+    preferences: UserPreferencesUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+) -> dict:
+    """Update current user's preferences."""
+    current_prefs = current_user.preferences or {}
+
+    if preferences.theme is not None:
+        current_prefs["theme"] = preferences.theme
+    if preferences.notifications_enabled is not None:
+        current_prefs["notifications_enabled"] = preferences.notifications_enabled
+    if preferences.default_timeframe is not None:
+        current_prefs["default_timeframe"] = preferences.default_timeframe
+    if preferences.dashboard_layout is not None:
+        current_prefs["dashboard_layout"] = preferences.dashboard_layout
+    if preferences.refresh_interval is not None:
+        current_prefs["refresh_interval"] = preferences.refresh_interval
+    if preferences.default_view is not None:
+        current_prefs["default_view"] = preferences.default_view
+    if preferences.alert_critical is not None:
+        current_prefs["alert_critical"] = preferences.alert_critical
+    if preferences.alert_warning is not None:
+        current_prefs["alert_warning"] = preferences.alert_warning
+    if preferences.alert_info is not None:
+        current_prefs["alert_info"] = preferences.alert_info
+
+    current_user.preferences = current_prefs
+    await db.commit()
+    await db.refresh(current_user)
+
+    return {
+        "status": "success",
+        "message": "Preferences updated",
+        "data": {
+            "preferences": current_user.preferences,
+        },
+    }
+
+
+@router.patch("/me/password")
+async def change_my_password(
+    body: PasswordChangeRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+) -> dict:
+    """Change current user's password."""
+    from src.utils.security import verify_password
+
+    if not verify_password(body.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
+    current_user.password_hash = hash_password(body.new_password)
+    await db.commit()
+
+    return {
+        "status": "success",
+        "message": "Password changed successfully",
+    }
+
+
+# ── Admin routes ──
 
 @router.get("")
 async def list_users(
@@ -304,97 +380,4 @@ async def delete_user(
     return {
         "status": "success",
         "message": "User deleted successfully",
-    }
-
-
-# User preferences (self-update)
-@router.patch("/me/preferences")
-async def update_my_preferences(
-    preferences: UserPreferencesUpdate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_active_user)],
-) -> dict:
-    """Update current user's preferences.
-
-    Args:
-        preferences: Preferences to update.
-        db: Database session.
-        current_user: Current authenticated user.
-
-    Returns:
-        Updated preferences.
-    """
-    # Merge with existing preferences
-    current_prefs = current_user.preferences or {}
-
-    if preferences.theme is not None:
-        current_prefs["theme"] = preferences.theme
-    if preferences.notifications_enabled is not None:
-        current_prefs["notifications_enabled"] = preferences.notifications_enabled
-    if preferences.default_timeframe is not None:
-        current_prefs["default_timeframe"] = preferences.default_timeframe
-    if preferences.dashboard_layout is not None:
-        current_prefs["dashboard_layout"] = preferences.dashboard_layout
-    if preferences.refresh_interval is not None:
-        current_prefs["refresh_interval"] = preferences.refresh_interval
-    if preferences.default_view is not None:
-        current_prefs["default_view"] = preferences.default_view
-    if preferences.alert_critical is not None:
-        current_prefs["alert_critical"] = preferences.alert_critical
-    if preferences.alert_warning is not None:
-        current_prefs["alert_warning"] = preferences.alert_warning
-    if preferences.alert_info is not None:
-        current_prefs["alert_info"] = preferences.alert_info
-
-    current_user.preferences = current_prefs
-    await db.commit()
-    await db.refresh(current_user)
-
-    return {
-        "status": "success",
-        "message": "Preferences updated",
-        "data": {
-            "preferences": current_user.preferences,
-        },
-    }
-
-
-@router.patch("/me/password")
-async def change_my_password(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    current_password: str = "",
-    new_password: str = "",
-) -> dict:
-    """Change current user's password.
-
-    Args:
-        db: Database session.
-        current_user: Current authenticated user.
-        current_password: Current password for verification.
-        new_password: New password.
-
-    Returns:
-        Success message.
-    """
-    from src.utils.security import verify_password
-
-    if not verify_password(current_password, current_user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current password is incorrect",
-        )
-
-    if len(new_password) < 6:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="New password must be at least 6 characters",
-        )
-
-    current_user.password_hash = hash_password(new_password)
-    await db.commit()
-
-    return {
-        "status": "success",
-        "message": "Password changed successfully",
     }
