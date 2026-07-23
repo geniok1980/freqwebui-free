@@ -8,6 +8,7 @@ import { useAuthStore } from '../store/authStore';
 import { api } from '../services/api';
 import { toast } from '../components/common/Toast';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { UnifiedSettings } from '../components/settings/UnifiedSettings';
 
 function downloadFile(content: string, filename: string, type: string) {
@@ -38,6 +39,7 @@ function arrayToCSV(data: Record<string, unknown>[], headers: string[]): string 
 }
 
 export function Settings() {
+  const { t } = useTranslation();
   const { user, refreshUser } = useAuthStore();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -55,22 +57,22 @@ export function Settings() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('Пароль успешно изменен');
+      toast.success(t('settings.passwordChanged'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Не удалось изменить пароль');
+      toast.error(error.response?.data?.detail || t('settings.passwordChangeFailed'));
     },
   });
 
   const validatePassword = (password: string): { valid: boolean; errors: string[] } => {
     const errors: string[] = [];
-    if (password.length < 8) errors.push('Минимум 8 символов');
-    if (!/[A-Z]/.test(password)) errors.push('Одна заглавная буква');
-    if (!/[a-z]/.test(password)) errors.push('Одна строчная буква');
-    if (!/[0-9]/.test(password)) errors.push('Одна цифра');
+    if (password.length < 8) errors.push(t('settings.passwordMinChars'));
+    if (!/[A-Z]/.test(password)) errors.push(t('settings.passwordUppercase'));
+    if (!/[a-z]/.test(password)) errors.push(t('settings.passwordLowercase'));
+    if (!/[0-9]/.test(password)) errors.push(t('settings.passwordDigit'));
     return { valid: errors.length === 0, errors };
   };
 
@@ -81,15 +83,15 @@ export function Settings() {
 
   const handleChangePassword = () => {
     if (!currentPassword) {
-      toast.error('Требуется текущий пароль');
+      toast.error(t('settings.passwordRequired'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Пароли не совпадают');
+      toast.error(t('settings.passwordsDontMatch'));
       return;
     }
     if (!passwordValidation.valid) {
-      toast.error('Пароль не соответствует требованиям');
+      toast.error(t('settings.passwordRequirements'));
       return;
     }
     changePassword.mutate({
@@ -105,7 +107,7 @@ export function Settings() {
       const bots = response.data || [];
 
       if (bots.length === 0) {
-        toast.info('Нет ботов для экспорта');
+        toast.info(t('settings.noBotsForExport'));
         return;
       }
 
@@ -129,7 +131,7 @@ export function Settings() {
       downloadFile(csv, `bots_export_${timestamp}.csv`, 'text/csv;charset=utf-8;');
       toast.success(`Экспортировано ботов: ${bots.length}`);
     } catch (error) {
-      toast.error('Не удалось экспортировать ботов');
+      toast.error(t('settings.exportBotsFailed'));
     } finally {
       setIsExporting(null);
     }
@@ -172,7 +174,7 @@ export function Settings() {
       }
 
       if (allTrades.length === 0) {
-        toast.info('Нет сделок для экспорта');
+        toast.info(t('settings.noTradesForExport'));
         return;
       }
 
@@ -182,7 +184,7 @@ export function Settings() {
       downloadFile(csv, `trades_export_${timestamp}.csv`, 'text/csv;charset=utf-8;');
       toast.success(`Экспортировано сделок: ${allTrades.length} из ${bots.length} ботов`);
     } catch (error) {
-      toast.error('Не удалось экспортировать сделки');
+      toast.error(t('settings.exportTradesFailed'));
     } finally {
       setIsExporting(null);
     }
@@ -195,7 +197,7 @@ export function Settings() {
       const alerts = response.data?.data || [];
 
       if (alerts.length === 0) {
-        toast.info('Нет алертов для экспорта');
+        toast.info(t('settings.noAlertsForExport'));
         return;
       }
 
@@ -217,7 +219,7 @@ export function Settings() {
       downloadFile(json, `alerts_export_${timestamp}.json`, 'application/json');
       toast.success(`Экспортировано алертов: ${alerts.length}`);
     } catch (error) {
-      toast.error('Не удалось экспортировать алерты');
+      toast.error(t('settings.exportAlertsFailed'));
     } finally {
       setIsExporting(null);
     }
@@ -225,7 +227,7 @@ export function Settings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Настройки</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('settings.title')}</h1>
 
       {/* Unified Settings - Refresh, Theme, Discovery (ONE Save button) */}
       <UnifiedSettings />
@@ -233,13 +235,13 @@ export function Settings() {
       {/* Change Password Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Смена пароля
+          {t('settings.changePassword')}
         </h2>
 
         <div className="space-y-4 max-w-md">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Текущий пароль
+              {t('settings.currentPassword')}
             </label>
             <input
               type="password"
@@ -251,7 +253,7 @@ export function Settings() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Новый пароль
+              {t('settings.newPassword')}
             </label>
             <input
               type="password"
@@ -281,8 +283,8 @@ export function Settings() {
                 </div>
                 <p className={`text-xs ${passwordValidation.valid ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
                   {passwordValidation.valid
-                    ? 'Пароль соответствует всем требованиям'
-                    : `Не хватает: ${passwordValidation.errors.join(', ')}`}
+                    ? t('settings.passwordValid')
+                    : `${t('settings.passwordMissing')}: ${passwordValidation.errors.join(', ')}`}
                 </p>
               </div>
             )}
@@ -290,7 +292,7 @@ export function Settings() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Подтвердите новый пароль
+              {t('settings.confirmPassword')}
             </label>
             <input
               type="password"
@@ -303,10 +305,10 @@ export function Settings() {
               }`}
             />
             {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-              <p className="mt-1 text-xs text-red-500">Пароли не совпадают</p>
+              <p className="mt-1 text-xs text-red-500">{t('settings.passwordsDontMatch')}</p>
             )}
             {confirmPassword.length > 0 && newPassword === confirmPassword && newPassword.length > 0 && (
-              <p className="mt-1 text-xs text-green-600 dark:text-green-400">Пароли совпадают</p>
+              <p className="mt-1 text-xs text-green-600 dark:text-green-400">{t('settings.passwordsMatch')}</p>
             )}
           </div>
 
@@ -315,7 +317,7 @@ export function Settings() {
             disabled={changePassword.isPending || !currentPassword || !newPassword}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors"
           >
-            {changePassword.isPending ? 'Изменение...' : 'Изменить пароль'}
+            {changePassword.isPending ? t('settings.changing') : t('settings.changePasswordBtn')}
           </button>
         </div>
       </div>
@@ -323,16 +325,16 @@ export function Settings() {
       {/* Account Info */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Информация об аккаунте
+          {t('settings.accountInfo')}
         </h2>
 
         <div className="grid grid-cols-2 gap-4 max-w-md">
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Логин</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings.username')}</p>
             <p className="text-gray-900 dark:text-white font-medium">{user?.username}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Роль</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('settings.role')}</p>
             <p className="text-gray-900 dark:text-white font-medium capitalize">{user?.role}</p>
           </div>
         </div>
@@ -341,12 +343,12 @@ export function Settings() {
       {/* Data Export Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Экспорт данных
+          {t('settings.dataExport')}
         </h2>
 
         <div className="space-y-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Экспортируйте данные ботов и историю сделок для анализа или резервного копирования.
+            {t('settings.exportDesc')}
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -355,7 +357,7 @@ export function Settings() {
               disabled={isExporting === 'bots'}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50"
             >
-              {isExporting === 'bots' ? 'Экспорт...' : 'Экспорт ботов (CSV)'}
+              {isExporting === 'bots' ? t('settings.exporting') : t('settings.exportBots')}
             </button>
 
             <button
@@ -363,7 +365,7 @@ export function Settings() {
               disabled={isExporting === 'trades'}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50"
             >
-              {isExporting === 'trades' ? 'Экспорт...' : 'Экспорт сделок (CSV)'}
+              {isExporting === 'trades' ? t('settings.exporting') : t('settings.exportTrades')}
             </button>
 
             <button
@@ -371,7 +373,7 @@ export function Settings() {
               disabled={isExporting === 'alerts'}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors disabled:opacity-50"
             >
-              {isExporting === 'alerts' ? 'Экспорт...' : 'Экспорт алертов (JSON)'}
+              {isExporting === 'alerts' ? t('settings.exporting') : t('settings.exportAlerts')}
             </button>
           </div>
         </div>
@@ -380,23 +382,23 @@ export function Settings() {
       {/* Keyboard Shortcuts */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Горячие клавиши
+          {t('settings.keyboardShortcuts')}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Поиск ботов</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('settings.searchBots')}</span>
             <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl+K</kbd>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Сменить тему</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('settings.switchTheme')}</span>
             <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">Ctrl+Shift+T</kbd>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Перейти к дашборду</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('settings.goToDashboard')}</span>
             <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">G then D</kbd>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Перейти в настройки</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('settings.goToSettings')}</span>
             <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">G then S</kbd>
           </div>
         </div>

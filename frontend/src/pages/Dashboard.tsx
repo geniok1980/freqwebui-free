@@ -5,8 +5,10 @@ import {
   TopPerformersChart,
 } from '../components/Portfolio';
 import { BotGrid, BotFilters } from '../components/Dashboard';
+import { useTranslation } from 'react-i18next';
 
 export function Dashboard() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-8">
       {/* Portfolio Summary */}
@@ -26,7 +28,7 @@ export function Dashboard() {
       {/* Bot Grid Section */}
       <section>
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Bots
+          {t('nav.bots')}
         </h2>
         <BotFilters />
         <BotGrid />

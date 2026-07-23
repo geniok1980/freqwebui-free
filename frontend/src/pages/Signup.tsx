@@ -1,8 +1,10 @@
 import { FormEvent, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 
 export function Signup() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { signup, isAuthenticated, isLoading, error, clearError } = useAuthStore();
   const [username, setUsername] = useState('');
@@ -33,7 +35,7 @@ export function Signup() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="max-w-md w-full space-y-6 p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Регистрация SaaS</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('auth.signupTitle')}</h1>
         {error ? (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 text-sm text-red-800 dark:text-red-200">
             {error}
@@ -43,14 +45,14 @@ export function Signup() {
         <form className="space-y-4" onSubmit={onSubmit}>
           <input
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-            placeholder="Логин"
+            placeholder={t('auth.username')}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
           <input
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-            placeholder="Пароль"
+            placeholder={t('auth.password')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -58,14 +60,14 @@ export function Signup() {
           />
           <input
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-            placeholder="Название компании/тенанта"
+            placeholder={t('auth.companyName')}
             value={tenantName}
             onChange={(e) => setTenantName(e.target.value)}
             required
           />
           <input
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
-            placeholder="tenant-slug"
+            placeholder={t('auth.tenantSlug')}
             value={tenantSlug}
             onChange={(e) => setTenantSlug(e.target.value)}
             required
@@ -75,14 +77,14 @@ export function Signup() {
             disabled={isLoading}
             className="w-full py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
           >
-            {isLoading ? 'Создание аккаунта...' : 'Создать аккаунт'}
+            {isLoading ? t('auth.signupCreating') : t('auth.signupCreate')}
           </button>
         </form>
 
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          Уже есть аккаунт?{' '}
+          {t('auth.alreadyHaveAccount')}{' '}
           <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline">
-            Войти
+            {t('auth.login')}
           </Link>
         </div>
       </div>

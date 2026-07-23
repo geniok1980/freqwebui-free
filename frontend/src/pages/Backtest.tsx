@@ -2,6 +2,7 @@
  * Backtest Results page for viewing strategy backtest data.
  */
 
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';

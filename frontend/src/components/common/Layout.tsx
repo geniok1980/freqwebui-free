@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
 import logoImage from '../../assets/logo.png';
 
@@ -8,77 +9,76 @@ interface LayoutProps {
 }
 
 interface NavItem {
-  name: string;
+  key: string;
   href: string;
   icon: string;
 }
 
 interface NavGroup {
-  name: string;
+  key: string;
   icon: string;
   items: NavItem[];
 }
 
-const navGroups: NavGroup[] = [
-  {
-    name: 'Дашборд',
-    icon: '📊',
-    items: [
-      { name: 'Панель', href: '/', icon: '📊' },
-    ],
-  },
-  {
-    name: 'Боты',
-    icon: '🤖',
-    items: [
-      { name: 'Боты Freqtrade', href: '/freqtrade-bots', icon: '🖥️' },
-      { name: 'История ботов', href: '/historic', icon: '📈' },
-      { name: 'Обнаружение', href: '/discovery', icon: '🔍' },
-    ],
-  },
-  {
-    name: 'Аналитика',
-    icon: '📈',
-    items: [
-      { name: 'Результаты бэктеста', href: '/backtest', icon: '📉' },
-      { name: 'Сравнение', href: '/compare', icon: '⚖️' },
-      { name: 'Оценка стратегий', href: '/scoring', icon: '🏆' },
-      { name: 'Риски', href: '/risk', icon: '🛡️' },
-      { name: 'Чек-лист', href: '/checklist', icon: '✅' },
-    ],
-  },
-  {
-    name: 'Инструменты',
-    icon: '🛠️',
-    items: [
-      { name: 'Лаборатория стратегий', href: '/strategy-lab', icon: '🔬' },
-      { name: 'Оптимизатор pairlist', href: '/pairlist-selector', icon: '🎯' },
-      { name: 'Финансовые данные', href: '/financedata', icon: '💰' },
-    ],
-  },
-  {
-    name: 'Ещё',
-    icon: '📋',
-    items: [
-      { name: 'Журнал', href: '/journal', icon: '📓' },
-      { name: 'Оповещения', href: '/alerts', icon: '🔔' },
-      { name: 'Настройки', href: '/settings', icon: '⚙️' },
-    ],
-  },
-];
-
-// Flat list for mobile (keeps old behaviour for simplicity)
-const flatNavigation: NavItem[] = navGroups.flatMap(g => g.items);
+function NavGroups(): NavGroup[] {
+  const { t } = useTranslation();
+  return [
+    {
+      key: 'dashboard',
+      icon: '\u{1F4CA}',
+      items: [{ key: 'panel', href: '/', icon: '\u{1F4CA}' }],
+    },
+    {
+      key: 'bots',
+      icon: '\u{1F916}',
+      items: [
+        { key: 'botsFreqtrade', href: '/freqtrade-bots', icon: '\u{1F5A5}\uFE0F' },
+        { key: 'botHistory', href: '/historic', icon: '\u{1F4C8}' },
+        { key: 'discovery', href: '/discovery', icon: '\u{1F50D}' },
+      ],
+    },
+    {
+      key: 'analytics',
+      icon: '\u{1F4C8}',
+      items: [
+        { key: 'backtestResults', href: '/backtest', icon: '\u{1F4C9}' },
+        { key: 'compare', href: '/compare', icon: '\u2696\uFE0F' },
+        { key: 'strategyScoring', href: '/scoring', icon: '\u{1F3C6}' },
+        { key: 'risks', href: '/risk', icon: '\u{1F6E1}\uFE0F' },
+        { key: 'checklist', href: '/checklist', icon: '\u2705' },
+      ],
+    },
+    {
+      key: 'tools',
+      icon: '\u{1F6E0}\uFE0F',
+      items: [
+        { key: 'strategyLab', href: '/strategy-lab', icon: '\u{1F52C}' },
+        { key: 'pairlistOptimizer', href: '/pairlist-selector', icon: '\u{1F3AF}' },
+        { key: 'financeData', href: '/financedata', icon: '\u{1F4B0}' },
+      ],
+    },
+    {
+      key: 'more',
+      icon: '\u{1F4CB}',
+      items: [
+        { key: 'journal', href: '/journal', icon: '\u{1F4D3}' },
+        { key: 'alerts', href: '/alerts', icon: '\u{1F514}' },
+        { key: 'settings', href: '/settings', icon: '\u2699\uFE0F' },
+      ],
+    },
+  ];
+}
 
 export function Layout({ children }: LayoutProps) {
+  const { t, i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    // Initially expand the group containing the current route
     const current = window.location.pathname;
     const active = new Set<string>();
-    for (const g of navGroups) {
+    const groups = NavGroups();
+    for (const g of groups) {
       if (g.items.some(item => current === item.href || current.startsWith(item.href + '/'))) {
-        active.add(g.name);
+        active.add(g.key);
       }
     }
     return active;
@@ -96,13 +96,20 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const adminItems: NavItem[] = [
-    { name: 'Пользователи', href: '/users', icon: '👥' },
+    { key: 'users', href: '/users', icon: '\u{1F465}' },
   ];
   const isAdmin = user?.role === 'admin';
 
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === 'ru' ? 'en' : 'ru');
+  };
+
+  const navGroups = NavGroups();
+  const flatNavigation = navGroups.flatMap(g => g.items);
+
   const renderNavItem = (item: NavItem) => (
     <Link
-      key={item.name}
+      key={item.key}
       to={item.href}
       onClick={() => setSidebarOpen(false)}
       className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${
@@ -112,11 +119,11 @@ export function Layout({ children }: LayoutProps) {
       }`}
     >
       <span className="text-base">{item.icon}</span>
-      <span className="font-medium text-sm">{item.name}</span>
+      <span className="font-medium text-sm">{t(`nav.${item.key}`)}</span>
     </Link>
   );
 
-  // ── Mobile sidebar (flat, no groups) ──
+  // Mobile sidebar
   const mobileNav = (
     <div
       className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#161b22] border-r border-[#30363d] transform transition-transform duration-300 ease-in-out lg:hidden ${
@@ -126,7 +133,7 @@ export function Layout({ children }: LayoutProps) {
       <div className="flex items-center justify-between h-16 px-4 border-b border-[#30363d]">
         <div className="flex items-center gap-2">
           <img src={logoImage} alt="Logo" className="h-10 w-10 object-contain rounded" />
-          <span className="text-lg font-bold text-[#e6edf3]">FreqDashboard</span>
+          <span className="text-lg font-bold text-[#e6edf3]">{t('app.title')}</span>
         </div>
         <button onClick={() => setSidebarOpen(false)} className="text-[#8b949e] hover:text-[#e6edf3]">
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -141,33 +148,32 @@ export function Layout({ children }: LayoutProps) {
           onClick={() => { logout(); setSidebarOpen(false); }}
           className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 w-full mt-4 border-t border-[#30363d] pt-4"
         >
-          <span className="text-lg">🚪</span>
-          <span className="font-medium">Выход</span>
+          <span className="text-lg">{'\u{1F6AA}'}</span>
+          <span className="font-medium">{t('auth.logout')}</span>
         </button>
       </nav>
     </div>
   );
 
-  // ── Desktop sidebar (grouped, collapsible) ──
+  // Desktop sidebar
   const desktopNav = (
     <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 lg:bg-[#161b22] lg:border-r lg:border-[#30363d]">
       <div className="flex items-center gap-2 h-16 px-4 border-b border-[#30363d]">
         <img src={logoImage} alt="Logo" className="h-10 w-10 object-contain rounded" />
-        <span className="text-lg font-bold text-[#e6edf3]">FreqDashboard</span>
+        <span className="text-lg font-bold text-[#e6edf3]">{t('app.title')}</span>
       </div>
 
       <nav className="flex-1 px-2 py-3 space-y-1 overflow-y-auto">
         {navGroups.map(group => {
-          const isExpanded = expandedGroups.has(group.name);
+          const isExpanded = expandedGroups.has(group.key);
           const anyActive = group.items.some(
             item => location.pathname === item.href || location.pathname.startsWith(item.href + '/')
           );
 
           return (
-            <div key={group.name}>
-              {/* Group header */}
+            <div key={group.key}>
               <button
-                onClick={() => toggleGroup(group.name)}
+                onClick={() => toggleGroup(group.key)}
                 className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-colors text-left ${
                   anyActive && !isExpanded
                     ? 'text-blue-400 bg-[#1c2533]'
@@ -176,7 +182,7 @@ export function Layout({ children }: LayoutProps) {
               >
                 <span className="flex items-center gap-2">
                   <span className="text-base">{group.icon}</span>
-                  <span className="font-semibold text-xs uppercase tracking-wider">{group.name}</span>
+                  <span className="font-semibold text-xs uppercase tracking-wider">{t(`nav.${group.key}`)}</span>
                 </span>
                 <svg
                   className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
@@ -186,7 +192,6 @@ export function Layout({ children }: LayoutProps) {
                 </svg>
               </button>
 
-              {/* Group items */}
               <div
                 className={`overflow-hidden transition-all duration-200 ${
                   isExpanded ? 'max-h-80 opacity-100 mt-1' : 'max-h-0 opacity-0'
@@ -200,7 +205,6 @@ export function Layout({ children }: LayoutProps) {
           );
         })}
 
-        {/* Admin items */}
         {isAdmin && (
           <div>
             <button
@@ -212,8 +216,8 @@ export function Layout({ children }: LayoutProps) {
               }`}
             >
               <span className="flex items-center gap-2">
-                <span className="text-base">👑</span>
-                <span className="font-semibold text-xs uppercase tracking-wider">Админ</span>
+                <span className="text-base">{'\u{1F451}'}</span>
+                <span className="font-semibold text-xs uppercase tracking-wider">{t('nav.admin')}</span>
               </span>
               <svg
                 className={`h-4 w-4 transition-transform duration-200 ${expandedGroups.has('admin') ? 'rotate-90' : ''}`}
@@ -235,13 +239,24 @@ export function Layout({ children }: LayoutProps) {
         )}
       </nav>
 
-      <div className="px-2 py-4 border-t border-[#30363d]">
+      {/* Language switcher */}
+      <div className="px-2 py-2 border-t border-[#30363d]">
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-400 hover:bg-[#30363d] hover:text-gray-200 w-full text-left transition-colors"
+        >
+          <span className="text-base">{'\u{1F310}'}</span>
+          <span className="font-medium text-sm">{i18n.language === 'ru' ? 'English' : 'Русский'}</span>
+        </button>
+      </div>
+
+      <div className="px-2 py-2 border-t border-[#30363d]">
         <button
           onClick={logout}
           className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 w-full"
         >
-          <span className="text-lg">🚪</span>
-          <span className="font-medium">Выход</span>
+          <span className="text-lg">{'\u{1F6AA}'}</span>
+          <span className="font-medium">{t('auth.logout')}</span>
         </button>
       </div>
     </aside>
@@ -258,7 +273,6 @@ export function Layout({ children }: LayoutProps) {
       {mobileNav}
       {desktopNav}
       <div className="lg:ml-64 flex flex-col min-h-screen">
-        {/* Mobile header with hamburger */}
         <div className="lg:hidden flex items-center h-14 px-4 bg-[#161b22] border-b border-[#30363d]">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -269,7 +283,7 @@ export function Layout({ children }: LayoutProps) {
             </svg>
           </button>
           <img src={logoImage} alt="Logo" className="h-8 w-8 object-contain rounded mr-2" />
-          <span className="text-lg font-bold text-[#e6edf3]">FreqDashboard</span>
+          <span className="text-lg font-bold text-[#e6edf3]">{t('app.title')}</span>
         </div>
         <main className="flex-1 p-4 lg:p-8">
           {children}

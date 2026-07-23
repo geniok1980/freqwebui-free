@@ -2,9 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/index.css';
-import { installRussianDomTranslator } from './i18n/domTranslator';
-
-installRussianDomTranslator();
+import './i18n'; // Initialize i18next
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

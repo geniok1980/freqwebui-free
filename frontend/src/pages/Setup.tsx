@@ -4,6 +4,7 @@
 
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getBackendOrigin, setBackendOrigin } from '../services/api';
 
 function normalizeDisplay(raw: string): string {
