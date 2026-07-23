@@ -284,7 +284,10 @@
     "searchBots": "Поиск ботов",
     "switchTheme": "Сменить тему",
     "goToDashboard": "Перейти к дашборду",
-    "goToSettings": "Перейти в настройки"
+    "goToSettings": "Перейти в настройки",
+    "exportedBotsCount": "Экспортировано ботов: {{count}}",
+    "exportedTradesCount": "Экспортировано сделок: {{count}} из {{total}} ботов",
+    "exportedAlertsCount": "Экспортировано алертов: {{count}}"
   },
   "strategyLab": {
     "title": "Лаборатория стратегий",

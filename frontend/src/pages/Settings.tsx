@@ -129,7 +129,7 @@ export function Settings() {
       const csv = arrayToCSV(exportData, headers);
       const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
       downloadFile(csv, `bots_export_${timestamp}.csv`, 'text/csv;charset=utf-8;');
-      toast.success(`Экспортировано ботов: ${bots.length}`);
+      toast.success(t('settings.exportedBotsCount', { count: bots.length }));
     } catch (error) {
       toast.error(t('settings.exportBotsFailed'));
     } finally {
@@ -182,7 +182,7 @@ export function Settings() {
       const csv = arrayToCSV(allTrades, headers);
       const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
       downloadFile(csv, `trades_export_${timestamp}.csv`, 'text/csv;charset=utf-8;');
-      toast.success(`Экспортировано сделок: ${allTrades.length} из ${bots.length} ботов`);
+      toast.success(t('settings.exportedTradesCount', { count: allTrades.length, total: bots.length }));
     } catch (error) {
       toast.error(t('settings.exportTradesFailed'));
     } finally {
@@ -217,7 +217,7 @@ export function Settings() {
       const json = JSON.stringify(exportData, null, 2);
       const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
       downloadFile(json, `alerts_export_${timestamp}.json`, 'application/json');
-      toast.success(`Экспортировано алертов: ${alerts.length}`);
+      toast.success(t('settings.exportedAlertsCount', { count: alerts.length }));
     } catch (error) {
       toast.error(t('settings.exportAlertsFailed'));
     } finally {

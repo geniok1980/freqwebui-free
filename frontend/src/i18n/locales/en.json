@@ -284,7 +284,10 @@
     "searchBots": "Search bots",
     "switchTheme": "Switch theme",
     "goToDashboard": "Go to dashboard",
-    "goToSettings": "Go to settings"
+    "goToSettings": "Go to settings",
+    "exportedBotsCount": "Bots exported: {{count}}",
+    "exportedTradesCount": "Trades exported: {{count}} from {{total}} bots",
+    "exportedAlertsCount": "Alerts exported: {{count}}"
   },
   "strategyLab": {
     "title": "Strategy Lab",
