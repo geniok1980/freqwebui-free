@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import type { Trade } from '../../types';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Export trades to CSV format and trigger download.
@@ -83,6 +84,7 @@ type TradeFilter = 'all' | 'open' | 'closed';
 const ITEMS_PER_PAGE = 20;
 
 export function BotTrades({ botId }: BotTradesProps) {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<TradeFilter>('all');
   const [sortBy, setSortBy] = useState<'date' | 'profit'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { strategyLabApi } from '../../services/strategyLabApi';
 import { Monitor, ExternalLink, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
@@ -12,6 +13,7 @@ const MODES = [
 ];
 
 export function PairlistRunner() {
+  const { t } = useTranslation();
   const [selectedStrategy, setSelectedStrategy] = useState('');
   const [selectedMode, setSelectedMode] = useState('fullbacktest_batch');
   const [nPairs, setNPairs] = useState(50);

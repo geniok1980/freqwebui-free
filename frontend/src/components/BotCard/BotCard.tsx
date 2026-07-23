@@ -4,6 +4,7 @@ import { StatusIndicator } from '../common/StatusIndicator';
 import { getEnvironmentColor, getProfitColor } from '../../styles/theme';
 import { useBotMetrics } from '../../hooks/useBots';
 import { SparklineChart } from './SparklineChart';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Convert bot API URL to use current browser hostname instead of localhost.
@@ -40,6 +41,7 @@ function formatNumber(num: number, decimals: number = 2): string {
 }
 
 export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
+  const { t } = useTranslation();
   const { data: metrics, isLoading: metricsLoading } = useBotMetrics(bot.id);
 
   const profitValue = metrics?.profit_abs ?? 0;

@@ -7,8 +7,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { strategyLabApi } from '../../services/strategyLabApi';
 import { Card } from '../../components/common/Card';
+import { useTranslation } from 'react-i18next';
 
 export function OptimizationResults() {
+  const { t } = useTranslation();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
   const [filterStrategy, setFilterStrategy] = useState<string>('all');
 

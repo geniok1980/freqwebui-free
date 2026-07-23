@@ -5,6 +5,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Bot {
   id: string;
@@ -32,6 +33,7 @@ interface PerformanceData {
 }
 
 export function Compare() {
+  const { t } = useTranslation();
   const [selectedBots, setSelectedBots] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 

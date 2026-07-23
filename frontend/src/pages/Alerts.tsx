@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { formatDistanceToNow, format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface Alert {
   id: string;
@@ -31,6 +32,7 @@ type SeverityFilter = 'all' | 'critical' | 'warning' | 'info';
 type StatusFilter = 'all' | 'unread' | 'read';
 
 export function Alerts() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('all');

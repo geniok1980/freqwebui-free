@@ -2,8 +2,10 @@ import { useState, useMemo } from 'react';
 import { useBots } from '../../hooks/useBots';
 import { useBotStore, getActiveFilterCount } from '../../store/botStore';
 import type { BotEnvironment, HealthState } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 export function BotFilters() {
+  const { t } = useTranslation();
   // Fetch ALL bots (unfiltered) for filter options and counts
   const { data: bots = [] } = useBots();
   const { filters, setFilter, clearFilters, viewMode, setViewMode, sortBy, setSortBy, sortOrder, setSortOrder } =

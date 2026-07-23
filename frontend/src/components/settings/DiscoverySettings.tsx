@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Save, Server, Info, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 export function DiscoverySettings() {
+  const { t } = useTranslation();
   const [hostIp, setHostIp] = useState('');
   const [apiUsername, setApiUsername] = useState('');
   const [apiPassword, setApiPassword] = useState('');

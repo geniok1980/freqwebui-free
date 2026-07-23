@@ -4,6 +4,7 @@
  * Shows the current data source mode with appropriate visual indicators.
  */
 import type { SourceMode } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface DataSourceBadgeProps {
   source: SourceMode;
@@ -73,6 +74,7 @@ export function DataSourceBadge({
   size = 'sm',
   showTooltip = true,
 }: DataSourceBadgeProps) {
+  const { t } = useTranslation();
   const config = sourceConfig[source];
   const sizeClass = sizeClasses[size];
 

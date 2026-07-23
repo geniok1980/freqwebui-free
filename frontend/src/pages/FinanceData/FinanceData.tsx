@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { financeColors } from '../../styles/theme';
 import { api } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 // Types
 interface CryptoPrice {
@@ -84,6 +85,7 @@ interface SyncStatus {
 }
 
 export function FinanceData() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);

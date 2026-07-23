@@ -14,6 +14,7 @@ import { BotHealthPanel } from '../components/bot/BotHealthPanel';
 import { BotSettings } from '../components/bot/BotSettings';
 import { BotControls } from '../components/bot/BotControls';
 import { BotAnalytics } from '../components/bot/BotAnalytics';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Convert bot API URL to use current browser hostname instead of localhost.
@@ -94,6 +95,7 @@ const tabs: Tab[] = [
 ];
 
 export function BotDetail() {
+  const { t } = useTranslation();
   const { botId } = useParams<{ botId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();

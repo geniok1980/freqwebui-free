@@ -1,4 +1,5 @@
 import type { StrategyAnalysisResult } from '../../../services/strategyLabAiApi';
+import { useTranslation } from 'react-i18next';
 
 interface StrategyAnalysisCardProps {
   analysis: StrategyAnalysisResult | null;
@@ -7,6 +8,7 @@ interface StrategyAnalysisCardProps {
 }
 
 export function StrategyAnalysisCard({ analysis, isLoading, error }: StrategyAnalysisCardProps) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="mt-4 rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800 dark:border-violet-900 dark:bg-violet-950/30 dark:text-violet-200">

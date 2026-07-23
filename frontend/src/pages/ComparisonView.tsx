@@ -5,6 +5,7 @@
 
 import {useQuery} from '@tanstack/react-query';
 import {api} from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 // ── Types ──
 
@@ -284,6 +285,7 @@ function EmptyState() {
 // ── Main component ──
 
 export function ComparisonView() {
+  const { t } = useTranslation();
   const {data: rows, isLoading, error} = useQuery({
     queryKey: ['comparison'],
     queryFn: async () => {

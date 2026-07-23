@@ -12,6 +12,7 @@
 import {useState, useCallback, useEffect} from 'react';
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import {api} from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 // ── Types ──
 
@@ -290,6 +291,7 @@ function EntryEditor({entry, onSave, onClose}: {
 // ── Main component ──
 
 export function TradingJournal() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(false);

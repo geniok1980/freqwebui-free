@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Save, Moon, Sun, Clock, Server, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 export function UnifiedSettings() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [message, setMessage] = useState('');
   

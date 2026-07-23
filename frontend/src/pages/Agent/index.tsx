@@ -25,6 +25,7 @@ import {
   Container
 } from 'lucide-react';
 import { api } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 import {
   LineChart,
   Line,
@@ -114,6 +115,7 @@ const REGIME_COLORS: Record<string, string> = {
 };
 
 export function AgentDashboard() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null);

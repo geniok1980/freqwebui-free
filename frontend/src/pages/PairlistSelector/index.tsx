@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Play, BarChart3 } from 'lucide-react';
 import { PairlistRunner } from './PairlistRunner';
 import { PairlistResults } from '../../components/PairlistResults';
+import { useTranslation } from 'react-i18next';
 
 export function PairlistSelector() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'run' | 'results'>('run');
   
   return (

@@ -17,6 +17,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import {api} from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 // ── Типы ──
 
@@ -244,6 +245,7 @@ async function saveChecklist(data: ChecklistData): Promise<ChecklistData> {
 // ── Component ──
 
 export function PreLaunchChecklist() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [sections, setSections] = useState<Section[]>(defaultSections);
   const [checklistId, setChecklistId] = useState<string | null>(null);

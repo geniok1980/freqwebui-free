@@ -1,6 +1,7 @@
 import type { OptimizationRun } from '../../../services/strategyLabApi';
 import type { RunAnalysisResult } from '../../../services/strategyLabAiApi';
 import { Card } from '../../common/Card';
+import { useTranslation } from 'react-i18next';
 
 interface BacktestAnalysisCardProps {
   run: OptimizationRun | null;
@@ -17,6 +18,7 @@ export function BacktestAnalysisCard({
   error,
   onAnalyze,
 }: BacktestAnalysisCardProps) {
+  const { t } = useTranslation();
   if (!run) {
     return null;
   }

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 function parseUtcNaiveTimestamp(ts: string): Date {
   // Backend/DB may return "YYYY-MM-DD HH:MM:SS" without timezone.
@@ -73,6 +74,7 @@ interface BotSeriesPoint {
 }
 
 export function Historic() {
+  const { t } = useTranslation();
   const [selectedBot, setSelectedBot] = useState<string | null>(null);
 
   // Fetch list of bots with historic data (V4: includes all bots with activity status)

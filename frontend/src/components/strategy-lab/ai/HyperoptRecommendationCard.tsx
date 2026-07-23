@@ -1,5 +1,6 @@
 import type { HyperoptRecommendationResult } from '../../../services/strategyLabAiApi';
 import { Card } from '../../common/Card';
+import { useTranslation } from 'react-i18next';
 
 interface HyperoptRecommendationCardProps {
   strategyName: string;
@@ -16,6 +17,7 @@ export function HyperoptRecommendationCard({
   error,
   onAnalyze,
 }: HyperoptRecommendationCardProps) {
+  const { t } = useTranslation();
   return (
     <Card className="p-5 space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">

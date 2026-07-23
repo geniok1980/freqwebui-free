@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { i18nTransform } from './vite-plugin-i18n';
 
 // Get API URL from environment or use default
 const API_URL = process.env.VITE_API_URL || 'http://backend:8000';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [i18nTransform(), react()],
   server: {
     port: 5000,
     host: true,

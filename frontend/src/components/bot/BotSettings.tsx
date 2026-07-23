@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUpdateBot, useDeleteBot } from '../../hooks/useBots';
 import { api } from '../../services/api';
 import type { Bot, SourceMode } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface BotSettingsProps {
   bot: Bot & {
@@ -26,6 +27,7 @@ const sourceModes: { value: SourceMode; label: string; description: string }[] =
 ];
 
 export function BotSettings({ bot }: BotSettingsProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const updateBot = useUpdateBot();

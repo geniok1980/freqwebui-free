@@ -7,8 +7,10 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { strategyLabApi } from '../../services/strategyLabApi';
 import { Card } from '../../components/common/Card';
+import { useTranslation } from 'react-i18next';
 
 export function StrategyLab() {
+  const { t } = useTranslation();
   const { data: strategies, isLoading: strategiesLoading } = useQuery({
     queryKey: ['strategies'],
     queryFn: () => strategyLabApi.getStrategies(),

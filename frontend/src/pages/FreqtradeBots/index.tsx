@@ -11,8 +11,10 @@ import { useBots } from '../../hooks/useBots';
 import { api } from '../../services/api';
 import { strategyLabApi } from '../../services/strategyLabApi';
 import type { Bot } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 export function FreqtradeBots() {
+  const { t } = useTranslation();
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [iframeError, setIframeError] = useState<string | null>(null);

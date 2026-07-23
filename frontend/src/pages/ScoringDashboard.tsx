@@ -12,6 +12,7 @@
 
 import {useQuery} from '@tanstack/react-query';
 import {api} from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 // ── Types ──
 
@@ -242,6 +243,7 @@ function EmptyState() {
 // ── Main component ──
 
 export function ScoringDashboard() {
+  const { t } = useTranslation();
   const {data: bots, isLoading, error} = useQuery({
     queryKey: ['scoring'],
     queryFn: fetchScoring,

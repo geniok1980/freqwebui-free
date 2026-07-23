@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { toast } from '../components/common/Toast';
+import { useTranslation } from 'react-i18next';
 
 interface User {
   id: string;
@@ -16,6 +17,7 @@ interface User {
 }
 
 export function UserManagement() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);

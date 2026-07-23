@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { strategyLabApi } from '../../services/strategyLabApi';
 import { Card } from '../../components/common/Card';
+import { useTranslation } from 'react-i18next';
 
 interface Strategy {
   name: string;
@@ -12,6 +13,7 @@ interface Strategy {
 }
 
 export function StrategyList() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedFamily, setSelectedFamily] = useState('all');
   const [uploadFamily, setUploadFamily] = useState('Custom');

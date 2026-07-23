@@ -6,6 +6,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 interface Bot {
   id: string;
@@ -18,6 +19,7 @@ interface Bot {
 }
 
 export function GlobalSearch() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);

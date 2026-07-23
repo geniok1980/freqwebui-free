@@ -8,8 +8,10 @@ import { useParams, Link } from 'react-router-dom';
 import { strategyLabApi, HyperoptEpoch } from '../../services/strategyLabApi';
 import { Card } from '../../components/common/Card';
 import { useToast } from '../../components/common/Toast';
+import { useTranslation } from 'react-i18next';
 
 export function HyperoptMonitor() {
+  const { t } = useTranslation();
   const { strategyName } = useParams<{ strategyName?: string }>();
   const { showToast } = useToast();
   const [selectedStrategy, setSelectedStrategy] = useState<string>(strategyName || '');
