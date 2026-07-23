@@ -13,6 +13,8 @@ i18n
     fallbackLng: 'ru',
     debug: false,
     interpolation: { escapeValue: false },
+    nsSeparator: false,
+    keySeparator: false,
     returnNull: false,
     returnEmptyString: false,
     detection: {

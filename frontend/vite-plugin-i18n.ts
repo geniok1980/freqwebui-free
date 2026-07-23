@@ -6,6 +6,11 @@ import type { Plugin } from 'vite';
 
 const RUSSIAN_RE = /[А-Яа-яЁё]/;
 
+/** Escape string for safe embedding in JS single-quoted string literal. */
+function escapeStr(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
 export function i18nTransform(): Plugin {
   return {
     name: 'i18n-transform',
@@ -26,7 +31,7 @@ export function i18nTransform(): Plugin {
         /placeholder\s*=\s*"([^"]*?[А-Яа-яЁё][^"]*?)"/g,
         (_, text) => {
           changed = true;
-          return `placeholder={t('${text}')}`;
+          return `placeholder={t('${escapeStr(text)}')}`;
         }
       );
 
@@ -35,7 +40,7 @@ export function i18nTransform(): Plugin {
         /(toast\.\w+\()'([^']*?[А-Яа-яЁё][^']*?)'/g,
         (_, prefix, text) => {
           changed = true;
-          return `${prefix}t('${text}')`;
+          return `${prefix}t('${escapeStr(text)}')`;
         }
       );
 
@@ -44,7 +49,7 @@ export function i18nTransform(): Plugin {
         /((?:set\w*(?:Error|Message|Info|Warning))\s*\(\s*)'([^']*?[А-Яа-яЁё][^']*?)'/g,
         (_, prefix, text) => {
           changed = true;
-          return `${prefix}t('${text}')`;
+          return `${prefix}t('${escapeStr(text)}')`;
         }
       );
 

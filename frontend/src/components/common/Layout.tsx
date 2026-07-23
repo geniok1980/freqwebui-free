@@ -20,9 +20,8 @@ interface NavGroup {
   items: NavItem[];
 }
 
-function NavGroups(): NavGroup[] {
-  const { t } = useTranslation();
-  return [
+// Static nav structure — no hooks. Translations happen at render time in renderNavItem.
+const NAV_GROUPS: { key: string; icon: string; items: { key: string; href: string; icon: string }[] }[] = [
     {
       key: 'dashboard',
       icon: '\u{1F4CA}',
@@ -67,7 +66,6 @@ function NavGroups(): NavGroup[] {
       ],
     },
   ];
-}
 
 export function Layout({ children }: LayoutProps) {
   const { t, i18n } = useTranslation();
@@ -75,7 +73,7 @@ export function Layout({ children }: LayoutProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const current = window.location.pathname;
     const active = new Set<string>();
-    const groups = NavGroups();
+    const groups = NAV_GROUPS;
     for (const g of groups) {
       if (g.items.some(item => current === item.href || current.startsWith(item.href + '/'))) {
         active.add(g.key);
@@ -101,10 +99,11 @@ export function Layout({ children }: LayoutProps) {
   const isAdmin = user?.role === 'admin';
 
   const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'ru' ? 'en' : 'ru');
+    const next = i18n.language?.startsWith('ru') ? 'en' : 'ru';
+    i18n.changeLanguage(next).catch(console.error);
   };
 
-  const navGroups = NavGroups();
+  const navGroups = NAV_GROUPS;
   const flatNavigation = navGroups.flatMap(g => g.items);
 
   const renderNavItem = (item: NavItem) => (
@@ -246,7 +245,7 @@ export function Layout({ children }: LayoutProps) {
           className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-400 hover:bg-[#30363d] hover:text-gray-200 w-full text-left transition-colors"
         >
           <span className="text-base">{'\u{1F310}'}</span>
-          <span className="font-medium text-sm">{i18n.language === 'ru' ? 'English' : 'Русский'}</span>
+          <span className="font-medium text-sm">{i18n.language?.startsWith('ru') ? 'English' : 'Русский'}</span>
         </button>
       </div>
 
