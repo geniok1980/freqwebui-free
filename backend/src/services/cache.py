@@ -19,7 +19,7 @@ class CacheEntry:
 
     @property
     def is_expired(self) -> bool:
-        return datetime.now(timezone.utc).replace(tzinfo=None) > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
 
 class CacheService:

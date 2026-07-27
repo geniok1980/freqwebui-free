@@ -74,10 +74,9 @@ interface BotRiskData {
 
 function statusColors(status: string) {
   switch (status) {
-    case 'safe': return {bg: 'bg-green-100 dark:bg-green-900/30', border: 'border-green-300 dark:border-green-700', text: 'text-green-700 dark:text-green-300', bar: 'bg-green-500'};
-    case 'moderate': return {bg: 'bg-yellow-100 dark:bg-yellow-900/30', border: 'border-yellow-300 dark:border-yellow-700', text: 'text-yellow-700 dark:text-yellow-300', bar: 'bg-yellow-500'};
-    case 'aggressive': return {bg: 'bg-orange-100 dark:bg-orange-900/30', border: 'border-orange-300 dark:border-orange-700', text: 'text-orange-700 dark:text-orange-300', bar: 'bg-orange-500'};
-    case 'critical': return {bg: 'bg-red-100 dark:bg-red-900/30', border: 'border-red-300 dark:border-red-700', text: 'text-red-700 dark:text-red-300', bar: 'bg-red-500'};
+    case 'green': return {bg: 'bg-green-100 dark:bg-green-900/30', border: 'border-green-300 dark:border-green-700', text: 'text-green-700 dark:text-green-300', bar: 'bg-green-500'};
+    case 'yellow': return {bg: 'bg-yellow-100 dark:bg-yellow-900/30', border: 'border-yellow-300 dark:border-yellow-700', text: 'text-yellow-700 dark:text-yellow-300', bar: 'bg-yellow-500'};
+    case 'red': return {bg: 'bg-red-100 dark:bg-red-900/30', border: 'border-red-300 dark:border-red-700', text: 'text-red-700 dark:text-red-300', bar: 'bg-red-500'};
     default: return {bg: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-700', bar: 'bg-gray-500'};
   }
 }
@@ -113,7 +112,7 @@ function LevelCard({level, title, icon, subtitle}: {
       </div>
       <div className="flex items-center justify-between mt-2">
         <span className={`text-xs font-medium ${c.text}`}>{level.label}</span>
-        {level.risk_abs !== undefined && (
+        {level.risk_abs != null && (
           <span className="text-[10px] text-gray-500">${level.risk_abs.toFixed(2)}</span>
         )}
       </div>
@@ -151,7 +150,7 @@ function BotRiskCard({data}: {data: BotRiskData}) {
           </div>
           <div className="text-right">
             <div className={`text-2xl font-bold ${c.text}`}>{data.overall.label}</div>
-            <div className="text-sm text-gray-500">Score: {data.overall.score}/10</div>
+            <div className="text-sm text-gray-500">Score: {data.overall.score}/100</div>
           </div>
         </div>
 
@@ -174,7 +173,7 @@ function BotRiskCard({data}: {data: BotRiskData}) {
             <div className="text-[10px] text-gray-500">Просадка</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-750">
-            <div className="text-lg font-bold text-gray-900 dark:text-white">{data.balance.win_rate}%</div>
+            <div className="text-lg font-bold text-gray-900 dark:text-white">{(data.balance.win_rate * 100).toFixed(1)}%</div>
             <div className="text-[10px] text-gray-500">Win Rate</div>
           </div>
         </div>
@@ -190,100 +189,114 @@ function BotRiskCard({data}: {data: BotRiskData}) {
             level={data.levels.level_1_per_trade}
             title="На сделку"
             icon="1️⃣"
-            subtitle={`${data.config.stoploss_pct}% SL · $${data.config.stake_amount} позиция`}
+            subtitle={data.config ? `${data.config.stoploss_pct}% SL · $${data.config.stake_amount} позиция` : undefined}
           />
           <LevelCard
             level={data.levels.level_2_portfolio}
             title="Портфельный"
             icon="2️⃣"
-            subtitle={`${data.balance.open_positions} из ${data.config.max_open_trades} позиций`}
+            subtitle={data.config ? `${data.balance.open_positions} из ${data.config.max_open_trades} позиций` : undefined}
           />
           <LevelCard
             level={data.levels.level_3_daily}
             title="Дневной лимит"
             icon="3️⃣"
-            subtitle={`Лимит: ${data.config.daily_loss_limit_pct}%`}
+            subtitle={data.config ? `Лимит: ${data.config.daily_loss_limit_pct}%` : undefined}
           />
           <LevelCard
             level={data.levels.level_4_weekly}
             title="Недельный лимит"
             icon="4️⃣"
-            subtitle={`Лимит: ${data.config.weekly_loss_limit_pct}%`}
+            subtitle={data.config ? `Лимит: ${data.config.weekly_loss_limit_pct}%` : undefined}
           />
         </div>
       </div>
 
-      {/* Stop-loss & Protection */}
-      <div className="p-5 border-t border-gray-100 dark:border-gray-700">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Current drawdown */}
-          <div>
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-              Текущая просадка
-            </h4>
-            <div className={`rounded-lg p-3 border ${statusColors(data.stop_loss.current_drawdown.status).bg} ${statusColors(data.stop_loss.current_drawdown.status).border}`}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-500 dark:text-gray-400">Просадка</span>
-                <span className="text-sm font-bold" style={{
-                  color: data.stop_loss.current_drawdown.status === 'safe' ? '#22c55e' :
-                         data.stop_loss.current_drawdown.status === 'moderate' ? '#eab308' : '#ef4444'
-                }}>
-                  {data.stop_loss.current_drawdown.value_pct}%
-                </span>
-              </div>
-              <div className="text-xs">{data.stop_loss.current_drawdown.label}</div>
-            </div>
-          </div>
-
-          {/* Stop-loss config */}
-          <div>
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-              Стоп-лосс
-            </h4>
-            <div className="space-y-1.5 text-xs text-gray-700 dark:text-gray-300">
-              <div className="flex justify-between"><span>Тип</span><span className="font-mono font-medium">{data.stop_loss.config.type}</span></div>
-              <div className="flex justify-between"><span>Процент</span><span className="font-mono font-medium">{data.stop_loss.config.pct}%</span></div>
-              <div className="flex justify-between"><span>Трейлинг</span><span>{data.stop_loss.trailing.enabled ? '✅' : '❌'}</span></div>
-              {data.stop_loss.trailing.enabled && (
-                <>
-                  <div className="flex justify-between"><span>Offset</span><span className="font-mono">{data.stop_loss.trailing.offset_pct}%</span></div>
-                  <div className="flex justify-between"><span>Триггер</span><span className="font-mono">{data.stop_loss.trailing.trigger_pct}%</span></div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Protection mechanisms */}
-          <div>
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-              Защита
-            </h4>
-            <div className="space-y-1.5 text-xs text-gray-700 dark:text-gray-300">
-              {Object.entries(data.stop_loss.protection).map(([key, val]) => (
-                <div key={key} className="flex justify-between">
-                  <span>{key.replace(/_/g, ' ')}</span>
-                  <span className={`font-medium ${val.includes('вкл') ? 'text-green-600' : val.includes('реком') ? 'text-yellow-600' : ''}`}>
-                    {val}
-                  </span>
+      {/* Stop-loss & Protection — only if data available */}
+      {data.stop_loss && (
+        <div className="p-5 border-t border-gray-100 dark:border-gray-700">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Current drawdown */}
+            {data.stop_loss.current_drawdown && (
+              <div>
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  Текущая просадка
+                </h4>
+                <div className={`rounded-lg p-3 border ${statusColors(data.stop_loss.current_drawdown.status).bg} ${statusColors(data.stop_loss.current_drawdown.status).border}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Просадка</span>
+                    <span className="text-sm font-bold" style={{
+                      color: data.stop_loss.current_drawdown.status === 'safe' ? '#22c55e' :
+                             data.stop_loss.current_drawdown.status === 'moderate' ? '#eab308' : '#ef4444'
+                    }}>
+                      {data.stop_loss.current_drawdown.value_pct}%
+                    </span>
+                  </div>
+                  <div className="text-xs">{data.stop_loss.current_drawdown.label}</div>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* Stop-loss config */}
+            {data.stop_loss.config && (
+              <div>
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  Стоп-лосс
+                </h4>
+                <div className="space-y-1.5 text-xs text-gray-700 dark:text-gray-300">
+                  <div className="flex justify-between"><span>Тип</span><span className="font-mono font-medium">{data.stop_loss.config.type}</span></div>
+                  <div className="flex justify-between"><span>Процент</span><span className="font-mono font-medium">{data.stop_loss.config.pct}%</span></div>
+                  {data.stop_loss.trailing && (
+                    <>
+                      <div className="flex justify-between"><span>Трейлинг</span><span>{data.stop_loss.trailing.enabled ? '✅' : '❌'}</span></div>
+                      {data.stop_loss.trailing.enabled && (
+                        <>
+                          <div className="flex justify-between"><span>Offset</span><span className="font-mono">{data.stop_loss.trailing.offset_pct}%</span></div>
+                          <div className="flex justify-between"><span>Триггер</span><span className="font-mono">{data.stop_loss.trailing.trigger_pct}%</span></div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Protection mechanisms */}
+            {data.stop_loss.protection && Object.keys(data.stop_loss.protection).length > 0 && (
+              <div>
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  Защита
+                </h4>
+                <div className="space-y-1.5 text-xs text-gray-700 dark:text-gray-300">
+                  {Object.entries(data.stop_loss.protection).map(([key, val]) => (
+                    <div key={key} className="flex justify-between">
+                      <span>{key.replace(/_/g, ' ')}</span>
+                      <span className={`font-medium ${String(val).includes('вкл') ? 'text-green-600' : String(val).includes('реком') ? 'text-yellow-600' : ''}`}>
+                        {val}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Recommended config */}
-      <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-          Рекомендуемая конфигурация
-        </h4>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono text-gray-700 dark:text-gray-300">
-          <div>stake: ${data.config.stake_amount.toFixed(0)}</div>
-          <div>max_pos: {data.config.max_open_trades}</div>
-          <div>SL: {data.config.stoploss_pct}%</div>
-          <div>trailing: {data.config.trailing_stop ? 'ON' : 'OFF'}</div>
+      {/* Recommended config — only if data available */}
+      {data.config && (
+        <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+            Рекомендуемая конфигурация
+          </h4>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono text-gray-700 dark:text-gray-300">
+            <div>stake: ${data.config.stake_amount?.toFixed(0) ?? '—'}</div>
+            <div>max_pos: {data.config.max_open_trades ?? '—'}</div>
+            <div>SL: {data.config.stoploss_pct ?? '—'}%</div>
+            <div>trailing: {data.config.trailing_stop ? 'ON' : 'OFF'}</div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -337,10 +350,10 @@ export function RiskDashboard() {
     return <EmptyState />;
   }
 
-  const safe = bots.filter(b => b.available && b.overall.status === 'safe').length;
-  const moderate = bots.filter(b => b.available && b.overall.status === 'moderate').length;
-  const aggressive = bots.filter(b => b.available && b.overall.status === 'aggressive').length;
-  const critical = bots.filter(b => b.available && b.overall.status === 'critical').length;
+  const safe = bots.filter(b => b.available && b.overall.status === 'green').length;
+  const moderate = bots.filter(b => b.available && b.overall.status === 'yellow').length;
+  const aggressive = bots.filter(b => b.available && b.overall.status === 'red').length;
+  const critical = bots.filter(b => b.available && false).length; // API doesn't return 'critical'
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
