@@ -78,3 +78,6 @@ freqtrade_docker/
 *.pem
 credentials.json
 secrets/
+
+# Mastra build artifacts
+mastra/.mastra/
