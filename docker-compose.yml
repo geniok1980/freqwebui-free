@@ -179,6 +179,39 @@ services:
         max-file: "3"
 
   # ===========================================================================
+  # MASTRA - AI Agent Server (strategy generator, trading analyst)
+  # ===========================================================================
+  mastra:
+    build:
+      context: ./mastra
+      dockerfile: Dockerfile
+    container_name: dashboard-mastra
+    restart: unless-stopped
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-nano}
+      PORT: ${MASTRA_PORT:-4111}
+    ports:
+      # Bound to localhost only — the Mastra REST API has no auth of its own.
+      # Backend reaches it over the Docker network by service name, not via this port.
+      - "127.0.0.1:${MASTRA_PORT:-4111}:4111"
+    volumes:
+      # Source tree is bind-mounted for development; node_modules in a named volume
+      - ./mastra:/app:rw
+      - mastra_node_modules:/app/node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:4111/api/agents').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
   # DATA-COLLECTOR - Analytics Pipeline
   # ===========================================================================
   data-collector:
@@ -242,3 +275,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  mastra_node_modules:
