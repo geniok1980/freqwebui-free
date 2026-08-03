@@ -52,7 +52,9 @@
     "users": "Пользователи",
     "createStrategy": "Создать стратегию",
     "agent": "AI-агент",
-    "comparison": "Сравнение B/D/L"
+    "comparison": "Сравнение B/D/L",
+    "strategies": "Стратегии",
+    "monitoring": "Мониторинг"
   },
   "common": {
     "save": "Сохранить",

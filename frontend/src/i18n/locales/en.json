@@ -52,7 +52,9 @@
     "users": "Users",
     "createStrategy": "Create strategy",
     "agent": "AI Agent",
-    "comparison": "Compare B/D/L"
+    "comparison": "Compare B/D/L",
+    "strategies": "Strategies",
+    "monitoring": "Monitoring"
   },
   "common": {
     "save": "Save",
