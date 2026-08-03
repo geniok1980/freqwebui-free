@@ -1242,6 +1242,15 @@ def _transliterate(text: str) -> str:
     return "".join(_TRANSLIT.get(ch, ch) for ch in text.lower())
 
 
+def _find_strategy_file(strategy_name: str) -> str:
+    strategies_root = _get_strategies_root()
+    target = f"{strategy_name}.py"
+    for root, _, files in os.walk(strategies_root):
+        if target in files:
+            return os.path.join(root, target)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Strategy file not found: {target}")
+
+
 def _class_name_from_description(description: str) -> str:
     words = re.findall(r"[A-Za-zА-Яа-я0-9]+", description)
     meaningful = [w for w in words if w.lower() not in {"и", "с", "в", "на", "для", "по", "сделай", "создай", "стратегию", "стратегия", "бот", "бота", "напиши", "нужна", "хочу", "простая", "новую"} and len(w) > 1]
@@ -1389,6 +1398,154 @@ async def ai_generate_strategy(
             "family": "AI",
             "path": dest_path,
             "preview": code[:3000],
+        },
+    }
+
+
+@router.post("/ai/run-analysis")
+async def ai_run_analysis(
+    request: dict,
+    session: AsyncSession = Depends(get_db),
+    _: object = Depends(require_operator),
+) -> dict:
+    """AI-анализ прогона оптимизации (бектест/гиперопт)."""
+    run_id = request.get("run_id")
+    if not run_id:
+        raise HTTPException(status_code=422, detail="run_id required")
+
+    row = (
+        await session.execute(
+            text(
+                """
+                SELECT id, strategy_name, run_type, status, profit_pct, winrate_pct,
+                       max_drawdown_pct, started_at, completed_at
+                FROM optimization_runs WHERE id = :rid
+                """,
+            ),
+            {"rid": int(run_id) if str(run_id).isdigit() else -1},
+        )
+    ).mappings().first()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    run = dict(row)
+    summary = (
+        f"Прогон #{run['id']}: стратегия {run['strategy_name']}, тип {run['run_type']}, "
+        f"статус {run['status']}. Прибыль {run['profit_pct']}%, винрейт {run['winrate_pct']}%, "
+        f"просадка {run['max_drawdown_pct']}%."
+    )
+    prompt = (
+        "Проанализируй результат прогона оптимизации торговой стратегии.\n"
+        "Ответь на русском, кратко и практично, четырьмя абзацами: Итог, Сильные стороны, Риски, Следующий шаг.\n"
+        "Не выдумывай отсутствующие метрики.\n\n" + summary
+    )
+    analysis = await _call_openai(prompt, "Ты — аналитик торговых стратегий Freqtrade.", max_tokens=800)
+    return {
+        "status": "success",
+        "data": {
+            "analysis": analysis,
+            "source": "openai",
+            "model": os.getenv("OPENAI_MODEL", "gpt-4.1-nano"),
+            "warnings": [],
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "run": run,
+        },
+    }
+
+
+@router.post("/ai/strategy-analysis")
+async def ai_strategy_analysis(
+    request: dict,
+    _: object = Depends(require_operator),
+) -> dict:
+    """AI-анализ исходного кода стратегии."""
+    strategy_name = (request.get("strategy_name") or "").strip()
+    if not strategy_name:
+        raise HTTPException(status_code=422, detail="strategy_name required")
+
+    try:
+        strategy_file = _find_strategy_file(strategy_name)
+    except HTTPException:
+        strategy_file = None
+
+    preview = ""
+    if strategy_file:
+        with open(strategy_file, "r", encoding="utf-8", errors="replace") as f:
+            preview = f.read()[:4000]
+
+    prompt = (
+        "Проанализируй код торговой стратегии Freqtrade.\n"
+        "Ответь на русском, кратко: Итог, Сильные стороны, Риски, Следующий шаг.\n"
+        "Обрати внимание на логику входов/выходов, стоп-лосс, риск переобучения.\n\n"
+        f"Код:\n{preview}"
+    )
+    analysis = await _call_openai(prompt, "Ты — эксперт по стратегиям Freqtrade.", max_tokens=800)
+    return {
+        "status": "success",
+        "data": {
+            "analysis": analysis,
+            "source": "openai",
+            "model": os.getenv("OPENAI_MODEL", "gpt-4.1-nano"),
+            "warnings": [],
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "strategy": {
+                "name": strategy_name,
+                "file_path": strategy_file,
+                "file_preview": preview,
+            },
+        },
+    }
+
+
+@router.post("/ai/hyperopt-recommendations")
+async def ai_hyperopt_recommendations(
+    request: dict,
+    session: AsyncSession = Depends(get_db),
+    _: object = Depends(require_operator),
+) -> dict:
+    """AI-рекомендации по лучшим эпохам гиперопта."""
+    strategy_name = (request.get("strategy_name") or "").strip()
+    if not strategy_name:
+        raise HTTPException(status_code=422, detail="strategy_name required")
+
+    rows = (
+        await session.execute(
+            text(
+                """
+                SELECT epoch, params, profit_pct, winrate_pct, created_at
+                FROM hyperopt_epochs
+                WHERE bot_id IN (SELECT id FROM bots WHERE strategy = :s)
+                ORDER BY profit_pct DESC NULLS LAST
+                LIMIT 10
+                """,
+            ),
+            {"s": strategy_name},
+        )
+    ).mappings().all()
+    epochs = [dict(r) for r in rows]
+
+    summary = "\n".join(
+        f"Эпоха {e['epoch']}: прибыль {e['profit_pct']}%, винрейт {e['winrate_pct']}%, параметры {e['params']}"
+        for e in epochs
+    ) or "Эпох нет."
+
+    prompt = (
+        "Дай рекомендации по лучшим эпохам гиперопта стратегии Freqtrade.\n"
+        "Ответь на русском, кратко: какие параметры выбрать, на что обратить внимание, есть ли признаки переобучения.\n\n"
+        f"Стратегия: {strategy_name}\n{summary}"
+    )
+    analysis = await _call_openai(prompt, "Ты — эксперт по гипероптимизации Freqtrade.", max_tokens=800)
+    return {
+        "status": "success",
+        "data": {
+            "analysis": analysis,
+            "source": "openai",
+            "model": os.getenv("OPENAI_MODEL", "gpt-4.1-nano"),
+            "warnings": [],
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "strategy_name": strategy_name,
+            "epochs": epochs,
         },
     }
 
