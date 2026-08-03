@@ -11,6 +11,13 @@ import {useQuery} from '@tanstack/react-query';
 import {api} from '../services/api';
 import { useTranslation } from 'react-i18next';
 
+// ── Constants ──
+
+/** API-значения статуса защиты: механизм включён */
+const PROTECTION_ENABLED = 'вкл';
+/** API-значения статуса защиты: рекомендуется */
+const PROTECTION_RECOMMENDED = 'реком';
+
 // ── Types ──
 
 interface RiskLevel {
@@ -124,6 +131,7 @@ function LevelCard({level, title, icon, subtitle}: {
 // ── Bot risk card ──
 
 function BotRiskCard({data}: {data: BotRiskData}) {
+  const { t } = useTranslation();
   const c = statusColors(data.overall.status);
 
   if (!data.available) {
@@ -158,23 +166,23 @@ function BotRiskCard({data}: {data: BotRiskData}) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
           <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-750">
             <div className="text-lg font-bold text-gray-900 dark:text-white">${data.balance.total.toFixed(0)}</div>
-            <div className="text-[10px] text-gray-500">Капитал</div>
+            <div className="text-[10px] text-gray-500">{t('risk.capital')}</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-750">
             <div className={`text-lg font-bold ${data.balance.profit_pct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {data.balance.profit_pct >= 0 ? '+' : ''}{data.balance.profit_pct}%
             </div>
-            <div className="text-[10px] text-gray-500">Прибыль</div>
+            <div className="text-[10px] text-gray-500">{t('risk.profit')}</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-750">
             <div className={`text-lg font-bold ${data.balance.drawdown_pct < 5 ? 'text-green-600' : data.balance.drawdown_pct < 10 ? 'text-yellow-600' : 'text-red-600'}`}>
               {data.balance.drawdown_pct}%
             </div>
-            <div className="text-[10px] text-gray-500">Просадка</div>
+            <div className="text-[10px] text-gray-500">{t('risk.drawdown')}</div>
           </div>
           <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-750">
             <div className="text-lg font-bold text-gray-900 dark:text-white">{(data.balance.win_rate * 100).toFixed(1)}%</div>
-            <div className="text-[10px] text-gray-500">Win Rate</div>
+            <div className="text-[10px] text-gray-500">{t('bots.winrate')}</div>
           </div>
         </div>
       </div>
@@ -182,32 +190,32 @@ function BotRiskCard({data}: {data: BotRiskData}) {
       {/* 4 Risk Levels */}
       <div className="p-5 space-y-4">
         <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-          4 уровня контроля рисков
+          {t('risk.levelsHeader')}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <LevelCard
             level={data.levels.level_1_per_trade}
-            title="На сделку"
+            title={t('risk.riskPerTrade')}
             icon="1️⃣"
-            subtitle={data.config ? `${data.config.stoploss_pct}% SL · $${data.config.stake_amount} позиция` : undefined}
+            subtitle={data.config ? t('risk.perTradeSubtitle', { stoploss: data.config.stoploss_pct, stake: data.config.stake_amount }) : undefined}
           />
           <LevelCard
             level={data.levels.level_2_portfolio}
-            title="Портфельный"
+            title={t('risk.portfolioRisk')}
             icon="2️⃣"
-            subtitle={data.config ? `${data.balance.open_positions} из ${data.config.max_open_trades} позиций` : undefined}
+            subtitle={data.config ? t('risk.portfolioSubtitle', { open: data.balance.open_positions, max: data.config.max_open_trades }) : undefined}
           />
           <LevelCard
             level={data.levels.level_3_daily}
-            title="Дневной лимит"
+            title={t('risk.dailyLoss')}
             icon="3️⃣"
-            subtitle={data.config ? `Лимит: ${data.config.daily_loss_limit_pct}%` : undefined}
+            subtitle={data.config ? t('risk.limitSubtitle', { limit: data.config.daily_loss_limit_pct }) : undefined}
           />
           <LevelCard
             level={data.levels.level_4_weekly}
-            title="Недельный лимит"
+            title={t('risk.weeklyLoss')}
             icon="4️⃣"
-            subtitle={data.config ? `Лимит: ${data.config.weekly_loss_limit_pct}%` : undefined}
+            subtitle={data.config ? t('risk.limitSubtitle', { limit: data.config.weekly_loss_limit_pct }) : undefined}
           />
         </div>
       </div>
@@ -220,11 +228,11 @@ function BotRiskCard({data}: {data: BotRiskData}) {
             {data.stop_loss.current_drawdown && (
               <div>
                 <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Текущая просадка
+                  {t('risk.currentDrawdown')}
                 </h4>
                 <div className={`rounded-lg p-3 border ${statusColors(data.stop_loss.current_drawdown.status).bg} ${statusColors(data.stop_loss.current_drawdown.status).border}`}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Просадка</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{t('risk.drawdown')}</span>
                     <span className="text-sm font-bold" style={{
                       color: data.stop_loss.current_drawdown.status === 'safe' ? '#22c55e' :
                              data.stop_loss.current_drawdown.status === 'moderate' ? '#eab308' : '#ef4444'
@@ -241,18 +249,18 @@ function BotRiskCard({data}: {data: BotRiskData}) {
             {data.stop_loss.config && (
               <div>
                 <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Стоп-лосс
+                  {t('risk.stopLoss')}
                 </h4>
                 <div className="space-y-1.5 text-xs text-gray-700 dark:text-gray-300">
-                  <div className="flex justify-between"><span>Тип</span><span className="font-mono font-medium">{data.stop_loss.config.type}</span></div>
-                  <div className="flex justify-between"><span>Процент</span><span className="font-mono font-medium">{data.stop_loss.config.pct}%</span></div>
+                  <div className="flex justify-between"><span>{t('risk.type')}</span><span className="font-mono font-medium">{data.stop_loss.config.type}</span></div>
+                  <div className="flex justify-between"><span>{t('risk.percent')}</span><span className="font-mono font-medium">{data.stop_loss.config.pct}%</span></div>
                   {data.stop_loss.trailing && (
                     <>
-                      <div className="flex justify-between"><span>Трейлинг</span><span>{data.stop_loss.trailing.enabled ? '✅' : '❌'}</span></div>
+                      <div className="flex justify-between"><span>{t('risk.trailing')}</span><span>{data.stop_loss.trailing.enabled ? '✅' : '❌'}</span></div>
                       {data.stop_loss.trailing.enabled && (
                         <>
-                          <div className="flex justify-between"><span>Offset</span><span className="font-mono">{data.stop_loss.trailing.offset_pct}%</span></div>
-                          <div className="flex justify-between"><span>Триггер</span><span className="font-mono">{data.stop_loss.trailing.trigger_pct}%</span></div>
+                          <div className="flex justify-between"><span>{t('risk.offset')}</span><span className="font-mono">{data.stop_loss.trailing.offset_pct}%</span></div>
+                          <div className="flex justify-between"><span>{t('risk.trigger')}</span><span className="font-mono">{data.stop_loss.trailing.trigger_pct}%</span></div>
                         </>
                       )}
                     </>
@@ -265,13 +273,13 @@ function BotRiskCard({data}: {data: BotRiskData}) {
             {data.stop_loss.protection && Object.keys(data.stop_loss.protection).length > 0 && (
               <div>
                 <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Защита
+                  {t('risk.protection')}
                 </h4>
                 <div className="space-y-1.5 text-xs text-gray-700 dark:text-gray-300">
                   {Object.entries(data.stop_loss.protection).map(([key, val]) => (
                     <div key={key} className="flex justify-between">
                       <span>{key.replace(/_/g, ' ')}</span>
-                      <span className={`font-medium ${String(val).includes('вкл') ? 'text-green-600' : String(val).includes('реком') ? 'text-yellow-600' : ''}`}>
+                      <span className={`font-medium ${String(val).includes(PROTECTION_ENABLED) ? 'text-green-600' : String(val).includes(PROTECTION_RECOMMENDED) ? 'text-yellow-600' : ''}`}>
                         {val}
                       </span>
                     </div>
@@ -287,7 +295,7 @@ function BotRiskCard({data}: {data: BotRiskData}) {
       {data.config && (
         <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
           <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-            Рекомендуемая конфигурация
+            {t('risk.recommendedConfig')}
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono text-gray-700 dark:text-gray-300">
             <div>stake: ${data.config.stake_amount?.toFixed(0) ?? '—'}</div>
@@ -304,14 +312,15 @@ function BotRiskCard({data}: {data: BotRiskData}) {
 // ── Empty state ──
 
 function EmptyState() {
+  const { t } = useTranslation();
   return (
     <div className="text-center py-16">
       <div className="text-5xl mb-4">🛡️</div>
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-        Нет данных о рисках
+        {t('risk.noData')}
       </h2>
       <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-        Для отображения Risk Dashboard необходим хотя бы один бот с собранными метриками.
+        {t('risk.noDataDesc')}
       </p>
     </div>
   );
@@ -341,7 +350,7 @@ export function RiskDashboard() {
   if (error) {
     return (
       <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6 text-center">
-        <p className="text-red-600 dark:text-red-400">Ошибка: {(error as Error).message}</p>
+        <p className="text-red-600 dark:text-red-400">{t('common.error')}: {(error as Error).message}</p>
       </div>
     );
   }
@@ -361,10 +370,10 @@ export function RiskDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            🛡️ Риски
+            🛡️ {t('risk.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            4 уровня контроля рисков — уроки 14, 25
+            {t('risk.subtitle')}
           </p>
         </div>
       </div>
@@ -372,24 +381,24 @@ export function RiskDashboard() {
       {/* Fleet overview */}
       <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
         <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
-          Общий риск флота
+          {t('risk.overallRisk')}
         </h3>
         <div className="flex gap-4">
           <div className="flex-1 text-center p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
             <div className="text-2xl font-bold text-green-600">{safe}</div>
-            <div className="text-xs text-green-700 dark:text-green-300">🟢 Безопасно</div>
+            <div className="text-xs text-green-700 dark:text-green-300">🟢 {t('risk.safe')}</div>
           </div>
           <div className="flex-1 text-center p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
             <div className="text-2xl font-bold text-yellow-600">{moderate}</div>
-            <div className="text-xs text-yellow-700 dark:text-yellow-300">🟡 Умеренно</div>
+            <div className="text-xs text-yellow-700 dark:text-yellow-300">🟡 {t('risk.moderate')}</div>
           </div>
           <div className="flex-1 text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20">
             <div className="text-2xl font-bold text-orange-600">{aggressive}</div>
-            <div className="text-xs text-orange-700 dark:text-orange-300">🟠 Повышенный</div>
+            <div className="text-xs text-orange-700 dark:text-orange-300">🟠 {t('risk.elevated')}</div>
           </div>
           <div className="flex-1 text-center p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
             <div className="text-2xl font-bold text-red-600">{critical}</div>
-            <div className="text-xs text-red-700 dark:text-red-300">🔴 Критично</div>
+            <div className="text-xs text-red-700 dark:text-red-300">🔴 {t('risk.critical')}</div>
           </div>
         </div>
       </div>
@@ -398,19 +407,19 @@ export function RiskDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] text-gray-500 dark:text-gray-400">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0"/>
-          <span>1️⃣ Риск на сделку: &lt;1%</span>
+          <span>{t('risk.legendPerTrade')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-yellow-500 shrink-0"/>
-          <span>2️⃣ Портфельный риск: &lt;5%</span>
+          <span>{t('risk.legendPortfolio')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"/>
-          <span>3️⃣ Дневной убыток: &lt;2%</span>
+          <span>{t('risk.legendDaily')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"/>
-          <span>4️⃣ Недельный убыток: &lt;10%</span>
+          <span>{t('risk.legendWeekly')}</span>
         </div>
       </div>
 

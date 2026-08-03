@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import structlog
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import httpx
@@ -56,13 +56,13 @@ class FreqdashClient:
             raise FreqdashAPIError(0, "no access_token in login response")
 
         expires_in = data.get("expires_in", 3600)
-        self._token_expires = datetime.utcnow() + timedelta(seconds=expires_in - 60)
+        self._token_expires = datetime.now(timezone.utc) + timedelta(seconds=expires_in - 60)
         logger.info("authenticated successfully")
         return self._token
 
     async def _ensure_token(self) -> None:
         if not self._token or (
-            self._token_expires and datetime.utcnow() >= self._token_expires
+            self._token_expires and datetime.now(timezone.utc) >= self._token_expires
         ):
             await self.login()
 

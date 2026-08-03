@@ -76,6 +76,7 @@ async function deleteEntry(id: string): Promise<void> {
 function EntryCard({entry, active, onClick, onDelete}: {
   entry: JournalEntry; active: boolean; onClick: () => void; onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const dateStr = new Date(entry.entry_date).toLocaleDateString('ru-RU');
   const typeLabels: Record<string, string> = {daily: '📅', weekly: '📆', monthly: '📊'};
   return (
@@ -96,7 +97,7 @@ function EntryCard({entry, active, onClick, onDelete}: {
         <button
           onClick={e => {e.stopPropagation(); onDelete();}}
           className="text-gray-300 hover:text-red-400 text-xs shrink-0"
-          title="Удалить"
+          title={t('journal.delete')}
         >✕</button>
       </div>
       <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate mt-0.5">{entry.title}</p>
@@ -116,6 +117,7 @@ function EntryCard({entry, active, onClick, onDelete}: {
 // ── Signal scorer widget ──
 
 function SignalScorer({onScore}: {onScore?: (result: any) => void}) {
+  const { t } = useTranslation();
   const [profit, setProfit] = useState('1.2');
   const [hours, setHours] = useState('4');
   const [reason, setReason] = useState('roi');
@@ -141,12 +143,12 @@ function SignalScorer({onScore}: {onScore?: (result: any) => void}) {
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
       <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-        🎯 Оценка качества сигнала
+        {t('journal.signalQualityScore')}
       </h4>
       <div className="space-y-2">
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="block text-[10px] text-gray-500 mb-0.5">Прибыль %</label>
+            <label className="block text-[10px] text-gray-500 mb-0.5">{t('journal.profitPercent')}</label>
             <input
               type="number" step="0.1" value={profit}
               onChange={e => setProfit(e.target.value)}
@@ -154,7 +156,7 @@ function SignalScorer({onScore}: {onScore?: (result: any) => void}) {
             />
           </div>
           <div>
-            <label className="block text-[10px] text-gray-500 mb-0.5">Часов</label>
+            <label className="block text-[10px] text-gray-500 mb-0.5">{t('journal.hours')}</label>
             <input
               type="number" step="0.5" value={hours}
               onChange={e => setHours(e.target.value)}
@@ -162,16 +164,16 @@ function SignalScorer({onScore}: {onScore?: (result: any) => void}) {
             />
           </div>
           <div>
-            <label className="block text-[10px] text-gray-500 mb-0.5">Причина</label>
+            <label className="block text-[10px] text-gray-500 mb-0.5">{t('journal.reason')}</label>
             <select
               value={reason}
               onChange={e => setReason(e.target.value)}
               className="w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
             >
               <option value="roi">ROI</option>
-              <option value="exit_signal">Сигнал</option>
-              <option value="trailing_stop">Trailing</option>
-              <option value="stop_loss">Стоп-лосс</option>
+              <option value="exit_signal">{t('journal.signal')}</option>
+              <option value="trailing_stop">{t('journal.trailing')}</option>
+              <option value="stop_loss">{t('journal.stopLoss')}</option>
             </select>
           </div>
         </div>
@@ -180,7 +182,7 @@ function SignalScorer({onScore}: {onScore?: (result: any) => void}) {
           disabled={scoring}
           className="w-full py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {scoring ? '...' : 'Оценить'}
+          {scoring ? '...' : t('journal.score')}
         </button>
         {result && (
           <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-750">
@@ -200,6 +202,7 @@ function EntryEditor({entry, onSave, onClose}: {
   onSave: (data: any) => Promise<void>;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState(entry?.title || '');
   const [content, setContent] = useState(entry?.content_md || '');
   const [entryType, setEntryType] = useState(entry?.entry_type || 'daily');
@@ -212,7 +215,7 @@ function EntryEditor({entry, onSave, onClose}: {
     try {
       await onSave({
         id: (entry as any)?.id,
-        title: title || 'Без названия',
+        title: title || t('journal.untitled'),
         content_md: content,
         entry_type: entryType,
         entry_date: entryDate,
@@ -231,7 +234,7 @@ function EntryEditor({entry, onSave, onClose}: {
           type="text"
           value={title}
           onChange={e => setTitle(e.target.value)}
-          placeholder="Заголовок записи"
+          placeholder={t('journal.entryTitle')}
           className="flex-1 px-3 py-2 text-sm font-semibold rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
         />
         <select
@@ -239,9 +242,9 @@ function EntryEditor({entry, onSave, onClose}: {
           onChange={e => setEntryType(e.target.value)}
           className="px-2 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
         >
-          <option value="daily">📅 День</option>
-          <option value="weekly">📆 Неделя</option>
-          <option value="monthly">📊 Месяц</option>
+          <option value="daily">{t('journal.day')}</option>
+          <option value="weekly">{t('journal.week')}</option>
+          <option value="monthly">{t('journal.month')}</option>
         </select>
       </div>
 
@@ -252,12 +255,12 @@ function EntryEditor({entry, onSave, onClose}: {
           onChange={e => setEntryDate(e.target.value)}
           className="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
         />
-        <span>Теги:</span>
+        <span>{t('journal.tags')}</span>
         <input
           type="text"
           value={tagsStr}
           onChange={e => setTagsStr(e.target.value)}
-          placeholder="тег1, тег2"
+          placeholder={t('journal.tagsPlaceholder')}
           className="flex-1 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
         />
       </div>
@@ -265,7 +268,7 @@ function EntryEditor({entry, onSave, onClose}: {
       <textarea
         value={content}
         onChange={e => setContent(e.target.value)}
-        placeholder="Напишите отчёт в Markdown..."
+        placeholder={t('journal.markdownPlaceholder')}
         className="w-full h-80 px-3 py-2 text-sm font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-y"
       />
 
@@ -274,14 +277,14 @@ function EntryEditor({entry, onSave, onClose}: {
           onClick={onClose}
           className="px-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100"
         >
-          Отмена
+          {t('common.cancel')}
         </button>
         <button
           onClick={handleSave}
           disabled={saving}
           className="px-4 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {saving ? 'Сохранение...' : '💾 Сохранить'}
+          {saving ? t('journal.saving') : t('common.save')}
         </button>
       </div>
     </div>
@@ -333,7 +336,7 @@ export function TradingJournal() {
       setSelectedId(null);
       setShowEditor(true);
     } catch (err) {
-      setTemplateError((err as Error).message || 'Ошибка при создании шаблона');
+      setTemplateError((err as Error).message || t('journal.templateError'));
     }
   };
 
@@ -366,10 +369,10 @@ export function TradingJournal() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            📓 Журнал торговли
+            {t('journal.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Журнал с авто-шаблонами и оценкой сигналов — уроки 16, 24
+            {t('journal.desc')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -378,16 +381,16 @@ export function TradingJournal() {
             onChange={e => setFilterType(e.target.value)}
             className="px-2 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
           >
-            <option value="">Все типы</option>
-            <option value="daily">📅 Дневные</option>
-            <option value="weekly">📆 Недельные</option>
-            <option value="monthly">📊 Месячные</option>
+            <option value="">{t('journal.allTypes')}</option>
+            <option value="daily">{t('journal.daily')}</option>
+            <option value="weekly">{t('journal.weekly')}</option>
+            <option value="monthly">{t('journal.monthly')}</option>
           </select>
           <button
             onClick={handleNewEntry}
             className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"
           >
-            ✚ Новая запись
+            {t('journal.newEntry')}
           </button>
         </div>
       </div>
@@ -402,11 +405,11 @@ export function TradingJournal() {
         {/* Left: Entry list */}
         <div className="w-72 shrink-0 space-y-1">
           {isLoading ? (
-            <div className="text-center py-8 text-sm text-gray-400">Загрузка...</div>
+            <div className="text-center py-8 text-sm text-gray-400">{t('journal.loading')}</div>
           ) : entries.length === 0 ? (
             <div className="text-center py-8 text-sm text-gray-400">
-              <p>Записей пока нет</p>
-              <p className="text-xs mt-1">Создайте первую запись с авто-шаблоном</p>
+              <p>{t('journal.noEntries')}</p>
+              <p className="text-xs mt-1">{t('journal.createFirstEntry')}</p>
             </div>
           ) : (
             entries.map(e => (
@@ -474,13 +477,13 @@ export function TradingJournal() {
 
               {/* Content (rendered as plain markdown preview) */}
               <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono text-xs leading-relaxed">
-                {selected.content_md || '(пусто)'}
+                {selected.content_md || t('journal.empty')}
               </div>
             </div>
           ) : (
             <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-10 text-center text-gray-400">
               <div className="text-4xl mb-3">📓</div>
-              <p className="text-sm">Выберите запись слева или создайте новую</p>
+              <p className="text-sm">{t('journal.selectEntry')}</p>
             </div>
           )}
         </div>

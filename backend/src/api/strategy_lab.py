@@ -313,6 +313,7 @@ async def start_workflow(
                 return
             
             # Build Docker command based on steps
+            host_export_path = None
             if 'backtest' in steps:
                 logger.info(f"Running backtest for {strategy_name}")
                 
@@ -459,15 +460,17 @@ async def start_workflow(
                         cur.execute("""
                             INSERT INTO backtest_results (
                                 strategy_name, timeframe, timerange,
-                                total_profit_pct, total_profit_abs, total_trades,
-                                win_rate, max_drawdown_pct, sharpe, sortino, profit_factor, avg_profit_pct,
-                                backtest_date
-                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                                profit_pct, profit_abs, avg_profit_pct,
+                                profit_factor, max_drawdown_pct,
+                                sharpe_ratio, sortino_ratio, total_trades, winrate_pct,
+                                export_file, created_at
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                         """, (
                             strategy_name, "15m", "20241001-20260224",
-                            profit_pct, profit_abs, total_trades,
-                            win_rate, max_drawdown, sharpe, sortino, profit_factor, avg_profit,
-                            host_export_path
+                            profit_pct, profit_abs, avg_profit,
+                            profit_factor, max_drawdown,
+                            sharpe, sortino, total_trades, win_rate,
+                            host_export_path,
                         ))
                         conn.commit()
                         cur.close()
@@ -710,15 +713,15 @@ async def start_workflow(
                             
                             cur.execute("""
                                 INSERT INTO hyperopt_epochs (
-                                    strategy_name, epoch, profit_pct, win_rate, 
-                                    avg_profit, total_trades, sharpe, sortino,
+                                    strategy_name, epoch, profit_pct, winrate_pct, 
+                                    avg_profit_pct, total_trades, sharpe_ratio, sortino_ratio,
                                     params, is_best, created_at
                                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                             """, (
                                 strategy_name,
                                 best_epoch.get('epoch', 0),
                                 best_epoch.get('profit_total_pct', 0),
-                                best_epoch.get('winrate', 0) * 100,
+                                (best_epoch.get('winrate') or 0) * 100,
                                 best_epoch.get('profit_mean_pct', 0),
                                 best_epoch.get('trade_count', 0),
                                 best_epoch.get('sharpe', 0),
@@ -853,25 +856,25 @@ async def import_backtest_results(
                 text("""
                     SELECT id FROM backtest_results 
                     WHERE strategy_name = :strategy 
-                    AND backtest_date > NOW() - INTERVAL '1 hour'
+                    AND created_at > NOW() - INTERVAL '1 hour'
                 """),
                 {"strategy": strategy}
             )
             if result.fetchone():
                 continue  # Already imported recently
             
-            # Insert into database (without export_file_path - column doesn't exist)
+            # Insert into database
             await session.execute(
                 text("""
                     INSERT INTO backtest_results (
                         strategy_name, timeframe, timerange,
-                        total_profit_pct, total_profit_abs, total_trades,
-                        win_rate, max_drawdown_pct, sharpe, avg_profit_pct,
-                        backtest_date
+                        profit_pct, profit_abs, total_trades,
+                        winrate_pct, max_drawdown_pct, sharpe_ratio, avg_profit_pct,
+                        created_at
                     ) VALUES (
                         :strategy_name, :timeframe, :timerange,
                         :profit_pct, :profit_abs, :total_trades,
-                        :win_rate, :max_drawdown, :sharpe, :avg_profit_pct,
+                        :winrate_pct, :max_drawdown, :sharpe_ratio, :avg_profit_pct,
                         NOW()
                     )
                 """),
@@ -882,9 +885,9 @@ async def import_backtest_results(
                     "profit_pct": data.get('profit_pct', 0) or 0,
                     "profit_abs": data.get('profit_abs', 0) or 0,
                     "total_trades": data.get('total_trades', 0) or 0,
-                    "win_rate": data.get('win_rate', 0) or 0,
+                    "winrate_pct": data.get('winrate_pct', 0) or 0,
                     "max_drawdown": data.get('max_drawdown', 0) or 0,
-                    "sharpe": data.get('sharpe', 0) or 0,
+                    "sharpe_ratio": data.get('sharpe_ratio', 0) or 0,
                     "avg_profit_pct": data.get('avg_profit_pct', 0) or 0
                 }
             )
@@ -946,12 +949,12 @@ async def get_optimization_results(
         opt_results = await session.execute(
             text("""
                 SELECT 
-                    id, bot_id, strategy_name, process_type, status,
+                    id, bot_id, strategy_name, run_type, status,
                     started_at, completed_at, duration_seconds,
-                    result_profit_pct, result_drawdown, result_trade_count,
+                    profit_pct, max_drawdown_pct, total_trades,
                     config, error_message
                 FROM optimization_runs
-                ORDER BY started_at DESC
+                ORDER BY COALESCE(started_at, created_at) DESC
                 LIMIT :limit
             """),
             {"limit": limit}
@@ -986,18 +989,18 @@ async def get_optimization_results(
                 text("""
                     SELECT 
                         id, strategy_name, timeframe, timerange,
-                        total_profit_pct, total_profit_abs, total_trades,
-                        win_rate, avg_profit_pct, max_drawdown_pct, sharpe,
-                        backtest_date
+                        profit_pct, profit_abs, total_trades,
+                        winrate_pct, avg_profit_pct, max_drawdown_pct, sharpe_ratio,
+                        created_at
                     FROM backtest_results
-                    ORDER BY backtest_date DESC
+                    ORDER BY created_at DESC
                     LIMIT :limit
                 """),
                 {"limit": remaining}
             )
             
             for row in db_results.fetchall():
-                backtest_date = row[11]
+                created_at = row[11]
                 
                 results.append({
                     "id": f"backtest_{row[0]}",
@@ -1005,8 +1008,8 @@ async def get_optimization_results(
                     "process_type": "backtest",
                     "type": "backtest",
                     "status": "completed",
-                    "started_at": backtest_date.isoformat() if backtest_date else None,
-                    "completed_at": backtest_date.isoformat() if backtest_date else None,
+                    "started_at": created_at.isoformat() if created_at else None,
+                    "completed_at": created_at.isoformat() if created_at else None,
                     "result_profit_pct": float(row[4]) if row[4] is not None else None,
                     "result_drawdown": float(row[9]) if row[9] is not None else None,
                     "result_trade_count": row[6],

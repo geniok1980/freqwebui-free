@@ -261,6 +261,11 @@ class AppState:
     def register_ws(self) -> asyncio.Queue:
         q: asyncio.Queue = asyncio.Queue(maxsize=100)
         self._ws_clients.append(q)
+        # Capture the event loop for thread-safe broadcast
+        try:
+            self._loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self._loop = None
         return q
 
     def unregister_ws(self, q: asyncio.Queue):
@@ -274,10 +279,18 @@ class AppState:
 
         msg = json.dumps({"type": event_type, "data": data, "ts": time.time()})
         dead = []
+        loop = getattr(self, "_loop", None)
+        if loop is not None and not loop.is_running():
+            return
+
         for q in self._ws_clients:
             try:
-                q.put_nowait(msg)
-            except asyncio.QueueFull:
+                if loop is not None and threading.current_thread() is not threading.main_thread():
+                    # Called from a worker thread — use call_soon_threadsafe
+                    loop.call_soon_threadsafe(q.put_nowait, msg)
+                else:
+                    q.put_nowait(msg)
+            except (asyncio.QueueFull, RuntimeError):
                 dead.append(q)
         for q in dead:
             self._ws_clients.remove(q)

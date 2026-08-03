@@ -90,11 +90,11 @@ export function BotFilters() {
           }
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Все окружения</option>
-          <option value="docker">Docker</option>
-          <option value="baremetal">Без контейнера</option>
-          <option value="k8s">Kubernetes</option>
-          <option value="manual">Вручную</option>
+          <option value="">{t('bots.allEnvironments')}</option>
+          <option value="docker">{t('bots.docker')}</option>
+          <option value="baremetal">{t('bots.noContainer')}</option>
+          <option value="k8s">{t('bots.kubernetes')}</option>
+          <option value="manual">{t('bots.manual')}</option>
         </select>
 
         {/* Health Filter */}
@@ -108,10 +108,10 @@ export function BotFilters() {
           }
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Все статусы</option>
-          <option value="healthy">Здоров</option>
-          <option value="degraded">Деградирован</option>
-          <option value="unreachable">Недоступен</option>
+          <option value="">{t('bots.allStatuses')}</option>
+          <option value="healthy">{t('bots.healthy')}</option>
+          <option value="degraded">{t('bots.degraded')}</option>
+          <option value="unreachable">{t('bots.unavailable')}</option>
         </select>
 
         {/* Sort By */}
@@ -120,11 +120,11 @@ export function BotFilters() {
           onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
-          <option value="name">Сортировать по имени</option>
-          <option value="profit">Сортировать по прибыли</option>
-          <option value="health">Сортировать по статусу</option>
-          <option value="exchange">Сортировать по бирже</option>
-          <option value="strategy">Сортировать по стратегии</option>
+          <option value="name">{t('bots.sortByName')}</option>
+          <option value="profit">{t('bots.sortByProfit')}</option>
+          <option value="health">{t('bots.sortByStatus')}</option>
+          <option value="exchange">{t('bots.sortByExchange')}</option>
+          <option value="strategy">{t('bots.sortByStrategy')}</option>
         </select>
 
         {/* Sort Order Toggle */}
@@ -344,25 +344,25 @@ export function BotFilters() {
                   <span className="text-green-700 dark:text-green-400 font-medium">
                     {filterCounts.healthStates['healthy'] || 0}
                   </span>
-                  <span className="text-green-600 dark:text-green-500 ml-1">Здоров</span>
+                  <span className="text-green-600 dark:text-green-500 ml-1">{t('bots.healthy')}</span>
                 </div>
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">
                   <span className="text-yellow-700 dark:text-yellow-400 font-medium">
                     {filterCounts.healthStates['degraded'] || 0}
                   </span>
-                  <span className="text-yellow-600 dark:text-yellow-500 ml-1">Деградирован</span>
+                  <span className="text-yellow-600 dark:text-yellow-500 ml-1">{t('bots.degraded')}</span>
                 </div>
                 <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded">
                   <span className="text-red-700 dark:text-red-400 font-medium">
                     {filterCounts.healthStates['unreachable'] || 0}
                   </span>
-                  <span className="text-red-600 dark:text-red-500 ml-1">Офлайн</span>
+                  <span className="text-red-600 dark:text-red-500 ml-1">{t('bots.offline')}</span>
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
                   <span className="text-blue-700 dark:text-blue-400 font-medium">
                     {bots.length}
                   </span>
-                  <span className="text-blue-600 dark:text-blue-500 ml-1">Всего</span>
+                  <span className="text-blue-600 dark:text-blue-500 ml-1">{t('common.total')}</span>
                 </div>
               </div>
             </div>

@@ -1,4 +1,10 @@
-"""Backtest results API endpoints."""
+"""Backtest results API endpoints.
+
+Maps to the actual DB schema:
+  backtest_results (id, bot_id, strategy_name, timeframe, timerange,
+                    profit_pct, winrate_pct, max_drawdown_pct,
+                    profit_factor, sharpe_ratio, total_trades, created_at)
+"""
 
 from typing import Any
 
@@ -17,6 +23,24 @@ def success_response(data: Any) -> dict[str, Any]:
     return {"status": "success", "data": data}
 
 
+def _row_to_dict(row) -> dict:
+    """Convert a backtest_results row to the API response dict."""
+    return {
+        "id": row[0],
+        "bot_id": row[1],
+        "strategy_name": row[2],
+        "timeframe": row[3],
+        "timerange": row[4],
+        "profit_pct": float(row[5]) if row[5] is not None else None,
+        "winrate_pct": float(row[6]) if row[6] is not None else None,
+        "max_drawdown_pct": float(row[7]) if row[7] is not None else None,
+        "profit_factor": float(row[8]) if row[8] is not None else None,
+        "sharpe_ratio": float(row[9]) if row[9] is not None else None,
+        "total_trades": row[10],
+        "created_at": row[11].isoformat() if row[11] else None,
+    }
+
+
 @router.get("")
 async def list_backtest_results(
     db: AsyncSession = Depends(get_db),
@@ -26,50 +50,23 @@ async def list_backtest_results(
     """List all backtest results sorted by profit."""
     result = await db.execute(
         text("""
-            SELECT * FROM backtest_results
-            ORDER BY total_profit_pct DESC
+            SELECT id, bot_id, strategy_name, timeframe, timerange,
+                   profit_pct, winrate_pct, max_drawdown_pct,
+                   profit_factor, sharpe_ratio, total_trades, created_at
+            FROM backtest_results
+            ORDER BY profit_pct DESC NULLS LAST
             LIMIT :limit OFFSET :offset
         """),
         {"limit": limit, "offset": offset}
     )
-    
-    rows = []
-    for row in result.fetchall():
-        rows.append({
-            "id": row[0],
-            "strategy_name": row[1],
-            "timeframe": row[2],
-            "timerange": row[3],
-            "start_balance": float(row[4]) if row[4] else None,
-            "final_balance": float(row[5]) if row[5] else None,
-            "total_profit_pct": float(row[6]) if row[6] else None,
-            "total_profit_abs": float(row[7]) if row[7] else None,
-            "total_trades": row[8],
-            "win_rate": float(row[9]) if row[9] else None,
-            "avg_profit_pct": float(row[10]) if row[10] else None,
-            "max_drawdown_pct": float(row[11]) if row[11] else None,
-            "max_drawdown_abs": float(row[12]) if row[12] else None,
-            "sharpe": float(row[13]) if row[13] else None,
-            "sortino": float(row[14]) if row[14] else None,
-            "calmar": float(row[15]) if row[15] else None,
-            "sqn": float(row[16]) if row[16] else None,
-            "profit_factor": float(row[17]) if row[17] else None,
-            "expectancy": float(row[18]) if row[18] else None,
-            "avg_trade_duration": row[19],
-            "best_pair": row[20],
-            "best_pair_profit": float(row[21]) if row[21] else None,
-            "worst_pair": row[22],
-            "worst_pair_profit": float(row[23]) if row[23] else None,
-            "market_change": float(row[24]) if row[24] else None,
-            "cagr_pct": float(row[25]) if row[25] else None,
-            "backtest_date": row[26].isoformat() if row[26] else None,
-        })
-    
+
+    rows = [_row_to_dict(r) for r in result.fetchall()]
+
     return success_response({
         "results": rows,
         "total": len(rows),
         "limit": limit,
-        "offset": offset
+        "offset": offset,
     })
 
 
@@ -80,19 +77,19 @@ async def get_backtest_summary(
     """Get summary statistics of all backtests."""
     result = await db.execute(
         text("""
-            SELECT 
+            SELECT
                 COUNT(*) as total,
-                COUNT(CASE WHEN total_profit_pct > 0 THEN 1 END) as profitable,
-                COUNT(CASE WHEN total_profit_pct <= 0 THEN 1 END) as unprofitable,
-                AVG(total_profit_pct) as avg_profit,
-                MAX(total_profit_pct) as best_profit,
-                MIN(total_profit_pct) as worst_profit,
-                AVG(win_rate) as avg_winrate,
+                COUNT(CASE WHEN profit_pct > 0 THEN 1 END) as profitable,
+                COUNT(CASE WHEN profit_pct <= 0 THEN 1 END) as unprofitable,
+                AVG(profit_pct) as avg_profit,
+                MAX(profit_pct) as best_profit,
+                MIN(profit_pct) as worst_profit,
+                AVG(winrate_pct) as avg_winrate,
                 SUM(total_trades) as total_trades
             FROM backtest_results
         """)
     )
-    
+
     row = result.fetchone()
     return success_response({
         "total_strategies": row[0],
@@ -114,44 +111,19 @@ async def get_backtest_detail(
     """Get detailed backtest result for a specific strategy."""
     result = await db.execute(
         text("""
-            SELECT * FROM backtest_results
+            SELECT id, bot_id, strategy_name, timeframe, timerange,
+                   profit_pct, winrate_pct, max_drawdown_pct,
+                   profit_factor, sharpe_ratio, total_trades, created_at
+            FROM backtest_results
             WHERE strategy_name = :strategy_name
-            ORDER BY backtest_date DESC
+            ORDER BY created_at DESC
             LIMIT 1
         """),
         {"strategy_name": strategy_name}
     )
-    
+
     row = result.fetchone()
     if not row:
         raise HTTPException(status_code=404, detail=f"Backtest not found: {strategy_name}")
-    
-    return success_response({
-        "id": row[0],
-        "strategy_name": row[1],
-        "timeframe": row[2],
-        "timerange": row[3],
-        "start_balance": float(row[4]) if row[4] else None,
-        "final_balance": float(row[5]) if row[5] else None,
-        "total_profit_pct": float(row[6]) if row[6] else None,
-        "total_profit_abs": float(row[7]) if row[7] else None,
-        "total_trades": row[8],
-        "win_rate": float(row[9]) if row[9] else None,
-        "avg_profit_pct": float(row[10]) if row[10] else None,
-        "max_drawdown_pct": float(row[11]) if row[11] else None,
-        "max_drawdown_abs": float(row[12]) if row[12] else None,
-        "sharpe": float(row[13]) if row[13] else None,
-        "sortino": float(row[14]) if row[14] else None,
-        "calmar": float(row[15]) if row[15] else None,
-        "sqn": float(row[16]) if row[16] else None,
-        "profit_factor": float(row[17]) if row[17] else None,
-        "expectancy": float(row[18]) if row[18] else None,
-        "avg_trade_duration": row[19],
-        "best_pair": row[20],
-        "best_pair_profit": float(row[21]) if row[21] else None,
-        "worst_pair": row[22],
-        "worst_pair_profit": float(row[23]) if row[23] else None,
-        "market_change": float(row[24]) if row[24] else None,
-        "cagr_pct": float(row[25]) if row[25] else None,
-        "backtest_date": row[26].isoformat() if row[26] else None,
-    })
+
+    return success_response(_row_to_dict(row))

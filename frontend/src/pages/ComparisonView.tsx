@@ -63,12 +63,13 @@ function ToleranceBadge({tol}: {tol: ToleranceCheck}) {
 }
 
 function ToleranceNote({tol}: {tol: ToleranceCheck}) {
+  const { t } = useTranslation();
   if (!tol) return null;
   if (tol.within_tolerance) return null;
   const detail = tol.diff_pct !== undefined
-    ? `отклонение ${tol.diff_pct.toFixed(1)}%`
+    ? `${t('compare.deviation')} ${tol.diff_pct.toFixed(1)}%`
     : tol.ratio !== undefined
-      ? `коэф. ${tol.ratio.toFixed(2)}x`
+      ? `${t('compare.coefficient')} ${tol.ratio.toFixed(2)}x`
       : '';
   return <span className="text-[10px] text-red-500 block">{detail}</span>;
 }
@@ -111,7 +112,8 @@ function Cell({
 // ── Strategy comparison table ──
 
 function StrategyTable({row}: {row: ComparisonRow}) {
-  const t = row.tolerances;
+  const { t } = useTranslation();
+  const tol = row.tolerances;
 
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
@@ -129,17 +131,17 @@ function StrategyTable({row}: {row: ComparisonRow}) {
           <div className="flex items-center gap-2 text-xs">
             {row.backtest && (
               <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                📉 Backtest
+                {t('compare.backtest')}
               </span>
             )}
             {row.dry_run && (
               <span className="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                🧪 Dry-Run
+                {t('compare.dryRun')}
               </span>
             )}
             {row.live && (
               <span className="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
-                🔴 Live
+                {t('compare.live')}
               </span>
             )}
           </div>
@@ -152,59 +154,59 @@ function StrategyTable({row}: {row: ComparisonRow}) {
           <thead>
             <tr className="border-b border-gray-100 dark:border-gray-700">
               <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48">
-                Метрика
+                {t('compare.metric')}
               </th>
               <th className="px-3 py-2.5 text-center text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider w-28">
-                📉 Backtest
+                {t('compare.backtest')}
               </th>
               <th className="px-3 py-2.5 text-center text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider w-28">
-                🧪 Dry-Run
+                {t('compare.dryRun')}
               </th>
               <th className="px-3 py-2.5 text-center text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wider w-28">
-                🔴 Live
+                {t('compare.live')}
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
               <td className="px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Доходность %
+                {t('compare.profitPct')}
               </td>
               <Cell
                 bt={row.backtest?.profit_pct}
                 dr={row.dry_run?.profit_pct}
                 lv={row.live?.profit_pct}
-                tolBt={t?.profit_pct_live}
-                tolDr={t?.profit_pct_dr}
+                tolBt={tol?.profit_pct_live}
+                tolDr={tol?.profit_pct_dr}
               />
             </tr>
             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
               <td className="px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Win Rate %
+                {t('compare.winRate')}
               </td>
               <Cell
                 bt={row.backtest?.win_rate}
                 dr={row.dry_run?.win_rate}
                 lv={row.live?.win_rate}
-                tolBt={t?.win_rate_live}
-                tolDr={t?.win_rate_dr}
+                tolBt={tol?.win_rate_live}
+                tolDr={tol?.win_rate_dr}
               />
             </tr>
             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
               <td className="px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Макс. просадка %
+                {t('compare.maxDrawdown')}
               </td>
               <Cell
                 bt={row.backtest?.max_drawdown}
                 dr={row.dry_run?.max_drawdown}
                 lv={row.live?.max_drawdown}
-                tolBt={t?.max_drawdown_live}
-                tolDr={t?.max_drawdown_dr}
+                tolBt={tol?.max_drawdown_live}
+                tolDr={tol?.max_drawdown_dr}
               />
             </tr>
             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
               <td className="px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Всего сделок
+                {t('compare.totalTrades')}
               </td>
               <Cell
                 bt={row.backtest?.total_trades}
@@ -215,20 +217,20 @@ function StrategyTable({row}: {row: ComparisonRow}) {
             </tr>
             <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
               <td className="px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Средняя прибыль/сделку
+                {t('compare.avgProfitPerTrade')}
               </td>
               <Cell
                 bt={row.backtest?.avg_profit_pct}
                 dr={row.dry_run?.avg_profit_pct}
                 lv={row.live?.avg_profit_pct}
-                tolBt={t?.avg_profit_pct_live}
-                tolDr={t?.avg_profit_pct_dr}
+                tolBt={tol?.avg_profit_pct_live}
+                tolDr={tol?.avg_profit_pct_dr}
               />
             </tr>
             {row.backtest?.sharpe !== undefined && (
               <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
                 <td className="px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Sharpe Ratio
+                  {t('compare.sharpeRatio')}
                 </td>
                 <Cell bt={row.backtest?.sharpe} fmt={fmtNum} />
                 <td className="px-3 py-2 text-sm text-center text-gray-400">—</td>
@@ -238,7 +240,7 @@ function StrategyTable({row}: {row: ComparisonRow}) {
             {row.backtest?.profit_factor !== undefined && (
               <tr className="hover:bg-gray-50 dark:hover:bg-gray-750">
                 <td className="px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Profit Factor
+                  {t('compare.profitFactor')}
                 </td>
                 <Cell bt={row.backtest?.profit_factor} fmt={fmtNum} />
                 <td className="px-3 py-2 text-sm text-center text-gray-400">—</td>
@@ -250,14 +252,14 @@ function StrategyTable({row}: {row: ComparisonRow}) {
       </div>
 
       {/* Tolerance legend */}
-      {Object.keys(t).length > 0 && (
+      {Object.keys(tol).length > 0 && (
         <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
           <div className="flex items-center gap-4 text-[10px] text-gray-500 dark:text-gray-400">
-            <span>Допустимые отклонения (урок 22):</span>
-            <span>📉 Доходность ±50%</span>
-            <span>📊 Win Rate ±15%</span>
-            <span>📉 Просадка ≤1.5x</span>
-            <span>💰 Средняя прибыль ±50%</span>
+            <span>{t('compare.allowedDeviations')}</span>
+            <span>{t('compare.toleranceProfit')}</span>
+            <span>{t('compare.toleranceWinRate')}</span>
+            <span>{t('compare.toleranceDrawdown')}</span>
+            <span>{t('compare.toleranceAvgProfit')}</span>
           </div>
         </div>
       )}
@@ -268,15 +270,15 @@ function StrategyTable({row}: {row: ComparisonRow}) {
 // ── Empty state ──
 
 function EmptyState() {
+  const { t } = useTranslation();
   return (
     <div className="text-center py-16">
       <div className="text-5xl mb-4">⚖️</div>
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-        Нет данных для сравнения
+        {t('compare.noData')}
       </h2>
       <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-        Для отображения сравнения необходим хотя бы один бот с метриками
-        или импортированные результаты бэктеста.
+        {t('compare.noDataDesc')}
       </p>
     </div>
   );
@@ -306,7 +308,7 @@ export function ComparisonView() {
   if (error) {
     return (
       <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6 text-center">
-        <p className="text-red-600 dark:text-red-400">Ошибка: {(error as Error).message}</p>
+        <p className="text-red-600 dark:text-red-400">{t('compare.error')}: {(error as Error).message}</p>
       </div>
     );
   }
@@ -325,23 +327,24 @@ export function ComparisonView() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            ⚖️ Backtest ↔ Dry-Run ↔ Live
+            {t('compare.pageTitle')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Сравнение производительности стратегии в трёх режимах — уроки 16, 20, 23
+            {t('compare.pageSubtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs">
-          {hasBacktest && <span className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">📉 Есть бэктест</span>}
- {hasDryRun && <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">🧪 Есть dry-run</span>}
- {hasLive && <span className="px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">🔴 Есть live</span>}
+          {hasBacktest && <span className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">{t('compare.hasBacktest')}</span>}
+          {hasDryRun && <span className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">{t('compare.hasDryRun')}</span>}
+          {hasLive && <span className="px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">{t('compare.hasLive')}</span>}
         </div>
       </div>
 
       {/* Note */}
       <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4 text-sm text-blue-700 dark:text-blue-300">
-        <strong>Допустимые расхождения</strong> (из урока 22): доходность ±50%, win rate ±15%, макс. просадка ≤1.5x, средняя прибыль ±50%.
-        Если отклонение выходит за пределы — стратегия требует внимания.
+        {t('compare.discrepanciesNote')}
+        <br />
+        {t('compare.attention')}
       </div>
 
       {/* Tables */}

@@ -25,7 +25,7 @@ const NAV_GROUPS: { key: string; icon: string; items: { key: string; href: strin
     {
       key: 'dashboard',
       icon: '\u{1F4CA}',
-      items: [{ key: 'panel', href: '/', icon: '\u{1F4CA}' }],
+      items: [{ key: 'panel', href: '/dashboard', icon: '\u{1F4CA}' }],
     },
     {
       key: 'bots',
@@ -245,7 +245,7 @@ export function Layout({ children }: LayoutProps) {
           className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-400 hover:bg-[#30363d] hover:text-gray-200 w-full text-left transition-colors"
         >
           <span className="text-base">{'\u{1F310}'}</span>
-          <span className="font-medium text-sm">{i18n.language?.startsWith('ru') ? 'English' : 'Русский'}</span>
+          <span className="font-medium text-sm">{i18n.language?.startsWith('ru') ? t('language.en') : t('language.ru')}</span>
         </button>
       </div>
 

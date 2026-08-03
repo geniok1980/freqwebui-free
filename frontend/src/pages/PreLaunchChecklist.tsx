@@ -52,139 +52,95 @@ interface ChecklistData {
 }
 
 // ── Default template (из урока 22) ──
+// All label/placeholder values are i18n keys resolved with t() at render time.
 
 function defaultSections(): Section[] {
+  const ck = (id: string) => `checklist.${id}`;
+  const inp = (id: string) => ({ label: ck(id), placeholder: ck(`${id}Placeholder`) });
+
   return [
     {
       section_id: 'strategy_validation',
-      title: '1. Валидация стратегии',
+      title: ck('strategy_validationTitle'),
       score: 0,
       checkboxes: [
-        {id: 'sv_bt_period', label: 'Период бэктеста минимум 3 месяца', checked: false},
-        {id: 'sv_bt_profit', label: 'Общая доходность бэктеста > 10%', checked: false},
-        {id: 'sv_bt_winrate', label: '% прибыльных > 50%', checked: false},
-        {id: 'sv_bt_drawdown', label: 'Максимальная просадка < 20%', checked: false},
-        {id: 'sv_bt_sharpe', label: 'Коэффициент Шарпа > 1.0', checked: false},
-        {id: 'sv_bt_profit_factor', label: 'Фактор прибыли > 1.5', checked: false},
-        {id: 'sv_bt_market_types', label: 'Протестированы разные рыночные среды', checked: false},
-        {id: 'sv_bt_trades_count', label: 'Количество сделок > 50', checked: false},
-        {id: 'sv_dr_period', label: 'Dry-run запущен минимум 7 дней', checked: false},
-        {id: 'sv_dr_performance', label: 'Производительность Dry-run соответствует ожиданиям', checked: false},
-        {id: 'sv_dr_comparison', label: 'Разница Dry-run vs Backtest в пределах ±50%', checked: false},
-        {id: 'sv_logic_clear', label: 'Логика стратегии ясна и теоретически обоснована', checked: false},
-        {id: 'sv_logic_code', label: 'Код читаем, нет синтаксических ошибок', checked: false},
-        {id: 'sv_no_overfit', label: 'Проверка на переобучение пройдена', checked: false},
-      ],
+        'sv_bt_period', 'sv_bt_profit', 'sv_bt_winrate', 'sv_bt_drawdown',
+        'sv_bt_sharpe', 'sv_bt_profit_factor', 'sv_bt_market_types', 'sv_bt_trades_count',
+        'sv_dr_period', 'sv_dr_performance', 'sv_dr_comparison',
+        'sv_logic_clear', 'sv_logic_code', 'sv_no_overfit',
+      ].map(id => ({ id, label: ck(id), checked: false })),
       inputs: [
-        {id: 'sv_bt_profit_val', label: 'Доходность бэктеста (%)', value: '', placeholder: 'например 25.5'},
-        {id: 'sv_bt_winrate_val', label: '% прибыльных сделок (%)', value: '', placeholder: 'например 62'},
-        {id: 'sv_bt_drawdown_val', label: 'Макс. просадка (%)', value: '', placeholder: 'например 12.5'},
-        {id: 'sv_dr_profit_val', label: 'Доходность Dry-run (%)', value: '', placeholder: 'например 18.2'},
-      ],
+        'sv_bt_profit_val', 'sv_bt_winrate_val', 'sv_bt_drawdown_val', 'sv_dr_profit_val',
+      ].map(id => ({ id, ...inp(id), value: '' })),
     },
     {
       section_id: 'technical_prep',
-      title: '2. Техническая подготовка',
+      title: ck('technical_prepTitle'),
       score: 0,
       checkboxes: [
-        {id: 'tp_cpu', label: 'Загрузка CPU < 50%', checked: false},
-        {id: 'tp_mem', label: 'Использование памяти < 70%', checked: false},
-        {id: 'tp_disk', label: 'Свободное место на диске > 10GB', checked: false},
-        {id: 'tp_network', label: 'Сетевая задержка < 100ms', checked: false},
-        {id: 'tp_api_key', label: 'API ключ настроен, разрешения безопасны', checked: false},
-        {id: 'tp_api_withdraw_disabled', label: 'Разрешения на вывод отключены', checked: false},
-        {id: 'tp_api_whitelist', label: 'IP белый список включён', checked: false},
-        {id: 'tp_api_test', label: 'Тест API подключения успешен', checked: false},
-        {id: 'tp_dry_run_false', label: 'dry_run: false в config.live.json', checked: false},
-        {id: 'tp_telegram', label: 'Telegram уведомления настроены и протестированы', checked: false},
-        {id: 'tp_backup', label: 'Настроено автоматическое резервное копирование', checked: false},
-        {id: 'tp_backup_test', label: 'Восстановление из резервной копии протестировано', checked: false},
-      ],
+        'tp_cpu', 'tp_mem', 'tp_disk', 'tp_network',
+        'tp_api_key', 'tp_api_withdraw_disabled', 'tp_api_whitelist', 'tp_api_test',
+        'tp_dry_run_false', 'tp_telegram', 'tp_backup', 'tp_backup_test',
+      ].map(id => ({ id, label: ck(id), checked: false })),
       inputs: [
-        {id: 'tp_server_uptime', label: 'Время работы сервера (дней)', value: '', placeholder: 'например 30+'},
-        {id: 'tp_freqtrade_ver', label: 'Версия Freqtrade', value: '', placeholder: 'например 2024.5'},
-        {id: 'tp_api_port', label: 'Порт API Server', value: '8080', placeholder: '8080'},
+        { id: 'tp_server_uptime', ...inp('tp_server_uptime'), value: '' },
+        { id: 'tp_freqtrade_ver', ...inp('tp_freqtrade_ver'), value: '' },
+        { id: 'tp_api_port', ...inp('tp_api_port'), value: '8080' },
       ],
     },
     {
       section_id: 'risk_management',
-      title: '3. Управление рисками',
+      title: ck('risk_managementTitle'),
       score: 0,
       checkboxes: [
-        {id: 'rm_stop_loss', label: 'Стоп-лосс установлен (-2% до -5%)', checked: false},
-        {id: 'rm_trailing', label: 'Трейлинг стоп настроен (рекомендуется)', checked: false},
-        {id: 'rm_stop_effective', label: 'Эффективность стоп-лосса проверена в Dry-run', checked: false},
-        {id: 'rm_stop_alert', label: 'Уведомления о срабатывании стоп-лосса включены', checked: false},
-        {id: 'rm_per_trade_risk', label: 'Риск на сделку ≤ 2% от капитала', checked: false},
-        {id: 'rm_max_positions', label: 'Лимит макс. позиций разумен (3-5)', checked: false},
-        {id: 'rm_stoploss_guard', label: 'StopLossGuard включён', checked: false},
-        {id: 'rm_max_drawdown', label: 'Защита MaxDrawdown включена (< 10%)', checked: false},
-        {id: 'rm_low_profit', label: 'Защита LowProfitPairs настроена', checked: false},
-      ],
+        'rm_stop_loss', 'rm_trailing', 'rm_stop_effective', 'rm_stop_alert',
+        'rm_per_trade_risk', 'rm_max_positions',
+        'rm_stoploss_guard', 'rm_max_drawdown', 'rm_low_profit',
+      ].map(id => ({ id, label: ck(id), checked: false })),
       inputs: [
-        {id: 'rm_stop_loss_pct', label: 'Стоп-лосс (%)', value: '', placeholder: 'например 3.0'},
-        {id: 'rm_trailing_offset', label: 'Триггер трейлинг стопа (%)', value: '', placeholder: 'например 1.0'},
-        {id: 'rm_max_daily_loss', label: 'Макс. дневной убыток (%)', value: '', placeholder: 'например 5'},
-      ],
+        'rm_stop_loss_pct', 'rm_trailing_offset', 'rm_max_daily_loss',
+      ].map(id => ({ id, ...inp(id), value: '' })),
     },
     {
       section_id: 'capital_management',
-      title: '4. Управление капиталом',
+      title: ck('capital_managementTitle'),
       score: 0,
       checkboxes: [
-        {id: 'cm_sufficient', label: 'Начальный капитал минимум 1000 USDT', checked: false},
-        {id: 'cm_afford_loss', label: 'Используются средства, доступные для потери', checked: false},
-        {id: 'cm_no_borrowed', label: 'Не используются заёмные средства', checked: false},
-        {id: 'cm_stake_reasonable', label: 'Ставка на сделку 10-20% от капитала', checked: false},
-        {id: 'cm_capital_usage', label: 'Коэффициент использования капитала 50-70%', checked: false},
-        {id: 'cm_goals_set', label: 'Установлены краткосрочные и среднесрочные цели', checked: false},
-        {id: 'cm_fees_calculated', label: 'Расчёт комиссий выполнен', checked: false},
-      ],
+        'cm_sufficient', 'cm_afford_loss', 'cm_no_borrowed', 'cm_stake_reasonable',
+        'cm_capital_usage', 'cm_goals_set', 'cm_fees_calculated',
+      ].map(id => ({ id, label: ck(id), checked: false })),
       inputs: [
-        {id: 'cm_total_capital', label: 'Общий капитал (USDT)', value: '', placeholder: 'например 5000'},
-        {id: 'cm_stake_amount', label: 'Сумма на сделку (USDT)', value: '', placeholder: 'например 500'},
-        {id: 'cm_max_trades', label: 'Макс. открытых позиций', value: '3', placeholder: '3'},
-        {id: 'cm_monthly_target', label: 'Целевая месячная доходность (%)', value: '', placeholder: 'например 5'},
-        {id: 'cm_fee_rate', label: 'Комиссия биржи (%)', value: '0.1', placeholder: '0.1'},
+        { id: 'cm_total_capital', ...inp('cm_total_capital'), value: '' },
+        { id: 'cm_stake_amount', ...inp('cm_stake_amount'), value: '' },
+        { id: 'cm_max_trades', ...inp('cm_max_trades'), value: '3' },
+        { id: 'cm_monthly_target', ...inp('cm_monthly_target'), value: '' },
+        { id: 'cm_fee_rate', ...inp('cm_fee_rate'), value: '0.1' },
       ],
     },
     {
       section_id: 'monitoring',
-      title: '5. Механизм мониторинга',
+      title: ck('monitoringTitle'),
       score: 0,
       checkboxes: [
-        {id: 'mn_telegram', label: 'Telegram бот активен и протестирован', checked: false},
-        {id: 'mn_entry_notify', label: 'Уведомления о входе включены', checked: false},
-        {id: 'mn_exit_notify', label: 'Уведомления о выходе включены', checked: false},
-        {id: 'mn_stop_notify', label: 'Уведомления о стоп-лоссе включены', checked: false},
-        {id: 'mn_error_notify', label: 'Оповещения об ошибках включены', checked: false},
-        {id: 'mn_daily_schedule', label: 'Составлен график ежедневных проверок', checked: false},
-        {id: 'mn_weekly_review', label: 'Запланирован еженедельный обзор', checked: false},
-        {id: 'mn_alert_thresholds', label: 'Настроены пороги оповещений', checked: false},
-      ],
+        'mn_telegram', 'mn_entry_notify', 'mn_exit_notify', 'mn_stop_notify',
+        'mn_error_notify', 'mn_daily_schedule', 'mn_weekly_review', 'mn_alert_thresholds',
+      ].map(id => ({ id, label: ck(id), checked: false })),
       inputs: [
-        {id: 'mn_morning_time', label: 'Время утренней проверки', value: '09:00', placeholder: '09:00'},
-        {id: 'mn_evening_time', label: 'Время вечернего отчёта', value: '21:00', placeholder: '21:00'},
+        { id: 'mn_morning_time', ...inp('mn_morning_time'), value: '09:00' },
+        { id: 'mn_evening_time', ...inp('mn_evening_time'), value: '21:00' },
       ],
     },
     {
       section_id: 'psychology',
-      title: '6. Психологическая подготовка',
+      title: ck('psychologyTitle'),
       score: 0,
       checkboxes: [
-        {id: 'ps_aware_loss', label: 'Понимаю, что будут убытки', checked: false},
-        {id: 'ps_ready_drawdown', label: 'Морально готов к просадкам', checked: false},
-        {id: 'ps_no_panic', label: 'Не буду паниковать из-за краткосрочных убытков', checked: false},
-        {id: 'ps_follow_strategy', label: 'Буду строго следовать стратегии', checked: false},
-        {id: 'ps_no_manual', label: 'Обязуюсь не вмешиваться вручную', checked: false},
-        {id: 'ps_no_overtrade', label: 'Не буду торговать из мести', checked: false},
-        {id: 'ps_emergency_plan', label: 'План экстренных действий готов', checked: false},
-        {id: 'ps_stop_process', label: 'Процесс экстренной остановки известен', checked: false},
-      ],
+        'ps_aware_loss', 'ps_ready_drawdown', 'ps_no_panic', 'ps_follow_strategy',
+        'ps_no_manual', 'ps_no_overtrade', 'ps_emergency_plan', 'ps_stop_process',
+      ].map(id => ({ id, label: ck(id), checked: false })),
       inputs: [
-        {id: 'ps_max_loss_tolerate', label: 'Макс. убыток, который могу выдержать (USDT)', value: '', placeholder: 'например 500'},
-        {id: 'ps_monitoring_hours', label: 'Часов в день на мониторинг', value: '', placeholder: 'например 2'},
-      ],
+        'ps_max_loss_tolerate', 'ps_monitoring_hours',
+      ].map(id => ({ id, ...inp(id), value: '' })),
     },
   ];
 }
@@ -205,10 +161,10 @@ function computeSectionScore(section: Section): number {
 }
 
 function computeDecision(totalScore: number): {label: string; color: string; variant: 'ready' | 'caution' | 'fail'} {
-  if (totalScore >= 54) return {label: 'Полностью готов ✅', color: '#22c55e', variant: 'ready'};
-  if (totalScore >= 48) return {label: 'В основном готов ⚠️', color: '#eab308', variant: 'caution'};
-  if (totalScore >= 42) return {label: 'Недостаточная подготовка ⚠️', color: '#f97316', variant: 'caution'};
-  return {label: 'Не готов ❌', color: '#ef4444', variant: 'fail'};
+  if (totalScore >= 54) return {label: 'checklist.decision_ready', color: '#22c55e', variant: 'ready'};
+  if (totalScore >= 48) return {label: 'checklist.decision_mostlyReady', color: '#eab308', variant: 'caution'};
+  if (totalScore >= 42) return {label: 'checklist.decision_insufficientPrep', color: '#f97316', variant: 'caution'};
+  return {label: 'checklist.decision_notReady', color: '#ef4444', variant: 'fail'};
 }
 
 // ── API helpers ──
@@ -304,7 +260,7 @@ export function PreLaunchChecklist() {
         id: checklistId ?? undefined,
         sections: scoredSections,
         total_score: totalScore,
-        decision: decision.label,
+        decision: t(decision.label),
         is_complete: decision.variant === 'ready',
       };
       const result = await saveChecklist(payload);
@@ -338,10 +294,10 @@ export function PreLaunchChecklist() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            📋 Pre-Launch Checklist
+            {t('checklist.pageTitle')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Интерактивный чек-лист перед реальной торговлей — урок 22 курса Freqtrade
+            {t('checklist.subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -349,7 +305,7 @@ export function PreLaunchChecklist() {
             onClick={handleReset}
             className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            Сброс
+            {t('checklist.reset')}
           </button>
           <button
             onClick={handleSave}
@@ -357,9 +313,9 @@ export function PreLaunchChecklist() {
             className="px-4 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
           >
             {saving ? (
-              <><div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white" /> Сохранение...</>
+              <><div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white" /> {t('checklist.saving')}</>
             ) : (
-              <>💾 Сохранить</>
+              <>{t('checklist.save')}</>
             )}
           </button>
         </div>
@@ -377,11 +333,11 @@ export function PreLaunchChecklist() {
               {totalScore} / 60
             </div>
             <div className="text-lg font-semibold mt-1" style={{color: decision.color}}>
-              {decision.label}
+              {t(decision.label)}
             </div>
           </div>
           <div className="text-right text-sm text-gray-500 dark:text-gray-400">
-            <div>Готовность: {Math.round((totalScore / 60) * 100)}%</div>
+            <div>{t('checklist.readiness')}: {Math.round((totalScore / 60) * 100)}%</div>
             <div className="mt-1 w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
@@ -395,22 +351,22 @@ export function PreLaunchChecklist() {
         </div>
         {totalScore >= 54 && (
           <div className="mt-3 text-sm text-green-700 dark:text-green-300">
-            ✅ Можно начинать тестирование с малым капиталом. Рекомендуемый начальный капитал: 1000-3000 USDT
+            {t('checklist.readyMessage')}
           </div>
         )}
         {totalScore >= 48 && totalScore < 54 && (
           <div className="mt-3 text-sm text-yellow-700 dark:text-yellow-300">
-            ⚠️ Улучшите слабые места перед запуском. Рекомендуемый капитал: 500-1000 USDT, 1-2 позиции
+            {t('checklist.mostlyReadyMessage')}
           </div>
         )}
         {totalScore >= 42 && totalScore < 48 && (
           <div className="mt-3 text-sm text-orange-700 dark:text-orange-300">
-            ⚠️ Недостаточная подготовка. Запустите ещё 1 неделю Dry-run. Фокус на разделах с низкими баллами
+            {t('checklist.insufficientPrepMessage')}
           </div>
         )}
         {totalScore < 42 && (
           <div className="mt-3 text-sm text-red-700 dark:text-red-300">
-            ❌ Не подходит для реальной торговли. Систематически завершите все пункты проверки
+            {t('checklist.notReadyMessage')}
           </div>
         )}
       </div>
@@ -445,9 +401,9 @@ export function PreLaunchChecklist() {
                     {section.score}
                   </span>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{section.title}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{t(section.title)}</h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {checkedCount}/{totalItems} выполнено
+                      {t('checklist.checkedCount', { checked: checkedCount, total: totalItems })}
                     </p>
                   </div>
                 </div>
@@ -492,7 +448,7 @@ export function PreLaunchChecklist() {
                             className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />
                           <span className={`text-sm ${cb.checked ? 'text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}>
-                            {cb.label}
+                            {t(cb.label)}
                           </span>
                         </label>
                       ))}
@@ -505,13 +461,13 @@ export function PreLaunchChecklist() {
                       {section.inputs.map(inp => (
                         <div key={inp.id}>
                           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                            {inp.label}
+                            {t(inp.label)}
                           </label>
                           <input
                             type="text"
                             value={inp.value}
                             onChange={e => updateInput(section.section_id, inp.id, e.target.value)}
-                            placeholder={inp.placeholder}
+                            placeholder={t(inp.placeholder)}
                             className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
@@ -536,7 +492,9 @@ export function PreLaunchChecklist() {
                       }}
                       className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                     >
-                      {section.checkboxes.every(c => c.checked) ? 'Снять все' : 'Отметить все'}
+                      {section.checkboxes.every(c => c.checked)
+                        ? t('checklist.uncheckAll')
+                        : t('checklist.checkAll')}
                     </button>
                   </div>
                 </div>
@@ -549,9 +507,9 @@ export function PreLaunchChecklist() {
       {/* Bottom summary */}
       <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Финальное решение</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('checklist.finalDecision')}</h3>
           <div className={`text-2xl font-bold`} style={{color: decision.color}}>
-            {totalScore} / 60 — {decision.label}
+            {totalScore} / 60 — {t(decision.label)}
           </div>
         </div>
 
@@ -565,7 +523,7 @@ export function PreLaunchChecklist() {
                 {s.score}/10
               </div>
               <div className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight">
-                {s.title.replace(/^\d+\.\s*/, '').substring(0, 20)}
+                {t(s.title).replace(/^\d+\.\s*/, '').substring(0, 20)}
               </div>
             </div>
           ))}
@@ -573,7 +531,7 @@ export function PreLaunchChecklist() {
 
         {allChecked && (
           <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-            ✅ Все пункты отмечены. Вы полностью готовы к запуску реальной торговли.
+            {t('checklist.allCheckedMessage')}
           </div>
         )}
       </div>

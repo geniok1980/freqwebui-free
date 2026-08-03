@@ -1,4 +1,5 @@
 import { usePortfolioSummary } from '../../hooks/usePortfolio';
+import { useTranslation } from 'react-i18next';
 
 function formatNumber(num: number, decimals: number = 2): string {
   return num.toLocaleString(undefined, {
@@ -12,6 +13,7 @@ function formatPercent(num: number): string {
 }
 
 export function PortfolioSummary() {
+  const { t } = useTranslation();
   const { data: summary, isLoading, isError } = usePortfolioSummary();
 
   if (isLoading) {
@@ -49,7 +51,7 @@ export function PortfolioSummary() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Total Profit */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Profit</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('portfolio.totalProfit')}</p>
           <p className={`text-2xl font-bold ${profitColor}`}>
             {formatNumber(summary.total_profit_abs || 0)} USDT
           </p>
@@ -60,7 +62,7 @@ export function PortfolioSummary() {
 
         {/* Total Balance */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Balance</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('portfolio.totalBalance')}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {formatNumber(summary.total_balance || 0)} USDT
           </p>
@@ -68,7 +70,7 @@ export function PortfolioSummary() {
 
         {/* Open Positions */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Open Positions</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('portfolio.openPositions')}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {summary.total_open_positions || 0}
           </p>
@@ -76,7 +78,7 @@ export function PortfolioSummary() {
 
         {/* Win Rate */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Avg Win Rate</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('portfolio.avgWinRate')}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {summary.avg_win_rate
               ? `${formatNumber(summary.avg_win_rate * 100)}%`
@@ -123,14 +125,14 @@ export function PortfolioSummary() {
 
         {/* Best/Worst Performers */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Best Performer</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('portfolio.bestPerformer')}</p>
           <p className="text-lg font-medium text-green-600">
             {summary.best_performer || 'N/A'}
           </p>
         </div>
 
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Worst Performer</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('portfolio.worstPerformer')}</p>
           <p className="text-lg font-medium text-red-600">
             {summary.worst_performer || 'N/A'}
           </p>

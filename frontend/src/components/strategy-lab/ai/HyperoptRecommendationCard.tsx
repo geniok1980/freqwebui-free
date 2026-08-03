@@ -50,10 +50,10 @@ export function HyperoptRecommendationCard({
       {recommendation && (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <span>Источник: {recommendation.source}</span>
-            {recommendation.model && <span>Модель: {recommendation.model}</span>}
-            <span>Сгенерировано: {new Date(recommendation.generated_at).toLocaleString()}</span>
-            <span>Эпох: {recommendation.epochs.length}</span>
+            <span>{t('common.source')}: {recommendation.source}</span>
+            {recommendation.model && <span>{t('common.model')}: {recommendation.model}</span>}
+            <span>{t('common.generatedAt')}: {new Date(recommendation.generated_at).toLocaleString()}</span>
+            <span>{t('common.epochs')}: {recommendation.epochs.length}</span>
           </div>
 
           {recommendation.warnings.length > 0 && (

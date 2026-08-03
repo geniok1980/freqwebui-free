@@ -55,9 +55,9 @@ export function FreqtradeBots() {
   const deployBot = useMutation({
     mutationFn: async () => {
       const port = Number.parseInt(deployPort, 10);
-      if (!deployName.trim()) throw new Error('Введите имя бота');
-      if (!deployStrategy.trim()) throw new Error('Выберите стратегию');
-      if (!Number.isFinite(port)) throw new Error('Неверный порт');
+      if (!deployName.trim()) throw new Error(t('bots.deployEnterBotName'));
+      if (!deployStrategy.trim()) throw new Error(t('bots.deploySelectStrategy'));
+      if (!Number.isFinite(port)) throw new Error(t('bots.deployInvalidPort'));
 
       const response = await api.post<Bot>('/bots/deploy', {
         name: deployName.trim(),
@@ -82,7 +82,7 @@ export function FreqtradeBots() {
       }
     },
     onError: (err: any) => {
-      setDeployError(err?.message || 'Не удалось развернуть бота');
+      setDeployError(err?.message || t('bots.deployFailed'));
     },
   });
   
@@ -153,7 +153,7 @@ export function FreqtradeBots() {
 
     loadTimeoutRef.current = window.setTimeout(() => {
       setIsLoading(false);
-      setIframeError('UI Freqtrade не удалось открыть во встроенном окне. Откройте его в новой вкладке.');
+      setIframeError(t('bots.uiNotOpened'));
     }, 8000);
 
     return () => {
@@ -170,7 +170,7 @@ export function FreqtradeBots() {
       <div className="bg-[#161b22] border-b border-[#30363d] px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Monitor className="w-5 h-5 text-blue-500" />
-          <h1 className="text-lg font-bold text-white">Боты Freqtrade</h1>
+          <h1 className="text-lg font-bold text-white">{t('nav.botsFreqtrade')}</h1>
           
           {/* Bot Selector */}
           <select
@@ -203,7 +203,7 @@ export function FreqtradeBots() {
             className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Развернуть бота
+            {t('bots.deployBot')}
           </button>
           {selectedBot && uiUrl && (
             <a
@@ -213,7 +213,7 @@ export function FreqtradeBots() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
-              Открыть UI
+              {t('bots.openUI')}
             </a>
           )}
           {selectedBot && (
@@ -221,7 +221,7 @@ export function FreqtradeBots() {
               to={`/bots/${selectedBot.id}`}
               className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm rounded-lg transition-colors"
             >
-              Настройки
+              {t('nav.settings')}
             </Link>
           )}
         </div>
@@ -232,7 +232,7 @@ export function FreqtradeBots() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Развернуть нового бота
+                {t('bots.deployNewBot')}
               </h3>
               <button
                 type="button"
@@ -246,7 +246,7 @@ export function FreqtradeBots() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Имя бота
+                  {t('bots.deployBotName')}
                 </label>
                 <input
                   value={deployName}
@@ -255,13 +255,13 @@ export function FreqtradeBots() {
                   placeholder="bot2"
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Допустимо: буквы/цифры, '-' и '_'
+                  {t('bots.deployNameHint')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Стратегия
+                  {t('bots.deployStrategy')}
                 </label>
                 <select
                   value={deployStrategy}
@@ -280,7 +280,7 @@ export function FreqtradeBots() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Порт (хост)
+                    {t('bots.deployHostPort')}
                   </label>
                   <input
                     value={deployPort}
@@ -315,7 +315,7 @@ export function FreqtradeBots() {
                   onClick={() => setShowDeployForm(false)}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Отмена
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -329,12 +329,12 @@ export function FreqtradeBots() {
                   {deployBot.isPending ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      Разворачиваем...
+                      {t('bots.deploying')}
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4" />
-                      Развернуть
+                      {t('bots.deploy')}
                     </>
                   )}
                 </button>
@@ -350,7 +350,7 @@ export function FreqtradeBots() {
           <div className="absolute inset-0 flex items-center justify-center bg-[#0f1419] z-10">
             <div className="text-center">
               <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-              <p className="text-gray-500">Загрузка ботов из базы данных...</p>
+              <p className="text-gray-500">{t('bots.loadingBotsDb')}</p>
             </div>
           </div>
         )}
@@ -359,7 +359,7 @@ export function FreqtradeBots() {
           <div className="absolute inset-0 flex items-center justify-center bg-[#0f1419] z-10 px-6">
             <div className="text-center max-w-xl">
               <Monitor className="w-16 h-16 mx-auto mb-4 opacity-50 text-gray-500" />
-              <p className="text-gray-200">Не удалось загрузить список ботов</p>
+              <p className="text-gray-200">{t('bots.failedToLoadBots')}</p>
               <p className="text-sm mt-2 text-gray-500">{(botsError as Error)?.message || String(botsError)}</p>
               <button
                 type="button"
@@ -367,7 +367,7 @@ export function FreqtradeBots() {
                 className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
-                Повторить
+                {t('bots.retry')}
               </button>
             </div>
           </div>
@@ -377,8 +377,8 @@ export function FreqtradeBots() {
           <div className="absolute inset-0 flex items-center justify-center bg-[#0f1419] z-10">
             <div className="text-center text-gray-500">
               <Monitor className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p>Боты с настроенным api_url не найдены</p>
-              <p className="text-sm mt-2">Проверьте настройку API сервера в Freqtrade и “Обнаружение” в дашборде</p>
+              <p>{t('bots.noBotsWithApiUrl')}</p>
+              <p className="text-sm mt-2">{t('bots.checkApiSettings')}</p>
             </div>
           </div>
         )}
@@ -387,7 +387,7 @@ export function FreqtradeBots() {
           <div className="absolute inset-0 flex items-center justify-center bg-[#0f1419] z-10">
             <div className="text-center">
               <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-              <p className="text-gray-500">Загрузка UI {selectedBot?.name}...</p>
+              <p className="text-gray-500">{t('bots.loadingUi', { name: selectedBot?.name })}</p>
             </div>
           </div>
         )}
@@ -404,7 +404,7 @@ export function FreqtradeBots() {
                   className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  Открыть UI в новой вкладке
+                  {t('bots.openUiInNewTab')}
                 </a>
               )}
             </div>
@@ -430,7 +430,7 @@ export function FreqtradeBots() {
                 loadTimeoutRef.current = null;
               }
               setIsLoading(false);
-              setIframeError('UI Freqtrade не удалось загрузить. Откройте его в новой вкладке.');
+              setIframeError(t('bots.uiLoadFailed'));
             }}
             sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
             title={`Freqtrade ${selectedBot.name}`}

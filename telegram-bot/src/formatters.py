@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -68,7 +68,7 @@ def format_bot_detail(bot: dict, metrics: dict, health: dict) -> str:
             if isinstance(ts, str):
                 try:
                     dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                    age = f" ({(datetime.utcnow() - dt).seconds // 60}мин назад)"
+                    age = f" ({(datetime.now(timezone.utc) - dt).seconds // 60}мин назад)"
                 except Exception:
                     pass
         else:

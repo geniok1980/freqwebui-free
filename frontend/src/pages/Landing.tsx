@@ -25,7 +25,7 @@ function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc:
 }
 
 export default function Landing() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const stats = [
     { value: '∞', labelKey: 'landing.stats.bots' },
@@ -62,6 +62,15 @@ export default function Landing() {
                 className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 {t('landing.nav.login')}
               </Link>
+              <button
+                onClick={() => {
+                  const next = i18n.language?.startsWith('ru') ? 'en' : 'ru';
+                  i18n.changeLanguage(next).catch(console.error);
+                }}
+                className="px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {i18n.language?.startsWith('ru') ? 'English' : 'Русский'}
+              </button>
               <a href="#pricing"
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
                 {t('landing.nav.buy')}
@@ -140,7 +149,7 @@ export default function Landing() {
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('landing.rent')}</h3>
               <div className="mt-4">
                 <span className="text-4xl font-extrabold text-gray-900 dark:text-white">4 990</span>
-                <span className="text-lg text-gray-500 dark:text-gray-400"> ₽/мес</span>
+                <span className="text-lg text-gray-500 dark:text-gray-400"> {t('landing.currencyPerMonth')}</span>
               </div>
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('landing.rentDesc')}</p>
             </div>
@@ -238,7 +247,7 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
               <a href="https://docs.freqdash.com/" target="_blank" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{t('landing.nav.docs')}</a>
-              <a href="https://t.me/geniok" target="_blank" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Telegram</a>
+              <a href="https://t.me/geniok" target="_blank" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{t('common.telegram')}</a>
             </div>
           </div>
         </div>

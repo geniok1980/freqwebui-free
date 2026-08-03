@@ -62,7 +62,7 @@ class ActiveRateLimit:
 
     def is_expired(self, timeout_minutes: int = 10) -> bool:
         """Check if this rate limit has expired (no new occurrences)."""
-        return datetime.now(timezone.utc).replace(tzinfo=None) - self.last_seen > timedelta(minutes=timeout_minutes)
+        return datetime.now(timezone.utc) - self.last_seen > timedelta(minutes=timeout_minutes)
 
     def to_dict(self) -> dict:
         """Convert to dictionary for API response."""

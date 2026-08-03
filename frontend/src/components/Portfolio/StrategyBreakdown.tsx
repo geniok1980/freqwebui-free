@@ -1,4 +1,5 @@
 import { useStrategyBreakdown } from '../../hooks/usePortfolio';
+import { useTranslation } from 'react-i18next';
 
 function formatNumber(num: number, decimals: number = 2): string {
   return num.toLocaleString(undefined, {
@@ -8,6 +9,7 @@ function formatNumber(num: number, decimals: number = 2): string {
 }
 
 export function StrategyBreakdown() {
+  const { t } = useTranslation();
   const { data: breakdowns, isLoading, isError } = useStrategyBreakdown();
 
   if (isLoading) {
@@ -28,7 +30,7 @@ export function StrategyBreakdown() {
   if (isError || !breakdowns) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <p className="text-red-500">Failed to load strategy breakdown</p>
+        <p className="text-red-500">{t('portfolio.strategyBreakdownFailed')}</p>
       </div>
     );
   }
@@ -39,7 +41,7 @@ export function StrategyBreakdown() {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           By Strategy
         </h3>
-        <p className="text-gray-500 dark:text-gray-400">No data available</p>
+        <p className="text-gray-500 dark:text-gray-400">{t('portfolio.noData')}</p>
       </div>
     );
   }

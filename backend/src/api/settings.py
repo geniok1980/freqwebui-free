@@ -70,8 +70,13 @@ async def get_all_settings(session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(SystemSetting))
     settings = result.scalars().all()
     
-    # Ensure all known settings are included
-    setting_dict = {s.key: {"key": s.key, "value": s.value, "description": s.description} for s in settings}
+    # Ensure all known settings are included and mask secrets
+    setting_dict = {}
+    for s in settings:
+        val = s.value
+        if s.key == "api_password":
+            val = "***"
+        setting_dict[s.key] = {"key": s.key, "value": val, "description": s.description}
     
     defaults = {
         "discovery_host_ip": {

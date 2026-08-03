@@ -12,8 +12,8 @@ export function PairlistSelector() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">🎯 Оптимизатор pairlist</h1>
-        <p className="text-gray-400">Генерация оптимальных pairlist через ML-обучение или полный бэктест</p>
+        <h1 className="text-3xl font-bold text-white mb-2">🎯 {t('pairlist.title')}</h1>
+        <p className="text-gray-400">{t('pairlist.subtitle')}</p>
       </div>
       
       {/* Tabs */}
@@ -27,7 +27,7 @@ export function PairlistSelector() {
           }`}
         >
           <Play className="w-5 h-5" />
-          Запуск оптимизатора
+          {t('pairlist.runOptimizer')}
         </button>
         
         <button
@@ -39,7 +39,7 @@ export function PairlistSelector() {
           }`}
         >
           <BarChart3 className="w-5 h-5" />
-          Результаты
+          {t('pairlist.resultsTitle')}
         </button>
       </div>
       

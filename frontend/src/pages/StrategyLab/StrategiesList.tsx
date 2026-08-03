@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { strategyLabApi, type Strategy } from '../../services/strategyLabApi';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 export function StrategiesList() {
+  const { t } = useTranslation();
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [actionType, setActionType] = useState<'backtest' | 'hyperopt' | null>(null);
   const [epochs, setEpochs] = useState(30);
@@ -109,10 +111,10 @@ export function StrategiesList() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 dark:text-gray-300">Name</th>
-                    <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 dark:text-gray-300">Version</th>
-                    <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 dark:text-gray-300">Description</th>
-                    <th className="text-right py-3 px-6 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                    <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.name')}</th>
+                    <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.version')}</th>
+                    <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.description')}</th>
+                    <th className="text-right py-3 px-6 text-sm font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">

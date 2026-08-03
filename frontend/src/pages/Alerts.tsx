@@ -168,9 +168,9 @@ export function Alerts() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Алерты</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('alerts.title')}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {total} всего алертов, {alertsData?.unread_count || 0} непрочитано
+            {t('alerts.summary', { total, unread: alertsData?.unread_count || 0 })}
           </p>
         </div>
         <button
@@ -178,7 +178,7 @@ export function Alerts() {
           disabled={markAllReadMutation.isPending || (alertsData?.unread_count || 0) === 0}
           className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Прочитать все
+          {t('alerts.markAllRead')}
         </button>
       </div>
 
@@ -188,7 +188,7 @@ export function Alerts() {
           {/* Severity Filter */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Важность
+              {t('alerts.severity')}
             </label>
             <select
               value={severityFilter}
@@ -198,17 +198,17 @@ export function Alerts() {
               }}
               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="all">Все</option>
-              <option value="critical">Критично</option>
-              <option value="warning">Предупреждение</option>
-              <option value="info">Info</option>
+              <option value="all">{t('common.all')}</option>
+              <option value="critical">{t('alerts.critical')}</option>
+              <option value="warning">{t('alerts.warning')}</option>
+              <option value="info">{t('alerts.info')}</option>
             </select>
           </div>
 
           {/* Status Filter */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Статус
+              {t('common.status')}
             </label>
             <select
               value={statusFilter}
@@ -218,9 +218,9 @@ export function Alerts() {
               }}
               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="all">Все</option>
-              <option value="unread">Только непрочитанные</option>
-              <option value="read">Прочитанные</option>
+              <option value="all">{t('common.all')}</option>
+              <option value="unread">{t('alerts.unreadOnly')}</option>
+              <option value="read">{t('alerts.read')}</option>
             </select>
           </div>
 
@@ -228,21 +228,21 @@ export function Alerts() {
           {selectedAlerts.size > 0 && (
             <div className="flex items-end gap-2 ml-auto">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Выбрано: {selectedAlerts.size}
+                {t('alerts.selectedCount', { count: selectedAlerts.size })}
               </span>
               <button
                 onClick={() => markReadMutation.mutate(Array.from(selectedAlerts))}
                 disabled={markReadMutation.isPending}
                 className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg disabled:opacity-50"
               >
-                Прочитать
+                {t('alerts.markRead')}
               </button>
               <button
                 onClick={() => dismissMutation.mutate(Array.from(selectedAlerts))}
                 disabled={dismissMutation.isPending}
                 className="px-3 py-1.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg disabled:opacity-50"
               >
-                Скрыть
+                {t('alerts.dismiss')}
               </button>
             </div>
           )}
@@ -265,8 +265,8 @@ export function Alerts() {
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
               />
             </svg>
-            <p className="text-lg font-medium">Алерты не найдены</p>
-            <p className="text-sm">Попробуйте изменить фильтры</p>
+            <p className="text-lg font-medium">{t('alerts.noAlerts')}</p>
+            <p className="text-sm">{t('alerts.tryChangeFilters')}</p>
           </div>
         ) : (
           <>
@@ -280,11 +280,11 @@ export function Alerts() {
                   className="rounded border-gray-300 dark:border-gray-600"
                 />
               </div>
-              <div className="col-span-1">Важность</div>
-              <div className="col-span-4">Алерт</div>
-              <div className="col-span-2">Бот</div>
-              <div className="col-span-2">Время</div>
-              <div className="col-span-2">Действия</div>
+              <div className="col-span-1">{t('alerts.severity')}</div>
+              <div className="col-span-4">{t('alerts.alert')}</div>
+              <div className="col-span-2">{t('common.bot')}</div>
+              <div className="col-span-2">{t('common.time')}</div>
+              <div className="col-span-2">{t('common.actions')}</div>
             </div>
 
             {/* Alert Rows */}
@@ -344,10 +344,10 @@ export function Alerts() {
                             to={`/bots/${alert.bot_id}`}
                             className="text-blue-600 dark:text-blue-400 hover:underline"
                           >
-                            {alert.bot_name || 'Неизвестный бот'}
+                            {alert.bot_name || t('alerts.unknownBot')}
                           </Link>
                         ) : (
-                          <span className="text-gray-400">Система</span>
+                          <span className="text-gray-400">{t('alerts.system')}</span>
                         )}
                       </div>
 
@@ -365,14 +365,14 @@ export function Alerts() {
                             onClick={() => markReadMutation.mutate([alert.id])}
                             className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                           >
-                            Прочитать
+                            {t('alerts.markRead')}
                           </button>
                         )}
                         <button
                           onClick={() => dismissMutation.mutate([alert.id])}
                           className="text-sm text-red-600 dark:text-red-400 hover:underline"
                         >
-                          Скрыть
+                          {t('alerts.dismiss')}
                         </button>
                       </div>
                     </div>
@@ -388,7 +388,7 @@ export function Alerts() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Показано {(page - 1) * limit + 1}–{Math.min(page * limit, total)} из {total} алертов
+            {t('alerts.showingAlerts', { start: (page - 1) * limit + 1, end: Math.min(page * limit, total), total })}
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -396,17 +396,17 @@ export function Alerts() {
               disabled={page === 1}
               className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Назад
+              {t('common.back')}
             </button>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Страница {page} из {totalPages}
+              {t('trades.page', { current: page, total: totalPages })}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Вперед
+              {t('trades.next')}
             </button>
           </div>
         </div>

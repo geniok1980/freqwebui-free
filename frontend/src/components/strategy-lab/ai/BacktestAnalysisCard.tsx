@@ -45,7 +45,7 @@ export function BacktestAnalysisCard({
 
       <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
         <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900/50">
-          <p className="text-gray-500 dark:text-gray-400">Прибыль</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('common.profit')}</p>
           <p className="font-medium text-gray-900 dark:text-white">
             {run.result_profit_pct !== undefined && run.result_profit_pct !== null
               ? `${run.result_profit_pct >= 0 ? '+' : ''}${run.result_profit_pct.toFixed(2)}%`
@@ -53,7 +53,7 @@ export function BacktestAnalysisCard({
           </p>
         </div>
         <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900/50">
-          <p className="text-gray-500 dark:text-gray-400">Просадка</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('common.drawdown')}</p>
           <p className="font-medium text-gray-900 dark:text-white">
             {run.result_drawdown !== undefined && run.result_drawdown !== null
               ? `${run.result_drawdown.toFixed(2)}%`
@@ -61,13 +61,13 @@ export function BacktestAnalysisCard({
           </p>
         </div>
         <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900/50">
-          <p className="text-gray-500 dark:text-gray-400">Сделки</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('common.trades')}</p>
           <p className="font-medium text-gray-900 dark:text-white">
             {run.result_trade_count ?? '--'}
           </p>
         </div>
         <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900/50">
-          <p className="text-gray-500 dark:text-gray-400">Статус</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('common.status')}</p>
           <p className="font-medium text-gray-900 dark:text-white">{run.status}</p>
         </div>
       </div>
@@ -81,9 +81,9 @@ export function BacktestAnalysisCard({
       {analysis && (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <span>Источник: {analysis.source}</span>
-            {analysis.model && <span>Модель: {analysis.model}</span>}
-            <span>Сгенерировано: {new Date(analysis.generated_at).toLocaleString()}</span>
+            <span>{t('common.source')}: {analysis.source}</span>
+            {analysis.model && <span>{t('common.model')}: {analysis.model}</span>}
+            <span>{t('common.generatedAt')}: {new Date(analysis.generated_at).toLocaleString()}</span>
           </div>
 
           {analysis.warnings.length > 0 && (

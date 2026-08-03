@@ -186,23 +186,22 @@ async def _run_pairlist_job(job_id: str, cmd: List[str]):
             session.add(db_job)
             await session.commit()
             
-            # Run Docker command
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+            # Run Docker command — async to avoid blocking event loop
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            
+
             # Stream output (don't accumulate — avoid memory leak)
-            for line in process.stdout:
-                line = line.strip()
+            async for line in process.stdout:
+                line = line.decode().strip()
                 job_info["progress"] = line[:200]  # Last line as progress
                 logger.info(f"[{job_id}] {line}")
-            
+
             # Wait for completion
-            return_code = process.wait()
-            stderr = process.stderr.read()
+            return_code = await process.wait()
+            stderr = (await process.stderr.read()).decode()
             
             if return_code != 0:
                 job_info["status"] = "failed"

@@ -125,7 +125,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
         <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Profit */}
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Прибыль</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('bots.profit')}</p>
             {metricsLoading ? (
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : (
@@ -138,7 +138,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
 
           {/* Win Rate */}
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Винрейт</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('bots.winrate')}</p>
             {metricsLoading ? (
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : (
@@ -152,7 +152,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
 
           {/* Open Positions */}
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Позиции</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('bots.positions')}</p>
             {metricsLoading ? (
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : (
@@ -164,7 +164,7 @@ export function BotCard({ bot, isExpanded, onToggleExpand }: BotCardProps) {
 
           {/* Trades */}
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Сделки</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('bots.trades')}</p>
             {metricsLoading ? (
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             ) : (

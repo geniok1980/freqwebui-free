@@ -33,10 +33,10 @@ export function StrategyLab() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            🔧 Лаборатория стратегий
+            🔧 {t('strategyLab.title')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Автоматизированная оптимизация стратегий и управление workflow
+            {t('strategyLab.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -51,7 +51,7 @@ export function StrategyLab() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Стратегии</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('strategyLab.strategiesTitle')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {strategiesLoading ? '...' : stats.totalStrategies}
               </p>
@@ -64,7 +64,7 @@ export function StrategyLab() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Завершённые прогоны</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('strategyLab.completedRuns')}</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {runsLoading ? '...' : stats.completedRuns}
               </p>
@@ -77,7 +77,7 @@ export function StrategyLab() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Активные workflow</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('strategyLab.activeWorkflows')}</p>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {runsLoading ? '...' : stats.activeWorkflows}
               </p>
@@ -99,10 +99,10 @@ export function StrategyLab() {
             <span className="text-2xl">📋</span>
           </div>
           <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-            Список стратегий
+            {t('strategyLab.strategyList')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Просмотр всех {stats.totalStrategies} стратегий с метаданными и индикаторами
+            {t('strategyLab.strategiesAvailable', { count: stats.totalStrategies })}
           </p>
         </Link>
 
@@ -114,7 +114,7 @@ export function StrategyLab() {
             <span className="text-2xl">⚙️</span>
           </div>
           <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-            Управление workflow
+            {t('strategyLab.workflowControl')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Automate: stop → download → backtest → hyperopt → deploy
@@ -129,10 +129,10 @@ export function StrategyLab() {
             <span className="text-2xl">📈</span>
           </div>
           <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-            Монитор гиперопта
+            {t('strategyLab.hyperoptMonitor')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Отслеживание эпох в реальном времени и извлечение параметров
+            {t('strategyLab.hyperoptMonitorDesc')}
           </p>
         </Link>
 
@@ -144,10 +144,10 @@ export function StrategyLab() {
             <span className="text-2xl">🏆</span>
           </div>
           <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-            Результаты оптимизации
+            {t('strategyLab.optimizationResults')}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Отслеживание улучшений V1 → V2 → V3 и победивших конфигов
+            {t('strategyLab.optimizationResultsDesc')}
           </p>
         </Link>
       </div>
@@ -156,18 +156,18 @@ export function StrategyLab() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900 dark:text-white">
-            Недавняя активность
+            {t('strategyLab.recentActivity')}
           </h2>
           <Link
             to="/strategy-lab/results"
             className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
           >
-            Показать всё →
+            {t('common.viewAll')}
           </Link>
         </div>
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {runsLoading ? (
-            <div className="px-6 py-8 text-center text-gray-500">Загрузка...</div>
+            <div className="px-6 py-8 text-center text-gray-500">{t('common.loading')}</div>
           ) : recentRuns?.length ? (
             recentRuns.map((run) => (
               <div key={run.id} className="px-6 py-4 flex items-center justify-between">
@@ -211,7 +211,7 @@ export function StrategyLab() {
             ))
           ) : (
             <div className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-              Оптимизационных прогонов пока нет. Запустите workflow, чтобы увидеть результаты.
+              {t('strategyLab.noRunsYet')}
             </div>
           )}
         </div>

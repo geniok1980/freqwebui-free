@@ -3,6 +3,7 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import {
   LineChart,
@@ -27,6 +28,7 @@ interface BotAnalyticsProps {
 }
 
 export function BotAnalytics({ botId }: BotAnalyticsProps) {
+  const { t } = useTranslation();
   const { data: trades, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['bot', botId, 'trades', 'all'],
     queryFn: async (): Promise<Trade[]> => {
@@ -222,7 +224,7 @@ export function BotAnalytics({ botId }: BotAnalyticsProps) {
         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No analytics data</h3>
+        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">{t('analytics.noData')}</h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Start trading to see performance analytics.
         </p>
@@ -238,7 +240,7 @@ export function BotAnalytics({ botId }: BotAnalyticsProps) {
         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No closed trades</h3>
+        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">{t('analytics.noClosedTrades')}</h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Analytics will appear once trades are closed.
         </p>
@@ -250,7 +252,7 @@ export function BotAnalytics({ botId }: BotAnalyticsProps) {
     <div className="space-y-6">
       {/* Cumulative Profit Chart */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">Cumulative Profit</h3>
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">{t('analytics.cumulativeProfit')}</h3>
         <div className="h-48 sm:h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={cumulativeProfitData}>
@@ -264,7 +266,7 @@ export function BotAnalytics({ botId }: BotAnalyticsProps) {
                   borderRadius: '0.5rem',
                   color: '#F9FAFB',
                 }}
-                formatter={(value: number) => [value.toFixed(4), 'Profit']}
+                formatter={(value: number) => [value.toFixed(4), t('bots.profit')]}
               />
               <Line
                 type="monotone"
@@ -305,7 +307,7 @@ export function BotAnalytics({ botId }: BotAnalyticsProps) {
 
         {/* Win/Loss Pie Chart */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">Win/Loss Distribution</h3>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">{t('analytics.winLossDistribution')}</h3>
           <div className="h-40 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -332,7 +334,7 @@ export function BotAnalytics({ botId }: BotAnalyticsProps) {
 
         {/* Trade Duration Distribution */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">Trade Duration</h3>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">{t('analytics.tradeDuration')}</h3>
           <div className="h-40 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={durationDistribution} layout="vertical">
@@ -355,7 +357,7 @@ export function BotAnalytics({ botId }: BotAnalyticsProps) {
 
         {/* Exit Reasons */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">Exit Reasons</h3>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">{t('analytics.exitReasons')}</h3>
           <div className="h-40 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={exitReasonData} layout="vertical">
@@ -379,15 +381,15 @@ export function BotAnalytics({ botId }: BotAnalyticsProps) {
 
       {/* Pair Performance Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">Performance by Pair</h3>
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">{t('analytics.performanceByPair')}</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th className="px-2 sm:px-4 py-2">Pair</th>
-                <th className="px-2 sm:px-4 py-2">Trades</th>
-                <th className="px-2 sm:px-4 py-2">Win Rate</th>
-                <th className="px-2 sm:px-4 py-2">Profit</th>
+                <th className="px-2 sm:px-4 py-2">{t('bots.pair')}</th>
+                               <th className="px-2 sm:px-4 py-2">{t('bots.trades')}</th>
+                               <th className="px-2 sm:px-4 py-2">{t('bots.winrate')}</th>
+                               <th className="px-2 sm:px-4 py-2">{t('bots.profit')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">

@@ -42,13 +42,13 @@ export function UserManagement() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('Пользователь успешно создан');
+      toast.success(t('users.created'));
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setShowCreateModal(false);
       resetForm();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Не удалось создать пользователя');
+      toast.error(error.response?.data?.detail || t('users.createFailed'));
     },
   });
 
@@ -58,13 +58,13 @@ export function UserManagement() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('Пользователь успешно обновлен');
+      toast.success(t('users.updated'));
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setEditingUser(null);
       resetForm();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Не удалось обновить пользователя');
+      toast.error(error.response?.data?.detail || t('users.updateFailed'));
     },
   });
 
@@ -74,12 +74,12 @@ export function UserManagement() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('Пользователь успешно удален');
+      toast.success(t('users.deleted'));
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDeleteConfirm(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Не удалось удалить пользователя');
+      toast.error(error.response?.data?.detail || t('users.deleteFailed'));
     },
   });
 
@@ -91,7 +91,7 @@ export function UserManagement() {
 
   const handleCreate = () => {
     if (!formUsername || !formPassword) {
-      toast.error('Требуются логин и пароль');
+      toast.error(t('users.usernamePasswordRequired'));
       return;
     }
     createUser.mutate({
@@ -114,7 +114,7 @@ export function UserManagement() {
       data.role = formRole;
     }
     if (Object.keys(data).length === 0) {
-      toast.info('Нет изменений для сохранения');
+      toast.info(t('users.noChanges'));
       return;
     }
     updateUser.mutate({ id: editingUser.id, data });
@@ -140,7 +140,7 @@ export function UserManagement() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-500">Не удалось загрузить пользователей. Проверьте права администратора.</p>
+        <p className="text-red-500">{t('users.failedToLoad')}</p>
       </div>
     );
   }
@@ -148,12 +148,12 @@ export function UserManagement() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Управление пользователями</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('users.title')}</h1>
         <button
           onClick={() => setShowCreateModal(true)}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
         >
-          Добавить пользователя
+          {t('users.addUser')}
         </button>
       </div>
 
@@ -163,16 +163,16 @@ export function UserManagement() {
           <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Логин
+                {t('auth.username')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Роль
+                {t('settings.role')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Создан
+                {t('users.createdAt')}
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Действия
+                {t('common.actions')}
               </th>
             </tr>
           </thead>
@@ -212,13 +212,13 @@ export function UserManagement() {
                     onClick={() => openEditModal(user)}
                     className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mr-4"
                   >
-                    Изменить
+                    {t('users.edit')}
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(user.id)}
                     className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                   >
-                    Удалить
+                    {t('common.delete')}
                   </button>
                 </td>
               </tr>
@@ -228,7 +228,7 @@ export function UserManagement() {
 
         {users.length === 0 && (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            Пользователи не найдены
+            {t('users.notFound')}
           </div>
         )}
       </div>
@@ -236,13 +236,13 @@ export function UserManagement() {
       {/* Create User Modal */}
       {showCreateModal && (
         <Modal
-          title="Создать пользователя"
+          title={t('users.createUser')}
           onClose={() => {
             setShowCreateModal(false);
             resetForm();
           }}
           isLoading={createUser.isPending}
-          loadingText="Создание пользователя..."
+          loadingText={t('users.creating')}
         >
           <UserForm
             username={formUsername}
@@ -253,7 +253,7 @@ export function UserManagement() {
             setRole={setFormRole}
             onSubmit={handleCreate}
             isLoading={createUser.isPending}
-            submitLabel="Создать"
+            submitLabel={t('common.create')}
             requirePassword
           />
         </Modal>
@@ -262,13 +262,13 @@ export function UserManagement() {
       {/* Edit User Modal */}
       {editingUser && (
         <Modal
-          title="Редактировать пользователя"
+          title={t('users.editUser')}
           onClose={() => {
             setEditingUser(null);
             resetForm();
           }}
           isLoading={updateUser.isPending}
-          loadingText="Сохранение изменений..."
+          loadingText={t('users.savingChanges')}
         >
           <UserForm
             username={formUsername}
@@ -279,7 +279,7 @@ export function UserManagement() {
             setRole={setFormRole}
             onSubmit={handleUpdate}
             isLoading={updateUser.isPending}
-            submitLabel="Сохранить изменения"
+            submitLabel={t('users.saveChanges')}
           />
         </Modal>
       )}
@@ -287,13 +287,13 @@ export function UserManagement() {
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <Modal
-          title="Удалить пользователя"
+          title={t('users.deleteUser')}
           onClose={() => setDeleteConfirm(null)}
           isLoading={deleteUser.isPending}
-          loadingText="Удаление пользователя..."
+          loadingText={t('users.deleting')}
         >
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить.
+            {t('users.deleteConfirm')}
           </p>
           <div className="flex justify-end gap-3">
             <button
@@ -301,14 +301,14 @@ export function UserManagement() {
               disabled={deleteUser.isPending}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
             >
-              Отмена
+              {t('common.cancel')}
             </button>
             <button
               onClick={() => deleteUser.mutate(deleteConfirm)}
               disabled={deleteUser.isPending}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg"
             >
-              Удалить
+              {t('common.delete')}
             </button>
           </div>
         </Modal>
@@ -331,6 +331,8 @@ function Modal({
   isLoading?: boolean;
   loadingText?: string;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6 relative">
@@ -343,7 +345,7 @@ function Modal({
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {loadingText || 'Обработка...'}
+                {loadingText || t('users.processing')}
               </span>
             </div>
           </div>
@@ -390,11 +392,13 @@ function UserForm({
   submitLabel: string;
   requirePassword?: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Логин
+          {t('auth.username')}
         </label>
         <input
           type="text"
@@ -406,7 +410,7 @@ function UserForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Пароль {!requirePassword && '(оставьте пустым, чтобы не менять)'}
+          {t('auth.password')} {!requirePassword && t('users.passwordHint')}
         </label>
         <input
           type="password"
@@ -418,19 +422,19 @@ function UserForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Роль
+          {t('settings.role')}
         </label>
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
           className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="readonly">Только чтение</option>
-          <option value="operator">Оператор</option>
-          <option value="admin">Админ</option>
+          <option value="readonly">{t('users.readOnly')}</option>
+          <option value="operator">{t('users.operator')}</option>
+          <option value="admin">{t('users.admin')}</option>
         </select>
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Админ: полный доступ | Оператор: управление ботами | Только чтение: просмотр
+          {t('users.roleHelp')}
         </p>
       </div>
 
@@ -440,7 +444,7 @@ function UserForm({
           disabled={isLoading}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg"
         >
-          {isLoading ? 'Сохранение...' : submitLabel}
+          {isLoading ? t('users.saving') : submitLabel}
         </button>
       </div>
     </div>

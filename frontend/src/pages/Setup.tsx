@@ -15,6 +15,7 @@ function normalizeDisplay(raw: string): string {
 }
 
 export function Setup() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const existing = getBackendOrigin() || '';
   const [origin, setOrigin] = useState(existing);
@@ -26,12 +27,12 @@ export function Setup() {
     setError(null);
     const value = origin.trim();
     if (!value) {
-      setError('Введите URL backend (IP:port).');
+      setError(t('setup.enterBackendUrl'));
       return;
     }
     const normalized = normalizeDisplay(value).replace(/\/+$/, '');
     if (!/^https?:\/\//i.test(normalized)) {
-      setError('URL должен начинаться с http:// или https://');
+      setError(t('setup.invalidUrl'));
       return;
     }
     setBackendOrigin(normalized);
@@ -42,20 +43,20 @@ export function Setup() {
   const clear = () => {
     setBackendOrigin(null);
     setOrigin('');
-    setError('Сохраненный backend очищен. Введите новый.');
+    setError(t('setup.backendCleared'));
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
       <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Подключение backend</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('setup.title')}</h1>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-          Это приложение содержит UI дашборда. Для загрузки данных укажите адрес backend вашего MultiBotDashboard.
+          {t('setup.description')}
         </p>
 
         <div className="mt-4">
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-            URL backend (HTTP разрешен)
+            {t('setup.urlLabel')}
           </label>
           <input
             value={origin}
@@ -77,18 +78,18 @@ export function Setup() {
             onClick={save}
             className="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
           >
-            Сохранить и продолжить
+            {t('common.save')}
           </button>
           <button
             onClick={clear}
             className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
           >
-            Очистить
+            {t('setup.clear')}
           </button>
         </div>
 
         <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-          Совет: убедитесь, что вы в той же Wi‑Fi/VPN сети, что и backend. Пример: <span className="font-mono">{example}</span>
+          {t('setup.tip', { example })} <span className="font-mono">{example}</span>
         </div>
 
         <div className="mt-4">
@@ -96,7 +97,7 @@ export function Setup() {
             onClick={() => navigate('/login')}
             className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
           >
-            Назад ко входу
+            {t('setup.backToLogin')}
           </button>
         </div>
       </div>

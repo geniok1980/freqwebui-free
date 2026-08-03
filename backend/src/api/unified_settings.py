@@ -24,9 +24,16 @@ DEFAULT_SETTINGS = {
 @router.get("")
 async def get_all_settings(session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(SystemSetting))
-    db_settings = {s.key: s.value for s in result.scalars().all()}
+    db_settings = {}
+    for s in result.scalars().all():
+        val = s.value
+        if s.key == "api_password":
+            val = "***"
+        db_settings[s.key] = val
     settings = DEFAULT_SETTINGS.copy()
     settings.update(db_settings)
+    if settings.get("api_password") and settings["api_password"] != "***":
+        settings["api_password"] = "***"
     return {"settings": settings}
 
 VALID_KEYS = set(DEFAULT_SETTINGS.keys())

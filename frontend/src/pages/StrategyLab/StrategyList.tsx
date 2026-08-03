@@ -33,7 +33,7 @@ export function StrategyList() {
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
-      if (!uploadFile) throw new Error('Файл не выбран');
+      if (!uploadFile) throw new Error(t('strategyLab.fileNotSelected'));
       setUploadError(null);
       await strategyLabApi.uploadStrategy(uploadFile, uploadFamily);
     },
@@ -42,7 +42,7 @@ export function StrategyList() {
       await queryClient.invalidateQueries({ queryKey: ['strategies'] });
     },
     onError: (e: any) => {
-      setUploadError(e?.message || 'Не удалось загрузить стратегию');
+      setUploadError(e?.message || t('strategyLab.uploadFailed'));
     },
   });
 
@@ -60,7 +60,7 @@ export function StrategyList() {
 
   // Group by family
   const grouped = filtered.reduce((acc, s) => {
-    const family = s.family || 'Другое';
+    const family = s.family || t('strategyLab.otherFamily');
     if (!acc[family]) acc[family] = [];
     acc[family].push(s);
     return acc;
@@ -71,11 +71,11 @@ export function StrategyList() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">📋 Стратегии</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{strategies.length} стратегий доступно для оптимизации</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('strategyLab.strategiesTitle')}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">{t('strategyLab.strategiesAvailable', { count: strategies.length })}</p>
         </div>
         <Link to="/strategy-lab" className="text-blue-600 dark:text-blue-400 hover:text-blue-700">
-          ← Назад в лабораторию стратегий
+          {t('strategyLab.backToStrategyLab')}
         </Link>
       </div>
 
@@ -84,10 +84,10 @@ export function StrategyList() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Загрузка стратегии
+              {t('strategyLab.strategyUploadTitle')}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Загрузите готовый файл стратегии (.py) в папку Strategies
+              {t('strategyLab.strategyUploadDesc')}
             </p>
           </div>
         </div>
@@ -95,7 +95,7 @@ export function StrategyList() {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Файл стратегии (.py)
+              {t('strategyLab.strategyFileLabel')}
             </label>
             <input
               type="file"
@@ -105,14 +105,14 @@ export function StrategyList() {
             />
             {uploadFile && (
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Выбрано: <span className="font-mono">{uploadFile.name}</span>
+                {t('strategyLab.fileSelected')} <span className="font-mono">{uploadFile.name}</span>
               </p>
             )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Папка (family)
+              {t('strategyLab.familyFolder')}
             </label>
             <input
               type="text"
@@ -137,7 +137,7 @@ export function StrategyList() {
               }}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-sm"
             >
-              Сбросить
+              {t('common.reset')}
             </button>
             <button
               type="button"
@@ -145,7 +145,7 @@ export function StrategyList() {
               onClick={() => uploadMutation.mutate()}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
             >
-              {uploadMutation.isPending ? 'Загрузка...' : 'Загрузить'}
+              {uploadMutation.isPending ? t('strategyLab.uploading') : t('common.upload')}
             </button>
           </div>
         </div>
@@ -155,7 +155,7 @@ export function StrategyList() {
       <div className="flex gap-4 mb-6">
         <input
           type="text"
-          placeholder="Поиск стратегий..."
+          placeholder={t('strategyLab.searchStrategies')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -167,7 +167,7 @@ export function StrategyList() {
         >
           {families.map(f => (
             <option key={f} value={f}>
-              {f === 'all' ? 'Все семейства' : f}
+              {f === 'all' ? t('strategyLab.allFamilies') : f}
             </option>
           ))}
         </select>
@@ -177,14 +177,14 @@ export function StrategyList() {
         <div className="p-6 flex items-center justify-center h-64">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-500">Загрузка стратегий...</p>
+            <p className="text-gray-500">{t('strategyLab.loadingStrategies')}</p>
           </div>
         </div>
       )}
 
       {isError && (
         <div className="p-6 text-center text-red-500">
-          {(error as Error)?.message || 'Не удалось загрузить стратегии'}
+          {(error as Error)?.message || t('strategyLab.loadStrategiesFailed')}
         </div>
       )}
 
@@ -222,13 +222,13 @@ export function StrategyList() {
                       to={`/strategy-lab/workflow?strategy=${strategy.name}&steps=backtest`}
                       className="flex-1 text-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
                     >
-                      📊 Бэктест
+                      {t('strategyLab.backtest')}
                     </Link>
                     <Link
                       to={`/strategy-lab/hyperopt/${strategy.name}`}
                       className="flex-1 text-center px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded"
                     >
-                      🔍 Гиперопт
+                      {t('strategyLab.hyperopt')}
                     </Link>
                   </div>
                 </div>
@@ -240,7 +240,7 @@ export function StrategyList() {
 
       {!isLoading && !isError && filtered.length === 0 && (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          Нет стратегий по выбранным фильтрам
+          {t('strategyLab.noStrategyMatch')}
         </div>
       )}
     </div>

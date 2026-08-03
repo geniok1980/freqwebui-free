@@ -123,6 +123,7 @@ class MonitoringConfig:
 class AppConfig:
     freqtrade_dir: str = ""
     venv_path: str = ".venv312"
+    docker_image: str = ""
     strategies: list[StrategyConfig] = field(default_factory=list)
     web: WebConfig = field(default_factory=WebConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
@@ -154,6 +155,7 @@ def load_config(path: str) -> AppConfig:
 
     cfg = AppConfig()
     cfg.freqtrade_dir = raw.get("freqtrade", {}).get("directory", "")
+    cfg.docker_image = raw.get("freqtrade", {}).get("docker_image", "")
     cfg.venv_path = raw.get("freqtrade", {}).get("venv_path", ".venv312")
     cfg.process_stats_interval = raw.get("process_stats_interval", 2)
     cfg.manager_dir = os.path.dirname(os.path.abspath(path))

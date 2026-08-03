@@ -1,11 +1,13 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
 
 // Searchable Strategy Selector Component
 function StrategySelector({ strategies, selected, onSelect }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -68,7 +70,7 @@ function StrategySelector({ strategies, selected, onSelect }) {
               </div>
             ))}
             {filtered.length === 0 && (
-              <div className="px-4 py-2 text-gray-500 text-sm">No matches found</div>
+              <div className="px-4 py-2 text-gray-500 text-sm">{t('common.noResults')}</div>
             )}
           </div>
         </div>
@@ -87,6 +89,7 @@ const WORKFLOW_STEPS = [
 ];
 
 export function WorkflowControl() {
+  const { t } = useTranslation();
   const [bots, setBots] = useState([]);
   const [strategies, setStrategies] = useState([]);
   const [selectedBot, setSelectedBot] = useState('');
@@ -294,7 +297,7 @@ export function WorkflowControl() {
 
           {/* Steps Configuration */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Workflow Steps</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t('strategyLab.workflowSteps')}</h3>
             <div className="space-y-3">
               {WORKFLOW_STEPS.map((step) => {
                 const isEnabled = config.steps.includes(step.id);
@@ -324,10 +327,10 @@ export function WorkflowControl() {
 
           {/* Settings */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Settings</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t('strategyLab.settings')}</h3>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Epochs</label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">{t('strategyLab.epochs')}</label>
                 <input
                   type="number"
                   value={config.epochs}

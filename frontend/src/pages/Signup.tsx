@@ -26,7 +26,7 @@ export function Signup() {
         tenant_name: tenantName.trim(),
         tenant_slug: tenantSlug.trim(),
       });
-      navigate('/');
+      navigate('/dashboard');
     } catch {
       // store already handles errors
     }

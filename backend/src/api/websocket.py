@@ -65,9 +65,12 @@ async def websocket_endpoint(
         await websocket.close(code=4001, reason="Invalid or expired token")
         return
     user_id, tenant_id = verified
-    tenant_channel = f"tenant:{tenant_id}:{channel}"
-
-    await ws_manager.connect(websocket, user_id, tenant_channel)
+    # Note: tenant isolation is not applied at channel level because
+    # background services (trade_monitor, log_monitor, orchestrator)
+    # broadcast to logical channels ("global", "bot:{id}") without
+    # tenant context. Using raw channel names ensures broadcasts
+    # reach all connected clients.
+    await ws_manager.connect(websocket, user_id, channel)
 
     try:
         while True:
@@ -78,24 +81,22 @@ async def websocket_endpoint(
             if data.get("action") == "subscribe":
                 new_channel = data.get("channel")
                 if new_channel:
-                    scoped_channel = f"tenant:{tenant_id}:{new_channel}"
-                    await ws_manager.connect(websocket, user_id, scoped_channel)
+                    await ws_manager.connect(websocket, user_id, new_channel)
                     await websocket.send_json({
                         "type": "subscribed",
-                        "channel": scoped_channel,
+                        "channel": new_channel,
                     })
 
             elif data.get("action") == "unsubscribe":
                 old_channel = data.get("channel")
-                if old_channel and old_channel != tenant_channel:
+                if old_channel and old_channel != channel:
                     # Remove from specific channel but keep in global
-                    scoped_old_channel = f"tenant:{tenant_id}:{old_channel}"
-                    if scoped_old_channel in ws_manager._active_connections:
-                        if websocket in ws_manager._active_connections[scoped_old_channel]:
-                            ws_manager._active_connections[scoped_old_channel].remove(websocket)
+                    if old_channel in ws_manager._active_connections:
+                        if websocket in ws_manager._active_connections[old_channel]:
+                            ws_manager._active_connections[old_channel].remove(websocket)
                     await websocket.send_json({
                         "type": "unsubscribed",
-                        "channel": scoped_old_channel,
+                        "channel": old_channel,
                     })
 
             elif data.get("action") == "ping":

@@ -65,14 +65,28 @@ function scoreBgClass(score: number): string {
 // ── Rating label ──
 
 const RATING_EMOJI: Record<string, string> = {
-  'Отлично': '🟢',
-  'Хорошо': '🟡',
-  'Удовл': '🟠',
-  'Плохо': '🔴',
-  'Очень плохо': '🔴',
-  'Опасно': '⛔',
-  'Нет данных': '⚪',
+  excellent: '🟢',
+  good: '🟡',
+  satisfactory: '🟠',
+  poor: '🔴',
+  'very poor': '🔴',
+  dangerous: '⛔',
+  'no data': '⚪',
 };
+
+const RATING_RU_TO_EN: Record<string, string> = {
+  'Отлично': 'excellent',
+  'Хорошо': 'good',
+  'Удовл': 'satisfactory',
+  'Плохо': 'poor',
+  'Очень плохо': 'very poor',
+  'Опасно': 'dangerous',
+  'Нет данных': 'no data',
+};
+
+function translateRating(rating: string): string {
+  return RATING_RU_TO_EN[rating] ?? rating;
+}
 
 // ── API ──
 
@@ -81,9 +95,24 @@ async function fetchScoring(): Promise<BotScoringData[]> {
   return res?.data ?? [];
 }
 
+// ── Rating EN key → i18n key mapping ──
+
+const RATING_EN_TO_I18N: Record<string, string> = {
+  excellent: 'scoring.excellent',
+  good: 'scoring.good',
+  satisfactory: 'scoring.satisfactory',
+  poor: 'scoring.poor',
+  'very poor': 'scoring.dangerous',
+  dangerous: 'scoring.dangerous',
+  'no data': 'scoring.noData',
+};
+
 // ── Metric badge ──
 
 function MetricBadge({metric}: {metric: MetricItem}) {
+  const {t} = useTranslation();
+  const enRating = translateRating(metric.rating);
+
   return (
     <div className={`rounded-lg border p-3 ${scoreBgClass(metric.score)}`}>
       <div className="flex items-center justify-between mb-1">
@@ -91,7 +120,7 @@ function MetricBadge({metric}: {metric: MetricItem}) {
           {metric.label}
         </span>
         <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500">
-          вес {metric.weight_pct}%
+          {t('scoring.weight')} {metric.weight_pct}%
         </span>
       </div>
       <div className="flex items-center justify-between">
@@ -100,7 +129,7 @@ function MetricBadge({metric}: {metric: MetricItem}) {
             {metric.value !== null ? metric.value.toFixed(metric.value < 10 ? 2 : 1) : '—'}
           </span>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {RATING_EMOJI[metric.rating] ?? ''} {metric.rating}
+            {RATING_EMOJI[enRating] ?? ''} {t(RATING_EN_TO_I18N[enRating] ?? enRating)}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -121,6 +150,7 @@ function MetricBadge({metric}: {metric: MetricItem}) {
 // ── Group card ──
 
 function GroupCard({group}: {group: ScoringGroupData}) {
+  const {t} = useTranslation();
   const avgScore = group.metrics.reduce((s, m) => s + m.score, 0) / group.metrics.length;
 
   return (
@@ -129,7 +159,7 @@ function GroupCard({group}: {group: ScoringGroupData}) {
         <div>
           <h3 className="font-semibold text-gray-900 dark:text-white">{group.name}</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Вес в итоговой оценке: {group.weight_pct}%
+            {t('scoring.weightInTotal', {pct: group.weight_pct})}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -137,7 +167,7 @@ function GroupCard({group}: {group: ScoringGroupData}) {
             <div className="text-lg font-bold" style={{color: scoreColor(avgScore)}}>
               {group.total_weighted.toFixed(1)}
             </div>
-            <div className="text-[10px] text-gray-400">из {group.weight_pct}</div>
+            <div className="text-[10px] text-gray-400">{t('scoring.of', {max: group.weight_pct})}</div>
           </div>
           <div className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
             style={{backgroundColor: scoreColor(avgScore)}}
@@ -226,15 +256,15 @@ function BotCard({data}: {data: BotScoringData}) {
 // ── Empty state ──
 
 function EmptyState() {
+  const {t} = useTranslation();
   return (
     <div className="text-center py-16">
       <div className="text-5xl mb-4">📊</div>
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-        Нет данных для оценки
+        {t('scoring.noData')}
       </h2>
       <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-        Для расчёта Scoring Dashboard необходимо, чтобы хотя бы один бот имел собранные метрики.
-        Запустите бота в Dry-run или Live режиме, и данные появятся автоматически.
+        {t('scoring.noDataDesc')}
       </p>
     </div>
   );
@@ -261,7 +291,7 @@ export function ScoringDashboard() {
   if (error) {
     return (
       <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6 text-center">
-        <p className="text-red-600 dark:text-red-400">Ошибка загрузки данных: {(error as Error).message}</p>
+        <p className="text-red-600 dark:text-red-400">{t('scoring.loadError', {message: (error as Error).message})}</p>
       </div>
     );
   }
@@ -276,14 +306,14 @@ export function ScoringDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            📊 Оценка стратегий
+            📊 {t('scoring.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Оценка по методологии курса — уроки 6, 13
+            {t('scoring.subtitle')}
           </p>
         </div>
         <div className="text-xs text-gray-400">
-          {bots.length} бот{bots.length !== 1 ? 'ов' : ''} · обновление каждые 30с
+          {t('bots.count', {count: bots.length})} · {t('scoring.refreshEvery')}
         </div>
       </div>
 
@@ -291,7 +321,7 @@ export function ScoringDashboard() {
       <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
         <div className="flex flex-wrap gap-4 items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 dark:text-gray-400">Средняя оценка по всем ботам:</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{t('scoring.avgScoreAll')}:</span>
             {(() => {
               const avg = bots.reduce((s, b) => s + b.total_score, 0) / bots.length;
               return (
@@ -302,11 +332,11 @@ export function ScoringDashboard() {
             })()}
           </div>
           <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
-            <span><span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-1"/> Отлично (8-10)</span>
-            <span><span className="inline-block w-3 h-3 rounded-full bg-lime-500 mr-1"/> Хорошо (6-8)</span>
-            <span><span className="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-1"/> Удовл (4-6)</span>
-            <span><span className="inline-block w-3 h-3 rounded-full bg-orange-500 mr-1"/> Плохо (2-4)</span>
-            <span><span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1"/> Опасно (0-2)</span>
+            <span><span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-1"/> {t('scoring.excellentRange')}</span>
+            <span><span className="inline-block w-3 h-3 rounded-full bg-lime-500 mr-1"/> {t('scoring.goodRange')}</span>
+            <span><span className="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-1"/> {t('scoring.satisfactoryRange')}</span>
+            <span><span className="inline-block w-3 h-3 rounded-full bg-orange-500 mr-1"/> {t('scoring.poorRange')}</span>
+            <span><span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1"/> {t('scoring.dangerousRange')}</span>
           </div>
         </div>
 
@@ -314,11 +344,11 @@ export function ScoringDashboard() {
         <div className="mt-3 flex gap-1 h-4 rounded-full overflow-hidden">
           {(() => {
             const ranges = [
-              {min: 8, color: '#22c55e', label: 'Отлично'},
-              {min: 6, color: '#84cc16', label: 'Хорошо'},
-              {min: 4, color: '#eab308', label: 'Удовл'},
-              {min: 2, color: '#f97316', label: 'Плохо'},
-              {min: 0, color: '#ef4444', label: 'Опасно'},
+              {min: 8, color: '#22c55e', label: t('scoring.excellent')},
+              {min: 6, color: '#84cc16', label: t('scoring.good')},
+              {min: 4, color: '#eab308', label: t('scoring.satisfactory')},
+              {min: 2, color: '#f97316', label: t('scoring.poor')},
+              {min: 0, color: '#ef4444', label: t('scoring.dangerous')},
             ];
             return ranges.map((r, i) => {
               const count = bots.filter(b => b.total_score >= r.min && (i === 0 || b.total_score < ranges[i-1].min)).length;
@@ -328,7 +358,7 @@ export function ScoringDashboard() {
                   key={r.label}
                   className="relative group"
                   style={{width: `${pct}%`, backgroundColor: r.color, minWidth: count > 0 ? '4px' : 0}}
-                  title={`${r.label}: ${count} бот${count !== 1 ? 'ов' : ''}`}
+                  title={`${r.label}: ${t('bots.count', {count})}`}
                 />
               ) : null;
             });

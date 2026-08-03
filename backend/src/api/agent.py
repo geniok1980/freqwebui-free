@@ -297,7 +297,7 @@ async def get_agent_status():
             wins = len([r for r in signals_rows if r['outcome'] == 'win'])
             total = len(signals_rows)
     
-    container_running = AgentDockerController.is_container_running()
+    container_running = await AgentDockerController.is_container_running()
     
     return {
         "enabled": enabled,
@@ -388,7 +388,7 @@ async def enable_agent():
                 ON CONFLICT (key) DO UPDATE SET value = 'true', updated_at = NOW()
             """)
     
-    success, message = AgentDockerController.start_container()
+    success, message = await AgentDockerController.start_container()
     
     if success:
         return {"status": "success", "enabled": True, "container": "started"}
@@ -407,7 +407,7 @@ async def disable_agent():
                 ON CONFLICT (key) DO UPDATE SET value = 'false', updated_at = NOW()
             """)
     
-    success, message = AgentDockerController.stop_container()
+    success, message = await AgentDockerController.stop_container()
     
     if success:
         return {"status": "success", "enabled": False, "container": "stopped"}

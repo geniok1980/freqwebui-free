@@ -62,17 +62,17 @@ export function OptimizationResults() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            🏆 Результаты оптимизации
+            🏆 {t('strategyLab.optimizationResults')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Отслеживание улучшений стратегий во времени
+            {t('strategyLab.optimizationResultsDesc')}
           </p>
         </div>
         <Link
           to="/strategy-lab"
           className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
-          ← Назад в лабораторию стратегий
+          {t('strategyLab.backToStrategyLab')}
         </Link>
       </div>
 
@@ -90,7 +90,7 @@ export function OptimizationResults() {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                {range === 'all' ? 'За всё время' : `Последние ${range}`}
+                {range === 'all' ? t('strategyLab.allTime') : t('strategyLab.lastDays', { days: range })}
               </button>
             ))}
           </div>
@@ -99,7 +99,7 @@ export function OptimizationResults() {
             onChange={(e) => setFilterStrategy(e.target.value)}
             className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
-            <option value="all">Все стратегии</option>
+            <option value="all">{t('strategyLab.allStrategies')}</option>
             {strategies?.map(s => (
               <option key={s.name} value={s.name}>{s.name}</option>
             ))}
@@ -110,19 +110,19 @@ export function OptimizationResults() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Всего прогонов</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('strategyLab.totalRuns')}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {filteredRuns.length}
           </p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Проверено стратегий</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('strategyLab.checkedStrategies')}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {Object.keys(byStrategy).length}
           </p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Лучшая прибыль</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('scoring.bestProfit')}</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">
             {summaries.length && summaries[0].bestProfit !== null
               ? `+${summaries[0].bestProfit.toFixed(2)}%`
@@ -130,7 +130,7 @@ export function OptimizationResults() {
           </p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Доля успешных</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('strategyLab.successRate')}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {filteredRuns.length
               ? `${((filteredRuns.filter(r => (r.result_profit_pct || 0) > 0).length / filteredRuns.length) * 100).toFixed(0)}%`
@@ -143,31 +143,31 @@ export function OptimizationResults() {
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="font-semibold text-gray-900 dark:text-white">
-            Сравнение производительности стратегий
+            {t('strategyLab.strategyPerformanceCompare')}
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">Стратегия</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Прогоны</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Лучшая прибыль</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Средняя прибыль</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">Тренд</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">Последний прогон</th>
-                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">Действия</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.strategy')}</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.runs')}</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.bestProfit')}</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.avgProfit')}</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.trend')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.lastRun')}</th>
+                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500">Загрузка...</td>
+                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500">{t('common.loading')}</td>
                 </tr>
               ) : summaries.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-                    Оптимизационных прогонов пока нет. Запустите workflow, чтобы увидеть результаты.
+                    {t('strategyLab.noRunsYet')}
                   </td>
                 </tr>
               ) : summaries.map(summary => (
@@ -209,7 +209,7 @@ export function OptimizationResults() {
                       to={`/strategy-lab/hyperopt/${summary.name}`}
                       className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-xs"
                     >
-                      Эпохи
+                      {t('strategyLab.epochs')}
                     </Link>
                   </td>
                 </tr>
@@ -223,7 +223,7 @@ export function OptimizationResults() {
       <Card className="overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="font-semibold text-gray-900 dark:text-white">
-            История прогонов
+            {t('strategyLab.runHistory')}
           </h2>
         </div>
         <div className="divide-y divide-gray-200 dark:divide-gray-700 max-h-96 overflow-y-auto">
@@ -268,7 +268,7 @@ export function OptimizationResults() {
           ))}
           {filteredRuns.length === 0 && (
             <div className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-              По выбранным фильтрам прогоны не найдены.
+              {t('strategyLab.noRunsForFilters')}
             </div>
           )}
         </div>

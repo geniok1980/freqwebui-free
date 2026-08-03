@@ -2,6 +2,7 @@
  * Bot overview component showing key metrics and stats.
  */
 
+import { useTranslation } from 'react-i18next';
 import type { Bot, BotMetrics } from '../../types';
 
 interface BotOverviewProps {
@@ -77,6 +78,7 @@ function formatRelativeTime(dateStr: string | undefined): string {
 }
 
 export function BotOverview({ bot, metrics, isLoading }: BotOverviewProps) {
+  const { t } = useTranslation();
   const profitTrend = metrics?.profit_pct !== undefined
     ? metrics.profit_pct >= 0 ? 'up' : 'down'
     : 'neutral';
@@ -159,19 +161,19 @@ export function BotOverview({ bot, metrics, isLoading }: BotOverviewProps) {
         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg overflow-hidden">
           <dl className="divide-y divide-gray-200 dark:divide-gray-600">
             <div className="px-4 py-3 grid grid-cols-3 gap-4">
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Environment</dt>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.environment')}</dt>
               <dd className="text-sm text-gray-900 dark:text-white col-span-2 capitalize">{bot.environment}</dd>
             </div>
             <div className="px-4 py-3 grid grid-cols-3 gap-4">
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Exchange</dt>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.exchange')}</dt>
               <dd className="text-sm text-gray-900 dark:text-white col-span-2">{bot.exchange || '-'}</dd>
             </div>
             <div className="px-4 py-3 grid grid-cols-3 gap-4">
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Strategy</dt>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.strategy')}</dt>
               <dd className="text-sm text-gray-900 dark:text-white col-span-2">{bot.strategy || '-'}</dd>
             </div>
             <div className="px-4 py-3 grid grid-cols-3 gap-4">
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Trading Mode</dt>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.tradingMode')}</dt>
               <dd className="text-sm text-gray-900 dark:text-white col-span-2 capitalize">
                 {bot.trading_mode || '-'}
                 {bot.is_dryrun && (
@@ -182,39 +184,39 @@ export function BotOverview({ bot, metrics, isLoading }: BotOverviewProps) {
               </dd>
             </div>
             <div className="px-4 py-3 grid grid-cols-3 gap-4">
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Data Source</dt>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.dataSource')}</dt>
               <dd className="text-sm text-gray-900 dark:text-white col-span-2 capitalize">
                 {metrics?.data_source || bot.source_mode}
               </dd>
             </div>
             {bot.host && (
               <div className="px-4 py-3 grid grid-cols-3 gap-4">
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Host</dt>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.host')}</dt>
                 <dd className="text-sm text-gray-900 dark:text-white col-span-2 font-mono">{bot.host}</dd>
               </div>
             )}
             {bot.api_url && (
               <div className="px-4 py-3 grid grid-cols-3 gap-4">
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">API URL</dt>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.apiUrl')}</dt>
                 <dd className="text-sm text-gray-900 dark:text-white col-span-2 font-mono">{bot.api_url}</dd>
               </div>
             )}
             {bot.container_id && (
               <div className="px-4 py-3 grid grid-cols-3 gap-4">
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Container ID</dt>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.containerId')}</dt>
                 <dd className="text-sm text-gray-900 dark:text-white col-span-2 font-mono">
                   {bot.container_id.substring(0, 12)}
                 </dd>
               </div>
             )}
             <div className="px-4 py-3 grid grid-cols-3 gap-4">
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Last Seen</dt>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.lastSeen')}</dt>
               <dd className="text-sm text-gray-900 dark:text-white col-span-2">
                 {formatRelativeTime(bot.last_seen)} ({formatDate(bot.last_seen)})
               </dd>
             </div>
             <div className="px-4 py-3 grid grid-cols-3 gap-4">
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Discovered At</dt>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('botOverview.discoveredAt')}</dt>
               <dd className="text-sm text-gray-900 dark:text-white col-span-2">{formatDate(bot.discovered_at)}</dd>
             </div>
           </dl>

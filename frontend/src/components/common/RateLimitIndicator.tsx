@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useRateLimits } from '../../hooks/useRateLimits';
 
 function formatAge(seconds: number): string {
@@ -10,6 +11,7 @@ function formatAge(seconds: number): string {
 
 export function RateLimitIndicator() {
   const { hasActiveRateLimits, rateLimitCount, activeAlerts, isLoading } = useRateLimits();
+  const { t } = useTranslation();
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Don't show anything if no rate limits
@@ -44,7 +46,7 @@ export function RateLimitIndicator() {
         </svg>
         {hasActiveRateLimits && (
           <>
-            <span className="text-xs font-medium hidden sm:inline">Rate Limit</span>
+            <span className="text-xs font-medium hidden sm:inline">{t('rateLimit.title')}</span>
             <span className="flex items-center justify-center min-w-[18px] h-[18px] text-xs font-bold bg-red-500 text-white rounded-full">
               {rateLimitCount}
             </span>

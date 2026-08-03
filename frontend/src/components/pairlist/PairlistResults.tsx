@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Trophy, BarChart3 } from 'lucide-react';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api/v1';
@@ -34,6 +35,7 @@ interface JobResult {
 }
 
 export function PairlistResults() {
+  const { t } = useTranslation();
   const [selectedStrategy, setSelectedStrategy] = useState('');
   const [selectedJob, setSelectedJob] = useState('');
   
@@ -86,7 +88,7 @@ export function PairlistResults() {
       <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <Trophy className="w-6 h-6 text-yellow-500" />
-          <h2 className="text-xl font-bold text-white">Pairlist Results</h2>
+          <h2 className="text-xl font-bold text-white">{t('pairlist.title')}</h2>
         </div>
         
         <div className="flex gap-4">
@@ -95,7 +97,7 @@ export function PairlistResults() {
             onChange={(e) => { setSelectedStrategy(e.target.value); setSelectedJob(''); }}
             className="px-4 py-2 bg-[#0f1419] border border-[#30363d] rounded-lg text-white"
           >
-            <option value="">All Strategies</option>
+            <option value="">{t('pairlist.allStrategies')}</option>
             {strategiesData?.strategies?.map((s: string) => (
               <option key={s} value={s}>{s}</option>
             ))}
@@ -106,7 +108,7 @@ export function PairlistResults() {
             onChange={(e) => setSelectedJob(e.target.value)}
             className="px-4 py-2 bg-[#0f1419] border border-[#30363d] rounded-lg text-white"
           >
-            <option value="">Select Run...</option>
+            <option value="">{t('pairlist.selectRun')}</option>
             {jobsData?.jobs?.map((j: any) => (
               <option key={j.job_id} value={j.job_id}>
                 {j.strategy} - {new Date(j.created_at).toLocaleDateString()}
@@ -117,7 +119,7 @@ export function PairlistResults() {
       </div>
       
       {isLoading && (
-        <div className="text-center py-8 text-gray-400">Loading results...</div>
+        <div className="text-center py-8 text-gray-400">{t('common.loading')}</div>
       )}
       
       {resultData?.summary && (
@@ -125,25 +127,25 @@ export function PairlistResults() {
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-              <div className="text-gray-400 text-sm">Total Pairs</div>
+              <div className="text-gray-400 text-sm">{t('pairlist.totalPairs')}</div>
               <div className="text-2xl font-bold text-white">{resultData.summary.total_pairs}</div>
             </div>
             
             <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-              <div className="text-gray-400 text-sm">Best Pair</div>
+              <div className="text-gray-400 text-sm">{t('pairlist.bestPair')}</div>
               <div className="text-lg font-bold text-green-400 truncate">{resultData.summary.best_pair}</div>
               <div className="text-sm text-green-500">{formatPercent(resultData.summary.best_profit)}</div>
             </div>
             
             <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-              <div className="text-gray-400 text-sm">Avg Profit</div>
+              <div className="text-gray-400 text-sm">{t('pairlist.avgProfit')}</div>
               <div className={`text-2xl font-bold ${resultData.summary.avg_profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {formatPercent(resultData.summary.avg_profit)}
               </div>
             </div>
             
             <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4">
-              <div className="text-gray-400 text-sm">Avg Win Rate</div>
+              <div className="text-gray-400 text-sm">{t('pairlist.avgWinRate')}</div>
               <div className="text-2xl font-bold text-blue-400">{resultData.summary.avg_win_rate.toFixed(1)}%</div>
             </div>
           </div>
@@ -152,20 +154,20 @@ export function PairlistResults() {
           <div className="bg-[#161b22] border border-[#30363d] rounded-xl overflow-hidden">
             <div className="px-6 py-4 border-b border-[#30363d] flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-blue-500" />
-              <h3 className="font-bold text-white">Top Performing Pairs</h3>
+              <h3 className="font-bold text-white">{t('pairlist.topPairs')}</h3>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-[#0f1419]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Rank</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Pair</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Profit</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Win Rate</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Sharpe</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Trades</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Score</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">{t('pairlist.rank')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">{t('pairlist.pair')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">{t('pairlist.profit')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">{t('pairlist.winRate')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">{t('pairlist.sharpe')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">{t('pairlist.trades')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">{t('pairlist.score')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#30363d]">
@@ -192,7 +194,7 @@ export function PairlistResults() {
       {!selectedJob && !isLoading && (
         <div className="text-center py-12 text-gray-500">
           <Trophy className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p>Select a strategy and run to view results</p>
+          <p>{t('pairlist.selectPrompt')}</p>
         </div>
       )}
     </div>

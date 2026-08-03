@@ -26,7 +26,7 @@ export default function Login() {
 
     try {
       await login(username.trim(), password.trim(), tenantSlug.trim() || 'default');
-      navigate('/');
+      navigate('/dashboard');
     } catch {
       // Error is handled by the store
     }

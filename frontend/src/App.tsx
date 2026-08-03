@@ -35,6 +35,7 @@ import { ScoringDashboard } from './pages/ScoringDashboard';
 import { RiskDashboard } from './pages/RiskDashboard';
 import { TradingJournal } from './pages/TradingJournal';
 import { ComparisonView } from './pages/ComparisonView';
+import Landing from './pages/Landing';
 import { setTenantSlug } from './services/api';
 
 // Create React Query client
@@ -63,7 +64,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
   if (user?.role !== 'admin') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;
 }
@@ -128,9 +129,12 @@ function App() {
             <Route path="*" element={<Navigate to="/setup" replace />} />
           ) : null}
 
+          {/* Landing page — public */}
+          <Route path="/" element={<Landing />} />
+
           {/* Protected routes with Layout */}
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <Dashboard />

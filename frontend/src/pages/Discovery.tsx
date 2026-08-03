@@ -37,6 +37,7 @@ interface ManualBotForm {
 }
 
 export function Discovery() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [lastResult, setLastResult] = useState<DiscoveryResult | null>(null);
   const [showManualForm, setShowManualForm] = useState(false);
@@ -95,7 +96,7 @@ export function Discovery() {
       queryClient.invalidateQueries({ queryKey: ['bots'] });
     },
     onError: (error: any) => {
-      setFormError(error.message || 'Не удалось добавить бота');
+      setFormError(error.message || t('bots.failedToAddBot'));
     },
   });
 
@@ -109,7 +110,7 @@ export function Discovery() {
       queryClient.invalidateQueries({ queryKey: ['portfolio'] });
     },
     onError: (error: any) => {
-      alert(error.message || 'Не удалось удалить бота');
+      alert(error.message || t('bots.failedToDeleteBot'));
     },
   });
 
@@ -117,18 +118,18 @@ export function Discovery() {
     e.preventDefault();
     setFormError(null);
     if (!manualForm.name.trim()) {
-      setFormError('Требуется имя бота');
+      setFormError(t('bots.botNameRequired'));
       return;
     }
     if (!manualForm.api_url.trim()) {
-      setFormError('Требуется API URL');
+      setFormError(t('bots.apiUrlRequired'));
       return;
     }
     addManualBot.mutate(manualForm);
   };
 
   const formatDate = (dateStr: string | null): string => {
-    if (!dateStr) return 'Никогда';
+    if (!dateStr) return t('common.never');
     try {
       return format(new Date(dateStr), 'PPp');
     } catch {
@@ -137,9 +138,9 @@ export function Discovery() {
   };
 
   const formatInterval = (seconds: number): string => {
-    if (seconds < 60) return `${seconds} сек`;
-    if (seconds < 3600) return `${Math.round(seconds / 60)} мин`;
-    return `${Math.round(seconds / 3600)} ч`;
+    if (seconds < 60) return `${seconds} ${t('bots.sec')}`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)} ${t('bots.min')}`;
+    return `${Math.round(seconds / 3600)} ${t('bots.hour')}`;
   };
 
   const getEnvironmentBadge = (env: string) => {
@@ -158,10 +159,10 @@ export function Discovery() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Обнаружение ботов
+            {t('bots.discoveryTitle')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Управление автоматическим и ручным обнаружением ботов
+            {t('bots.manageDiscovery')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -172,7 +173,7 @@ export function Discovery() {
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            Добавить бота вручную
+            {t('bots.addBotManually')}
           </button>
           <button
             onClick={() => triggerScan.mutate()}
@@ -185,14 +186,14 @@ export function Discovery() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Сканирование...
+                {t('bots.scanning')}
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Сканировать
+                {t('bots.scan')}
               </>
             )}
           </button>
@@ -204,7 +205,7 @@ export function Discovery() {
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-green-800 dark:text-green-200">
-              Сканирование завершено успешно
+              {t('bots.scanCompleteSuccess')}
             </h3>
             <button
               onClick={() => setLastResult(null)}
@@ -217,19 +218,19 @@ export function Discovery() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-2">
             <div>
-              <span className="text-green-600 dark:text-green-400">Обнаружено:</span>
+              <span className="text-green-600 dark:text-green-400">{t('bots.discovered')}</span>
               <span className="ml-2 font-medium text-green-800 dark:text-green-200">{lastResult.discovered}</span>
             </div>
             <div>
-              <span className="text-green-600 dark:text-green-400">Новых:</span>
+              <span className="text-green-600 dark:text-green-400">{t('bots.new_bots')}</span>
               <span className="ml-2 font-medium text-green-800 dark:text-green-200">{lastResult.new}</span>
             </div>
             <div>
-              <span className="text-green-600 dark:text-green-400">Обновлено:</span>
+              <span className="text-green-600 dark:text-green-400">{t('bots.updated')}</span>
               <span className="ml-2 font-medium text-green-800 dark:text-green-200">{lastResult.updated}</span>
             </div>
             <div>
-              <span className="text-green-600 dark:text-green-400">Удалено:</span>
+              <span className="text-green-600 dark:text-green-400">{t('bots.removed')}</span>
               <span className="ml-2 font-medium text-green-800 dark:text-green-200">{lastResult.removed}</span>
             </div>
           </div>
@@ -241,7 +242,7 @@ export function Discovery() {
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Зарегистрированные боты ({bots?.length || 0})
+              {t('bots.registeredBotsCount', { count: bots?.length || 0 })}
             </h2>
           </div>
         </div>
@@ -265,9 +266,9 @@ export function Discovery() {
               <svg className="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <p className="text-gray-500 dark:text-gray-400">Боты пока не зарегистрированы</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('bots.noBotsRegistered')}</p>
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                Запустите сканирование или добавьте бота вручную, чтобы начать
+                {t('bots.runScanToStart')}
               </p>
             </div>
           ) : (
@@ -309,7 +310,7 @@ export function Discovery() {
                     {bot.environment}
                   </span>
                   <span className="text-xs text-gray-400 dark:text-gray-500">
-                    {bot.last_seen ? formatDistanceToNow(new Date(bot.last_seen), { addSuffix: true }) : 'Никогда'}
+                    {bot.last_seen ? formatDistanceToNow(new Date(bot.last_seen), { addSuffix: true }) : t('common.never')}
                   </span>
                   <Link
                     to={`/bot/${bot.id}`}
@@ -322,13 +323,13 @@ export function Discovery() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (confirm(`Delete "${bot.name}"?`)) {
+                      if (confirm(t('bots.confirmDelete', { name: bot.name }))) {
                         deleteBot.mutate(bot.id);
                       }
                     }}
                     disabled={deleteBot.isPending}
                     className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                    title="Удалить бота"
+                    title={t('bots.deleteBot')}
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -345,7 +346,7 @@ export function Discovery() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
         <div className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Статус обнаружения
+            {t('bots.discoveryStatus')}
           </h2>
 
           {isLoading ? (
@@ -358,19 +359,19 @@ export function Discovery() {
               {/* Timing Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Последнее сканирование</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('bots.lastScan')}</p>
                   <p className="text-lg font-medium text-gray-900 dark:text-white">
                     {formatDate(status?.last_scan || null)}
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Интервал сканирования</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('bots.scanInterval')}</p>
                   <p className="text-lg font-medium text-gray-900 dark:text-white">
                     {formatInterval(status?.scan_interval_seconds || 0)}
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Следующее сканирование</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('bots.nextScan')}</p>
                   <p className="text-lg font-medium text-gray-900 dark:text-white">
                     {formatDate(status?.next_scan || null)}
                   </p>
@@ -380,7 +381,7 @@ export function Discovery() {
               {/* Discovery Sources */}
               <div>
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Источники обнаружения
+                  {t('bots.discoverySources')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Docker Source */}
@@ -396,16 +397,16 @@ export function Discovery() {
                         <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
                         </svg>
-                        <span className="font-medium text-gray-900 dark:text-white">Docker</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{t('bots.docker')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {status?.docker_enabled ? (
                           <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">
-                            Включено
+                            {t('common.enabled')}
                           </span>
                         ) : (
                           <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded">
-                            Отключено
+                            {t('common.disabled')}
                           </span>
                         )}
                         <span className={`w-2.5 h-2.5 rounded-full ${
@@ -416,9 +417,9 @@ export function Discovery() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {status?.docker_enabled
                         ? status?.docker_available
-                          ? 'Docker daemon подключен и сканирует контейнеры Freqtrade.'
-                          : 'Docker включен, но daemon недоступен.'
-                        : 'Обнаружение через Docker отключено.'}
+                          ? t('bots.dockerConnected')
+                          : t('bots.dockerUnavailable')
+                        : t('bots.dockerDiscoveryDisabled')}
                     </p>
                   </div>
 
@@ -435,16 +436,16 @@ export function Discovery() {
                         <svg className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
-                        <span className="font-medium text-gray-900 dark:text-white">Filesystem</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{t('bots.filesystem')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {status?.filesystem_enabled ? (
                           <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">
-                            Включено
+                            {t('common.enabled')}
                           </span>
                         ) : (
                           <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded">
-                            Отключено
+                            {t('common.disabled')}
                           </span>
                         )}
                         <span className={`w-2.5 h-2.5 rounded-full ${
@@ -455,9 +456,9 @@ export function Discovery() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {status?.filesystem_enabled
                         ? status?.filesystem_available
-                          ? 'Сканер файловой системы активен и сканирует настроенные пути.'
-                          : 'Файловая система включена, но валидные пути не найдены.'
-                        : 'Обнаружение через файловую систему отключено.'}
+                          ? t('bots.fsActive')
+                          : t('bots.fsUnavailable')
+                        : t('bots.fsDiscoveryDisabled')}
                     </p>
                   </div>
                 </div>
@@ -473,7 +474,7 @@ export function Discovery() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Добавить бота вручную
+                {t('bots.addBotManually')}
               </h3>
               <button
                 onClick={() => {
@@ -497,20 +498,20 @@ export function Discovery() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Имя бота *
+                  {t('bots.botNameLabel')} *
                 </label>
                 <input
                   type="text"
                   value={manualForm.name}
                   onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
-                  placeholder="Мой торговый бот"
+                  placeholder={t('bots.namePlaceholder')}
                   className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  API URL *
+                  {t('bots.apiUrlLabel')} *
                 </label>
                 <input
                   type="text"
@@ -520,32 +521,32 @@ export function Discovery() {
                   className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  URL API Freqtrade (например, http://localhost:8080)
+                  {t('bots.apiUrlHint')}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Логин
+                    {t('auth.username')}
                   </label>
                   <input
                     type="text"
                     value={manualForm.username}
                     onChange={(e) => setManualForm({ ...manualForm, username: e.target.value })}
-                    placeholder="Необязательно"
+                    placeholder={t('common.optional')}
                     className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Пароль
+                    {t('auth.password')}
                   </label>
                   <input
                     type="password"
                     value={manualForm.password}
                     onChange={(e) => setManualForm({ ...manualForm, password: e.target.value })}
-                    placeholder="Необязательно"
+                    placeholder={t('common.optional')}
                     className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -560,7 +561,7 @@ export function Discovery() {
                   }}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
                 >
-                  Отмена
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -573,7 +574,7 @@ export function Discovery() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                   )}
-                  Добавить бота
+                  {t('bots.addBot')}
                 </button>
               </div>
             </form>

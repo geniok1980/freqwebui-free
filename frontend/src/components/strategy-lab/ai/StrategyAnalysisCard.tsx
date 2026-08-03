@@ -32,9 +32,9 @@ export function StrategyAnalysisCard({ analysis, isLoading, error }: StrategyAna
   return (
     <div className="mt-4 space-y-3 rounded-lg border border-violet-200 bg-violet-50/80 px-4 py-4 dark:border-violet-900 dark:bg-violet-950/20">
       <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-        <span>Источник: {analysis.source}</span>
-        {analysis.model && <span>Модель: {analysis.model}</span>}
-        <span>Сгенерировано: {new Date(analysis.generated_at).toLocaleString()}</span>
+        <span>{t('common.source')}: {analysis.source}</span>
+        {analysis.model && <span>{t('common.model')}: {analysis.model}</span>}
+        <span>{t('common.generatedAt')}: {new Date(analysis.generated_at).toLocaleString()}</span>
       </div>
 
       {analysis.warnings.length > 0 && (

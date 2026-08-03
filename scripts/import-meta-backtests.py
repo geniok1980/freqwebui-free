@@ -154,7 +154,7 @@ def import_to_database(metrics):
         cur.execute("""
             SELECT id FROM backtest_results 
             WHERE strategy_name = %s 
-            AND backtest_date > NOW() - INTERVAL '1 hour'
+            AND created_at > NOW() - INTERVAL '1 hour'
         """, (metrics['strategy_name'],))
         
         if cur.fetchone():

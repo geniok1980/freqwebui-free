@@ -38,10 +38,10 @@ export function HyperoptMonitor() {
   const extractEpoch = useMutation({
     mutationFn: (epochId: number) => strategyLabApi.extractEpoch(selectedStrategy, epochId),
     onSuccess: () => {
-      showToast('Эпоха успешно извлечена', 'success');
+      showToast(t('strategyLab.epochExtracted'), 'success');
     },
     onError: (error: any) => {
-      showToast(error.message || 'Не удалось извлечь эпоху', 'error');
+      showToast(error.message || t('strategyLab.epochExtractFailed'), 'error');
     },
   });
 
@@ -86,17 +86,17 @@ export function HyperoptMonitor() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            📈 Монитор гиперопта
+            📈 {t('strategyLab.hyperoptMonitor')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Отслеживание эпох в реальном времени и извлечение параметров
+            {t('strategyLab.hyperoptMonitorDesc')}
           </p>
         </div>
         <Link
           to="/strategy-lab"
           className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
-          ← Назад в лабораторию стратегий
+          {t('strategyLab.backToStrategyLab')}
         </Link>
       </div>
 
@@ -105,14 +105,14 @@ export function HyperoptMonitor() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Стратегия
+              {t('strategyLab.strategy')}
             </label>
             <select
               value={selectedStrategy}
               onChange={(e) => setSelectedStrategy(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
-              <option value="">-- Выберите стратегию --</option>
+              <option value="">{t('strategyLab.selectStrategy')}</option>
               {strategies?.map(s => (
                 <option key={s.name} value={s.name}>{s.name}</option>
               ))}
@@ -120,27 +120,27 @@ export function HyperoptMonitor() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Сортировка
+              {t('strategyLab.sorting')}
             </label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
-              <option value="epoch">Эпоха #</option>
-              <option value="profit">Прибыль %</option>
-              <option value="drawdown">Drawdown</option>
+              <option value="epoch">{t('strategyLab.epochNumber')}</option>
+              <option value="profit">{t('strategyLab.profitPercent')}</option>
+              <option value="drawdown">{t('strategyLab.drawdown')}</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Порядок
+              {t('strategyLab.order')}
             </label>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
-              {sortOrder === 'asc' ? '↑ По возрастанию' : '↓ По убыванию'}
+              {sortOrder === 'asc' ? t('strategyLab.ascending') : t('strategyLab.descending')}
             </button>
           </div>
         </div>
@@ -152,7 +152,7 @@ export function HyperoptMonitor() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Мин. прибыль (%)
+                {t('strategyLab.minProfitFilter')}
               </label>
               <input
                 type="number"
@@ -164,7 +164,7 @@ export function HyperoptMonitor() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Макс. просадка (%)
+                {t('strategyLab.maxDrawdownFilter')}
               </label>
               <input
                 type="number"
@@ -176,7 +176,7 @@ export function HyperoptMonitor() {
             </div>
             <div className="flex items-end">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Показано {filteredEpochs.length} из {epochs?.length || 0} эпох
+              {t('strategyLab.showingEpochs', { filtered: filteredEpochs.length, total: epochs?.length || 0 })}
               </span>
             </div>
           </div>
@@ -188,19 +188,19 @@ export function HyperoptMonitor() {
         <Card className="p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-800">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">🏆 Лучшая эпоха</p>
+              <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">{t('strategyLab.bestEpochLabel')}</p>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Epoch #{bestEpoch.epoch}
+                {t('strategyLab.epoch')} #{bestEpoch.epoch}
               </h3>
               <div className="flex gap-4 mt-2 text-sm">
                 <span className="text-green-600 dark:text-green-400 font-medium">
-                  +{bestEpoch.profit_total_pct?.toFixed(2)}% прибыль
+                  +{bestEpoch.profit_total_pct?.toFixed(2)}% {t('strategyLab.profitPercent').replace(' %', '')}
                 </span>
                 <span className="text-orange-600 dark:text-orange-400">
-                  {bestEpoch.max_drawdown?.toFixed(2)}% просадка
+                  {bestEpoch.max_drawdown?.toFixed(2)}% {t('strategyLab.drawdown')}
                 </span>
                 <span className="text-gray-500 dark:text-gray-400">
-                  {bestEpoch.trade_count} сделок
+                  {t('strategyLab.tradeCount', { count: bestEpoch.trade_count })}
                 </span>
               </div>
             </div>
@@ -209,7 +209,7 @@ export function HyperoptMonitor() {
               disabled={extractEpoch.isPending}
               className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg font-medium"
             >
-              {extractEpoch.isPending ? 'Извлечение...' : '✨ Извлечь'}
+              {extractEpoch.isPending ? t('strategyLab.extracting') : t('strategyLab.extractEpoch')}
             </button>
           </div>
         </Card>
@@ -222,13 +222,13 @@ export function HyperoptMonitor() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">Epoch</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Profit %</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Просадка</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Сделки</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">Win Rate</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">Параметры</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">Действия</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.epoch')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.profitPercent')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.drawdown')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.trades')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.winRate')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.parameters')}</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-gray-300">{t('strategyLab.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -274,7 +274,7 @@ export function HyperoptMonitor() {
                         disabled={extractEpoch.isPending}
                         className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs rounded"
                       >
-                        Извлечь
+                        {t('strategyLab.extractEpoch')}
                       </button>
                     </td>
                   </tr>
@@ -284,7 +284,7 @@ export function HyperoptMonitor() {
           </div>
           {sortedEpochs.length === 0 && (
             <div className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-              Эпохи не найдены. Запустите гиперопт, чтобы сгенерировать эпохи.
+              {t('strategyLab.noEpochsFound')}
             </div>
           )}
         </Card>

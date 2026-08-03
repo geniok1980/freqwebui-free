@@ -25,7 +25,9 @@ class AllowedUsersMiddleware(BaseMiddleware):
         data: dict[str, Any],
     ) -> Any:
         if not self.allowed_ids:
-            return await handler(event, data)
+            if isinstance(event, Message):
+                await event.answer("⛔ Бот не настроен: список доступа пуст.")
+            return None
 
         user_id = None
         if isinstance(event, Message):

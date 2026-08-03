@@ -84,10 +84,10 @@ export function DiscoverySettings() {
         });
       }
       
-      setMessage('✅ Settings saved!');
+      setMessage(t('settings.saved'));
       setApiPassword(''); // Clear password after save
     } catch (e) {
-      setMessage('❌ Error saving: ' + (e as Error).message);
+      setMessage(t('settings.saveFailed') + ': ' + (e as Error).message);
     } finally {
       setLoading(false);
     }
@@ -97,13 +97,13 @@ export function DiscoverySettings() {
     <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
       <div className="flex items-center gap-3 mb-6">
         <Server className="w-6 h-6 text-blue-500" />
-        <h3 className="text-lg font-bold text-white">Настройки обнаружения</h3>
+        <h3 className="text-lg font-bold text-white">{t('settings.discoverySettings')}</h3>
       </div>
       
       <div className="space-y-4">
         <div>
           <label className="block text-sm text-gray-400 mb-2">
-            IP хоста для обнаружения
+            {t('settings.discoveryHostIpLabel')}
           </label>
           <input
             type="text"
@@ -114,7 +114,7 @@ export function DiscoverySettings() {
           />
           <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
             <Info className="w-3 h-3" />
-            IP адрес для доступа к Docker-ботам. Оставьте пустым для localhost.
+            {t('settings.discoveryHostIpHint')}
           </p>
         </div>
         
@@ -122,7 +122,7 @@ export function DiscoverySettings() {
         <div className="pt-4 border-t border-[#30363d]">
           <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
             <Lock className="w-4 h-4" />
-            API авторизация
+            {t('settings.apiAuth')}
           </label>
           
           <div className="space-y-3">
@@ -130,19 +130,19 @@ export function DiscoverySettings() {
               type="text"
               value={apiUsername}
               onChange={(e) => setApiUsername(e.target.value)}
-              placeholder="Логин API"
+              placeholder={t('settings.apiLogin')}
               className="w-full px-4 py-2 bg-[#0f1419] border border-[#30363d] rounded-lg text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
             <input
               type="password"
               value={apiPassword}
               onChange={(e) => setApiPassword(e.target.value)}
-              placeholder="Пароль API (оставьте пустым, чтобы не менять)"
+              placeholder={t('settings.apiPasswordPlaceholder')}
               className="w-full px-4 py-2 bg-[#0f1419] border border-[#30363d] rounded-lg text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Учетные данные для доступа к API Freqtrade. Общие для всех ботов.
+            {t('settings.apiCredentialsHint')}
           </p>
         </div>
         
@@ -153,7 +153,7 @@ export function DiscoverySettings() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
           >
             <Save className="w-4 h-4" />
-            {loading ? 'Сохранение...' : 'Сохранить'}
+            {loading ? t('settings.saving') : t('common.save')}
           </button>
           
           {message && (

@@ -189,7 +189,7 @@ class TradeMonitor:
                         )
 
         except Exception as e:
-            logger.debug("Failed to check trades for bot", bot_id=bot.id, error=str(e))
+            logger.warning("Failed to check trades for bot", bot_id=bot.id, error=str(e))
 
     async def _get_connector(self, bot: Bot) -> Optional[APIConnector]:
         """Get or create API connector for bot."""
@@ -207,11 +207,14 @@ class TradeMonitor:
 
     def _trade_to_dict(self, trade) -> dict:
         """Convert trade object to dict for broadcasting."""
+        open_date = trade.open_date
+        if hasattr(open_date, "isoformat"):
+            open_date = open_date.isoformat()
         return {
             "trade_id": trade.trade_id,
             "pair": trade.pair,
             "is_short": trade.is_short,
-            "open_date": trade.open_date,
+            "open_date": open_date,
             "open_rate": trade.open_rate,
             "stake_amount": trade.stake_amount,
             "amount": trade.amount,
