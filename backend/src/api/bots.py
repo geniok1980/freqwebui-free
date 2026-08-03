@@ -54,8 +54,11 @@ class BotConfigUpdateRequest(BaseModel):
 class BotDeployRequest(BaseModel):
     name: str
     strategy_name: str
-    host_port: int = 8081
+    host_port: int = 0  # 0 = auto-assign first free port
     dry_run: bool = True
+    exchange: Optional[str] = None
+    stake_amount: Optional[float] = None
+    pairs: Optional[list[str]] = None
 
 
 async def _run_cmd(cmd: list[str], stdin: bytes | None = None, timeout: int = 20) -> tuple[int, str, str]:
@@ -210,6 +213,50 @@ async def _docker_container_exists(name: str) -> bool:
     if code != 0:
         return False
     return any(line.strip() == name for line in out.splitlines())
+
+
+async def _find_free_port(
+    db: AsyncSession,
+    start: int = 8081,
+    end: int = 8099,
+) -> int:
+    """Find first free host port in [start, end] not used by Docker or registered bots."""
+    used: set[int] = set()
+
+    # Ports occupied by running/stale containers (published ports)
+    code, out, _ = await _run_cmd(
+        ["docker", "ps", "-a", "--format", "{{.Ports}}"],
+        timeout=10,
+    )
+    if code == 0:
+        for line in out.splitlines():
+            for part in line.split(","):
+                part = part.strip()
+                if not part:
+                    continue
+                m = re.search(r"0\.0\.0\.0:(\d+)->", part) or re.search(r":(\d+)->", part)
+                if m:
+                    try:
+                        used.add(int(m.group(1)))
+                    except ValueError:
+                        pass
+
+    # Ports already registered in DB
+    try:
+        result = await db.execute(select(Bot.api_port).where(Bot.api_port.is_not(None)))
+        for (port,) in result.all():
+            if port is not None:
+                used.add(int(port))
+    except Exception:
+        pass
+
+    for port in range(start, end + 1):
+        if port not in used:
+            return port
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail=f"No free port in range {start}-{end}",
+    )
 
 
 async def _get_freqtrade_image() -> str:
@@ -377,7 +424,11 @@ async def deploy_docker_bot(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
     bot_name = _sanitize_bot_name(request.name)
-    if request.host_port < 1024 or request.host_port > 65535:
+
+    host_port = request.host_port
+    if host_port == 0:
+        host_port = await _find_free_port(db)
+    if host_port < 1024 or host_port > 65535:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid host_port")
 
     existing = await db.execute(select(Bot).where(Bot.name == bot_name))
@@ -405,9 +456,16 @@ async def deploy_docker_bot(
         template,
         bot_name=bot_name,
         strategy_class=strategy_class,
-        host_port=request.host_port,
+        host_port=host_port,
         dry_run=request.dry_run,
     )
+    # Optional overrides: exchange, stake amount, pair whitelist
+    if request.exchange:
+        cfg.setdefault("exchange", {})["name"] = request.exchange
+    if request.stake_amount is not None:
+        cfg["stake_amount"] = request.stake_amount
+    if request.pairs:
+        cfg.setdefault("exchange", {})["pair_whitelist"] = request.pairs
     config_path = os.path.join(backend_bot_dir, "config.json")
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(cfg, f, ensure_ascii=False, indent=2)
@@ -433,7 +491,7 @@ async def deploy_docker_bot(
         "--label",
         f"com.freqtrade.strategy={strategy_class}",
         "-p",
-        f"{request.host_port}:8080",
+        f"{host_port}:8080",
         "-v",
         f"{host_bot_dir}:/freqtrade/user_data",
         image,
@@ -449,7 +507,7 @@ async def deploy_docker_bot(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to start container: {err}".strip())
     container_id = out.strip()
 
-    api_url = f"http://localhost:{request.host_port}"
+    api_url = f"http://localhost:{host_port}"
     new_bot = Bot(
         name=bot_name,
         environment=BotEnvironment.DOCKER,
@@ -457,7 +515,7 @@ async def deploy_docker_bot(
         container_id=container_id,
         user_data_path=backend_bot_dir,
         api_url=api_url,
-        api_port=request.host_port,
+        api_port=host_port,
         exchange=(cfg.get("exchange") or {}).get("name"),
         strategy=strategy_class,
         is_dryrun=bool(cfg.get("dry_run", True)),

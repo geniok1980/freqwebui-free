@@ -123,22 +123,22 @@ export function FinanceData() {
       ]);
 
       if (cryptoRes.status === 'fulfilled') {
-        setCryptoData(cryptoRes.value.data || []);
+        setCryptoData((cryptoRes.value.data as CryptoPrice[]) || []);
       }
       if (stocksRes.status === 'fulfilled') {
-        setStocksData(stocksRes.value.data || []);
+        setStocksData((stocksRes.value.data as Stock[]) || []);
       }
       if (newsRes.status === 'fulfilled') {
-        setNewsData(newsRes.value.data || []);
+        setNewsData((newsRes.value.data as NewsItem[]) || []);
       }
       if (bybitRes.status === 'fulfilled') {
-        setBybitData(bybitRes.value.data || []);
+        setBybitData((bybitRes.value.data as BybitOrderbook[]) || []);
       }
       if (economicRes.status === 'fulfilled') {
-        setEconomicData(economicRes.value.data || []);
+        setEconomicData((economicRes.value.data as EconomicIndicator[]) || []);
       }
       if (syncRes.status === 'fulfilled') {
-        setSyncStatus(syncRes.value.data || {});
+        setSyncStatus((syncRes.value.data as SyncStatus) || {});
       }
 
       setLastUpdate(new Date());

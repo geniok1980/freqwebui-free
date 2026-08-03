@@ -6,11 +6,9 @@ import {
   Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useBots } from '../../hooks/useBots';
-import { api } from '../../services/api';
-import { strategyLabApi } from '../../services/strategyLabApi';
 import type { Bot } from '../../types';
+import { DeployBotModal } from '../../components/bot/DeployBotModal';
 import { useTranslation } from 'react-i18next';
 
 export function FreqtradeBots() {
@@ -19,14 +17,8 @@ export function FreqtradeBots() {
   const [isLoading, setIsLoading] = useState(true);
   const [iframeError, setIframeError] = useState<string | null>(null);
   const loadTimeoutRef = useRef<number | null>(null);
-  const queryClient = useQueryClient();
 
   const [showDeployForm, setShowDeployForm] = useState(false);
-  const [deployName, setDeployName] = useState('');
-  const [deployStrategy, setDeployStrategy] = useState('');
-  const [deployPort, setDeployPort] = useState('8081');
-  const [deployDryRun, setDeployDryRun] = useState(true);
-  const [deployError, setDeployError] = useState<string | null>(null);
   
   const {
     data: allBots,
@@ -40,52 +32,6 @@ export function FreqtradeBots() {
     return (allBots || []).filter((b) => !!b.api_url);
   }, [allBots]);
 
-  const { data: strategies, isLoading: strategiesLoading } = useQuery({
-    queryKey: ['strategy-lab', 'strategies'],
-    queryFn: () => strategyLabApi.getStrategies(),
-    refetchInterval: 60000,
-  });
-
-  useEffect(() => {
-    if (!deployStrategy && strategies && strategies.length > 0) {
-      setDeployStrategy(strategies[0].name);
-    }
-  }, [deployStrategy, strategies]);
-
-  const deployBot = useMutation({
-    mutationFn: async () => {
-      const port = Number.parseInt(deployPort, 10);
-      if (!deployName.trim()) throw new Error(t('bots.deployEnterBotName'));
-      if (!deployStrategy.trim()) throw new Error(t('bots.deploySelectStrategy'));
-      if (!Number.isFinite(port)) throw new Error(t('bots.deployInvalidPort'));
-
-      const response = await api.post<Bot>('/bots/deploy', {
-        name: deployName.trim(),
-        strategy_name: deployStrategy.trim(),
-        host_port: port,
-        dry_run: deployDryRun,
-      });
-
-      return response.data;
-    },
-    onSuccess: (newBot) => {
-      setShowDeployForm(false);
-      setDeployError(null);
-      setDeployName('');
-      queryClient.invalidateQueries({ queryKey: ['bots'] });
-      if (newBot?.id) {
-        setSelectedBot(newBot);
-        setIsLoading(true);
-        setIframeError(null);
-      } else {
-        refetchBots();
-      }
-    },
-    onError: (err: any) => {
-      setDeployError(err?.message || t('bots.deployFailed'));
-    },
-  });
-  
   // Set first bot as default
   useEffect(() => {
     if (bots.length === 0) return;
@@ -164,6 +110,16 @@ export function FreqtradeBots() {
     };
   }, [selectedBot?.id]);
   
+  const handleDeploySuccess = (newBot: Bot) => {
+    if (newBot?.id) {
+      setSelectedBot(newBot);
+      setIsLoading(true);
+      setIframeError(null);
+    } else {
+      refetchBots();
+    }
+  };
+
   return (
     <div className="flex flex-col bg-[#0f1419] h-[calc(100vh-2rem)] lg:h-[calc(100vh-4rem)] overflow-hidden">
       {/* Compact Header */}
@@ -196,10 +152,7 @@ export function FreqtradeBots() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => {
-              setDeployError(null);
-              setShowDeployForm(true);
-            }}
+            onClick={() => setShowDeployForm(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -227,122 +180,12 @@ export function FreqtradeBots() {
         </div>
       </div>
 
-      {showDeployForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('bots.deployNewBot')}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowDeployForm(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('bots.deployBotName')}
-                </label>
-                <input
-                  value={deployName}
-                  onChange={(e) => setDeployName(e.target.value)}
-                  className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="bot2"
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {t('bots.deployNameHint')}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('bots.deployStrategy')}
-                </label>
-                <select
-                  value={deployStrategy}
-                  onChange={(e) => setDeployStrategy(e.target.value)}
-                  disabled={strategiesLoading || !strategies || strategies.length === 0}
-                  className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-50"
-                >
-                  {(strategies || []).map((s) => (
-                    <option key={s.name} value={s.name}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {t('bots.deployHostPort')}
-                  </label>
-                  <input
-                    value={deployPort}
-                    onChange={(e) => setDeployPort(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="8081"
-                  />
-                </div>
-
-                <div className="flex items-end">
-                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 select-none">
-                    <input
-                      type="checkbox"
-                      checked={deployDryRun}
-                      onChange={(e) => setDeployDryRun(e.target.checked)}
-                      className="rounded border-gray-300 dark:border-gray-600"
-                    />
-                    Dry run
-                  </label>
-                </div>
-              </div>
-
-              {deployError && (
-                <div className="text-sm text-red-600 dark:text-red-400">
-                  {deployError}
-                </div>
-              )}
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowDeployForm(false)}
-                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDeployError(null);
-                    deployBot.mutate();
-                  }}
-                  disabled={deployBot.isPending}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {deployBot.isPending ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      {t('bots.deploying')}
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      {t('bots.deploy')}
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Deploy Modal */}
+      <DeployBotModal
+        open={showDeployForm}
+        onClose={() => setShowDeployForm(false)}
+        onSuccess={handleDeploySuccess}
+      />
       
       {/* Iframe Container - Full width/height */}
       <div className="flex-1 relative bg-[#0f1419] overflow-hidden">

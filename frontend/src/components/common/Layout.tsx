@@ -45,6 +45,8 @@ const NAV_GROUPS: { key: string; icon: string; items: { key: string; href: strin
         { key: 'strategyScoring', href: '/scoring', icon: '\u{1F3C6}' },
         { key: 'risks', href: '/risk', icon: '\u{1F6E1}\uFE0F' },
         { key: 'checklist', href: '/checklist', icon: '\u2705' },
+        { key: 'agent', href: '/agent', icon: '\u{1F916}' },
+        { key: 'comparison', href: '/comparison', icon: '\u2696\uFE0F' },
       ],
     },
     {
@@ -52,6 +54,7 @@ const NAV_GROUPS: { key: string; icon: string; items: { key: string; href: strin
       icon: '\u{1F6E0}\uFE0F',
       items: [
         { key: 'strategyLab', href: '/strategy-lab', icon: '\u{1F52C}' },
+        { key: 'createStrategy', href: '/strategy-lab/create', icon: '\u{1F9E0}' },
         { key: 'pairlistOptimizer', href: '/pairlist-selector', icon: '\u{1F3AF}' },
         { key: 'financeData', href: '/financedata', icon: '\u{1F4B0}' },
       ],

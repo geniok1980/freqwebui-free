@@ -4,7 +4,7 @@ Integrates ftmanager workflow engine with dashboard
 """
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, Form, status
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 import asyncio
@@ -1061,6 +1061,336 @@ async def import_results_to_db(
                     logger.warning(f"Could not import {filename}: {e}")
     
     return {"status": "success", "imported": imported}
+
+
+# =====================================================================
+# Strategy recommendations — scoring of backtest/hyperopt candidates
+# (методология оценки: доходность 40%, риск 30%, стабильность 20%, эффективность 10%)
+# =====================================================================
+
+def _clamp(v: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, v))
+
+
+def _linear_score(value: float | None, good: float, bad: float) -> float:
+    """Map value to 0..10: >=good → 10, <=bad → 0, linear between."""
+    if value is None:
+        return 0.0
+    if good == bad:
+        return 10.0 if value >= good else 0.0
+    return _clamp((value - bad) / (good - bad) * 10.0, 0.0, 10.0)
+
+
+def _score_candidate(r: dict) -> dict:
+    profit = r.get("profit_pct")
+    dd = r.get("max_drawdown_pct")
+    sharpe = r.get("sharpe_ratio")
+    winrate = r.get("winrate_pct")
+    pf = r.get("profit_factor")
+    trades = r.get("total_trades")
+
+    s_profit = _linear_score(profit, good=30.0, bad=-30.0)
+    s_dd = _linear_score(-(dd or 0.0), good=-10.0, bad=-50.0)
+    s_sharpe = _linear_score(sharpe, good=2.5, bad=0.0)
+    s_winrate = _linear_score(winrate, good=60.0, bad=30.0)
+    s_pf = _linear_score(pf, good=2.0, bad=1.0)
+    s_trades = _linear_score(trades, good=150.0, bad=10.0)
+
+    score = (
+        s_profit * 0.40
+        + (s_dd * 0.6 + s_sharpe * 0.4) * 0.30
+        + (s_winrate * 0.5 + s_pf * 0.5) * 0.20
+        + s_trades * 0.10
+    )
+    score = round(_clamp(score, 0.0, 10.0), 2)
+
+    reasons: list[str] = []
+    if profit is not None and profit >= 15:
+        reasons.append(f"Доходность {profit:+.1f}%")
+    if dd is not None and dd > 30:
+        reasons.append(f"Просадка {dd:.1f}% — выше допустимой")
+    if sharpe is not None and sharpe >= 1.5:
+        reasons.append(f"Sharpe {sharpe:.2f}")
+    if pf is not None and pf < 1.0:
+        reasons.append("Фактор прибыли < 1.0")
+    if trades is not None and trades < 30:
+        reasons.append("Мало сделок — низкая статистика")
+
+    if dd is not None and dd > 35:
+        recommendation = "no"
+    elif score >= 7.0:
+        recommendation = "go"
+    elif score >= 5.0:
+        recommendation = "watch"
+    else:
+        recommendation = "no"
+
+    return {
+        **r,
+        "score": score,
+        "percent": round(score * 10.0, 1),
+        "recommendation": recommendation,
+        "reasons": reasons,
+    }
+
+
+@router.get("/recommendations")
+async def get_recommendations(
+    session: AsyncSession = Depends(get_db),
+    _: object = Depends(require_operator),
+) -> dict:
+    """Rank strategy candidates from backtests + hyperopt runs.
+
+    Returns the latest result per strategy (backtest if present, else hyperopt run),
+    scored 0-10 with a recommendation: go / watch / no.
+    """
+    # Latest backtest per strategy
+    backtest_rows = (
+        await session.execute(
+            text(
+                """
+                SELECT DISTINCT ON (strategy_name)
+                    strategy_name,
+                    timeframe,
+                    timerange,
+                    profit_pct,
+                    winrate_pct,
+                    max_drawdown_pct,
+                    profit_factor,
+                    sharpe_ratio,
+                    total_trades,
+                    created_at
+                FROM backtest_results
+                WHERE strategy_name IS NOT NULL
+                ORDER BY strategy_name, created_at DESC
+                """
+            )
+        )
+    ).mappings().all()
+
+    # Latest completed optimization run per strategy (hyperopt / backtest via workflow)
+    run_rows = (
+        await session.execute(
+            text(
+                """
+                SELECT DISTINCT ON (strategy_name)
+                    strategy_name,
+                    run_type AS process_type,
+                    profit_pct,
+                    max_drawdown_pct,
+                    winrate_pct,
+                    profit_pct AS result_profit_pct,
+                    max_drawdown_pct AS result_drawdown,
+                    created_at
+                FROM optimization_runs
+                WHERE status = 'completed' AND strategy_name IS NOT NULL
+                ORDER BY strategy_name, created_at DESC
+                """
+            )
+        )
+    ).mappings().all()
+
+    merged: dict[str, dict] = {}
+    for row in backtest_rows:
+        merged[row["strategy_name"]] = dict(row)
+    for row in run_rows:
+        name = row["strategy_name"]
+        if name not in merged or (
+            row.get("created_at") and merged[name].get("created_at") and row["created_at"] > merged[name]["created_at"]
+        ):
+            merged[name] = dict(row)
+
+    candidates = [_score_candidate(r) for r in merged.values()]
+    candidates.sort(key=lambda c: c["score"], reverse=True)
+
+    return {
+        "status": "success",
+        "data": candidates,
+    }
+
+
+# =====================================================================
+# AI strategy generator — конструктор стратегий через ИИ-агента
+# =====================================================================
+
+_AI_SYSTEM_PROMPT = """Ты — экспертный разработчик торговых стратегий для Freqtrade.
+Напиши полный Python-файл стратегии, совместимый с Freqtrade (класс наследует IStrategy).
+Жёсткие требования:
+1. Файл начинается с `from freqtrade.strategy import IStrategy` и импорта pandas_ta (или ta-lib, если он нужен) и numpy при необходимости.
+2. Один класс `class <Name>(IStrategy)` с атрибутами: timeframe, minimal_roi, stoploss, trailing_stop, process_only_new_candles, use_exit_signal, can_short (если уместно).
+3. Метод `populate_indicators(self, dataframe, metadata)` — расчёт индикаторов.
+4. Метод `populate_entry_trend(self, dataframe, metadata)` — условия входа, возвращает dataframe с колонкой 'enter_long' (и 'enter_short' если can_short).
+5. Метод `populate_exit_trend(self, dataframe, metadata)` — условия выхода, колонка 'exit_long'.
+6. Не используй внешние данные и файлы. Только индикаторы pandas_ta: ema, sma, rsi, macd, bollinger, atr, adx, stoch, cci, vwap и т.п.
+7. Код должен быть самодостаточным, без синтаксических ошибок, без комментариев-заглушек «TODO».
+8. Логика — понятная и обоснованная: фильтры тренда + фильтры волатильности/объёма, защита от ложных сигналов.
+9. Используй параметры с разумными значениями по умолчанию (можно через class-атрибуты BUY_PARAMS/SELL_PARAMS для гиперопта, но не обязательно).
+10. Имя класса — только латинские буквы, цифры и подчёркивание (без кириллицы и пробелов).
+11. Верни ТОЛЬКО код Python без markdown-разметки, без пояснений."""
+
+
+_TRANSLIT = {
+    "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "e",
+    "ж": "zh", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m",
+    "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u",
+    "ф": "f", "х": "h", "ц": "ts", "ч": "ch", "ш": "sh", "щ": "sch",
+    "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya",
+}
+
+
+def _transliterate(text: str) -> str:
+    return "".join(_TRANSLIT.get(ch, ch) for ch in text.lower())
+
+
+def _class_name_from_description(description: str) -> str:
+    words = re.findall(r"[A-Za-zА-Яа-я0-9]+", description)
+    meaningful = [w for w in words if w.lower() not in {"и", "с", "в", "на", "для", "по", "сделай", "создай", "стратегию", "стратегия", "бот", "бота", "напиши", "нужна", "хочу", "простая", "новую"} and len(w) > 1]
+    if not meaningful:
+        return "AIGeneratedStrategy"
+    base = "".join(_transliterate(w).capitalize() for w in meaningful[:3])
+    base = re.sub(r"[^A-Za-z0-9_]", "", base)
+    if not base:
+        return "AIGeneratedStrategy"
+    return base[:40] or "AIGeneratedStrategy"
+
+
+def _sanitize_ai_name(raw: str) -> str:
+    name = re.sub(r"[^A-Za-z0-9_]", "", raw or "")
+    if not name:
+        return "AIGeneratedStrategy"
+    if name[0].isdigit():
+        name = "S" + name
+    return name[:40]
+
+
+async def _call_openai(prompt: str, system: str, max_tokens: int = 4000) -> str:
+    import httpx
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="OPENAI_API_KEY не настроен на сервере",
+        )
+    model = os.getenv("OPENAI_MODEL", "gpt-4.1-nano")
+
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.4,
+        "max_tokens": max_tokens,
+    }
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        resp = await client.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json=payload,
+        )
+    if resp.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"AI-сервис ответил {resp.status_code}: {resp.text[:300]}",
+        )
+    data = resp.json()
+    try:
+        return data["choices"][0]["message"]["content"].strip()
+    except (KeyError, IndexError, TypeError):
+        raise HTTPException(status_code=502, detail="AI-сервис вернул пустой ответ")
+
+
+def _extract_python_code(text: str) -> str:
+    """Strip markdown fences if the model wrapped the code."""
+    m = re.search(r"```(?:python)?\s*(.*?)```", text, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+    return text.strip()
+
+
+def _validate_strategy_code(code: str, class_name: str) -> tuple[str, Optional[str]]:
+    """Validate syntax + IStrategy class. Returns (class_name, error|None)."""
+    import ast
+
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as e:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Сгенерированный код содержит ошибку синтаксиса: {e}",
+        )
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            bases = [getattr(b, "id", "") for b in node.bases]
+            if "IStrategy" in bases:
+                return node.name, None
+    # fallback: class name match
+    if class_name:
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == class_name:
+                return node.name, None
+    raise HTTPException(
+        status_code=422,
+        detail="Сгенерированный код не содержит класс, наследующий IStrategy",
+    )
+
+
+@router.post("/ai/generate")
+async def ai_generate_strategy(
+    request: dict,
+    _: object = Depends(require_operator),
+) -> dict:
+    """Generate a new strategy file via AI agent (OpenAI chat completions).
+
+    Body: {"description": "...", "name": "optional"}
+    """
+    description = (request.get("description") or "").strip()
+    if len(description) < 10:
+        raise HTTPException(status_code=422, detail="Опишите идею стратегии подробнее (минимум 10 символов)")
+
+    raw_name = (request.get("name") or "").strip()
+    class_name = _sanitize_ai_name(raw_name) if raw_name else _class_name_from_description(description)
+
+    prompt = (
+        "Создай торговую стратегию для Freqtrade по следующему описанию:\n\n"
+        f"{description}\n\n"
+        f"Название класса стратегии: {class_name}\n"
+        "Класс должен называться именно так, как указано."
+    )
+
+    code = await _call_openai(prompt, _AI_SYSTEM_PROMPT)
+    code = _extract_python_code(code)
+    actual_class, _ = _validate_strategy_code(code, class_name)
+
+    strategies_root = _get_strategies_root()
+    dest_dir = os.path.join(strategies_root, "AI")
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, f"{actual_class}.py")
+
+    if os.path.exists(dest_path):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Стратегия {actual_class} уже существует. Переименуйте или удалите её.",
+        )
+
+    with open(dest_path, "w", encoding="utf-8") as f:
+        f.write(code)
+        if not code.endswith("\n"):
+            f.write("\n")
+
+    logger.info(f"AI-generated strategy saved: {dest_path}")
+
+    return {
+        "status": "success",
+        "data": {
+            "strategy_name": actual_class,
+            "class_name": actual_class,
+            "family": "AI",
+            "path": dest_path,
+            "preview": code[:3000],
+        },
+    }
 
 
 # WebSocket for real-time updates
