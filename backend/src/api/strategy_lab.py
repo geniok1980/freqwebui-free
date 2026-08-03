@@ -1272,42 +1272,37 @@ def _sanitize_ai_name(raw: str) -> str:
     return name[:40]
 
 
-async def _call_openai(prompt: str, system: str, max_tokens: int = 4000) -> str:
+async def _call_mastra(agent_id: str, prompt: str, max_tokens: int = 4000) -> str:
+    """Call a Mastra agent via its REST API (single user message)."""
     import httpx
 
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="OPENAI_API_KEY не настроен на сервере",
-        )
-    model = os.getenv("OPENAI_MODEL", "gpt-4.1-nano")
-
+    mastra_url = os.getenv("MASTRA_URL", "http://mastra:4111").rstrip("/")
     payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": prompt},
-        ],
+        "messages": [{"role": "user", "content": prompt}],
+        "maxTokens": max_tokens,
         "temperature": 0.4,
-        "max_tokens": max_tokens,
     }
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        resp = await client.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}"},
-            json=payload,
+    try:
+        async with httpx.AsyncClient(timeout=180.0) as client:
+            resp = await client.post(
+                f"{mastra_url}/api/agents/{agent_id}/generate",
+                json=payload,
+            )
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Не удалось связаться с mastra-агентом: {e}",
         )
     if resp.status_code != 200:
         raise HTTPException(
             status_code=502,
-            detail=f"AI-сервис ответил {resp.status_code}: {resp.text[:300]}",
+            detail=f"Mastra-агент ответил {resp.status_code}: {resp.text[:300]}",
         )
     data = resp.json()
-    try:
-        return data["choices"][0]["message"]["content"].strip()
-    except (KeyError, IndexError, TypeError):
-        raise HTTPException(status_code=502, detail="AI-сервис вернул пустой ответ")
+    text = data.get("text") or ""
+    if not text.strip():
+        raise HTTPException(status_code=502, detail="Mastra-агент вернул пустой ответ")
+    return text.strip()
 
 
 def _extract_python_code(text: str) -> str:
@@ -1368,7 +1363,7 @@ async def ai_generate_strategy(
         "Класс должен называться именно так, как указано."
     )
 
-    code = await _call_openai(prompt, _AI_SYSTEM_PROMPT)
+    code = await _call_mastra("strategyGenerator", prompt)
     code = _extract_python_code(code)
     actual_class, _ = _validate_strategy_code(code, class_name)
 
@@ -1440,7 +1435,7 @@ async def ai_run_analysis(
         "Ответь на русском, кратко и практично, четырьмя абзацами: Итог, Сильные стороны, Риски, Следующий шаг.\n"
         "Не выдумывай отсутствующие метрики.\n\n" + summary
     )
-    analysis = await _call_openai(prompt, "Ты — аналитик торговых стратегий Freqtrade.", max_tokens=800)
+    analysis = await _call_mastra("tradingAgent", prompt, max_tokens=800)
     return {
         "status": "success",
         "data": {
@@ -1480,7 +1475,7 @@ async def ai_strategy_analysis(
         "Обрати внимание на логику входов/выходов, стоп-лосс, риск переобучения.\n\n"
         f"Код:\n{preview}"
     )
-    analysis = await _call_openai(prompt, "Ты — эксперт по стратегиям Freqtrade.", max_tokens=800)
+    analysis = await _call_mastra("tradingAgent", prompt, max_tokens=800)
     return {
         "status": "success",
         "data": {
@@ -1535,7 +1530,7 @@ async def ai_hyperopt_recommendations(
         "Ответь на русском, кратко: какие параметры выбрать, на что обратить внимание, есть ли признаки переобучения.\n\n"
         f"Стратегия: {strategy_name}\n{summary}"
     )
-    analysis = await _call_openai(prompt, "Ты — эксперт по гипероптимизации Freqtrade.", max_tokens=800)
+    analysis = await _call_mastra("tradingAgent", prompt, max_tokens=800)
     return {
         "status": "success",
         "data": {

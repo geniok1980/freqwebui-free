@@ -1,12 +1,14 @@
 import { Mastra } from '../types/mastra-core';
 
 import { tradingAgent } from './agents/trading-agent';
+import { strategyGeneratorAgent } from './agents/strategy-generator-agent';
 import { backtestAnalysisWorkflow } from './workflows/backtest-analysis-workflow';
 import { marketAnalysisWorkflow } from './workflows/market-analysis-workflow';
 
 export const mastra = new Mastra({
   agents: {
     tradingAgent,
+    strategyGenerator: strategyGeneratorAgent,
   },
   workflows: {
     backtestAnalysisWorkflow,
