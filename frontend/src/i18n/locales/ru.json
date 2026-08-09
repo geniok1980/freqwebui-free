@@ -57,7 +57,8 @@
     "monitoring": "Мониторинг",
     "strategyVersions": "Версии стратегий",
     "opportunities": "Сканер возможностей",
-    "quickTrade": "Быстрая сделка"
+    "quickTrade": "Быстрая сделка",
+    "apiTokens": "API-токены"
   },
   "common": {
     "save": "Сохранить",
@@ -1318,5 +1319,35 @@
     "tradeId": "Сделка",
     "amount": "Объём",
     "openRate": "Цена входа"
+  },
+  "apiTokens": {
+    "title": "API-токены",
+    "subtitle": "Scoped-токены для людей и ИИ-агентов: read — только чтение, write — управление ботами, control — всё, включая force-операции.",
+    "create": "Создать токен",
+    "createBtn": "Создать",
+    "creating": "Создание…",
+    "name": "Название",
+    "namePlaceholder": "Например: Hermes agent",
+    "scopes": "Права",
+    "scopeHint": "Доступ",
+    "scopes.readDesc": "только чтение (пары, метрики, статус)",
+    "scopes.writeDesc": "чтение + управление ботами (start/stop/reload, конфиг)",
+    "scopes.controlDesc": "всё, включая force-операции (quick trade, закрытие сделок)",
+    "tokenCreated": "Токен создан",
+    "copyWarning": "Скопируйте токен сейчас — он больше не будет показан. Хранится только его хэш.",
+    "gotIt": "Понятно",
+    "list": "Токены",
+    "loading": "Загрузка…",
+    "loadFailed": "Не удалось загрузить токены",
+    "empty": "Токенов нет. Создайте первый — например, read-only для ИИ-агента.",
+    "revoke": "Отозвать",
+    "revoked": "Токен отозван",
+    "revokedBadge": "отозван",
+    "revokeFailed": "Не удалось отозвать токен",
+    "createFailed": "Не удалось создать токен",
+    "enterName": "Укажите название токена",
+    "createdBy": "Создал",
+    "createdAt": "Создан",
+    "lastUsed": "Последнее использование"
   }
 }

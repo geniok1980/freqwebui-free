@@ -244,6 +244,15 @@ app.include_router(
     dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
 )
 
+# Include API tokens routes (scoped-токены)
+from src.api.api_tokens import router as api_tokens_router
+app.include_router(
+    api_tokens_router,
+    prefix="/api/v1",
+    tags=["auth"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+
 # Include FinanceData routes (AlexFinanceData integration)
 from src.api.finance import router as finance_router
 app.include_router(

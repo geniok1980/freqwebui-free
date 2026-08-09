@@ -84,6 +84,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 from src.models.bot import Bot  # noqa: E402, F401
 from src.models.metrics import BotMetrics  # noqa: E402, F401
 from src.models.user import User  # noqa: E402, F401
+from src.models.api_token import ApiToken  # noqa: E402, F401
 from src.models.alert import Alert  # noqa: E402, F401
 from src.models.checklist import LaunchChecklist  # noqa: E402, F401
 from src.models.journal import TradeJournal  # noqa: E402, F401

@@ -57,7 +57,8 @@
     "monitoring": "Monitoring",
     "strategyVersions": "Strategy Versions",
     "opportunities": "Opportunity Scanner",
-    "quickTrade": "Quick Trade"
+    "quickTrade": "Quick Trade",
+    "apiTokens": "API Tokens"
   },
   "common": {
     "save": "Save",
@@ -1316,5 +1317,35 @@
     "tradeId": "Trade",
     "amount": "Amount",
     "openRate": "Open rate"
+  },
+  "apiTokens": {
+    "title": "API Tokens",
+    "subtitle": "Scoped tokens for humans and AI agents: read-only, write (bot control), control (everything incl. force ops).",
+    "create": "Create token",
+    "createBtn": "Create",
+    "creating": "Creating…",
+    "name": "Name",
+    "namePlaceholder": "e.g. Hermes agent",
+    "scopes": "Scopes",
+    "scopeHint": "Access",
+    "scopes.readDesc": "read-only (pairs, metrics, status)",
+    "scopes.writeDesc": "read + bot control (start/stop/reload, config)",
+    "scopes.controlDesc": "everything incl. force ops (quick trade, close positions)",
+    "tokenCreated": "Token created",
+    "copyWarning": "Copy the token now — it will not be shown again. Only its hash is stored.",
+    "gotIt": "Got it",
+    "list": "Tokens",
+    "loading": "Loading…",
+    "loadFailed": "Failed to load tokens",
+    "empty": "No tokens yet. Create the first one — e.g. read-only for an AI agent.",
+    "revoke": "Revoke",
+    "revoked": "Token revoked",
+    "revokedBadge": "revoked",
+    "revokeFailed": "Failed to revoke token",
+    "createFailed": "Failed to create token",
+    "enterName": "Enter a token name",
+    "createdBy": "Created by",
+    "createdAt": "Created",
+    "lastUsed": "Last used"
   }
 }

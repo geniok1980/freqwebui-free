@@ -23,6 +23,7 @@ import { Historic } from './pages/Historic';
 import { Backtest } from './pages/Backtest';
 import { Opportunities } from './pages/Opportunities';
 import { QuickTrade } from './pages/QuickTrade';
+import { ApiTokens } from './pages/ApiTokens';
 import { StrategyLab } from './pages/StrategyLab';
 import { StrategyList } from './pages/StrategyLab/StrategyList';
 import { StrategyVersions } from './pages/StrategyLab/StrategyVersions';
@@ -232,6 +233,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <QuickTrade />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings/api-tokens"
+            element={
+              <ProtectedRoute>
+                <ApiTokens />
               </ProtectedRoute>
             }
           />

@@ -68,6 +68,7 @@ const NAV_GROUPS: { key: string; icon: string; items: { key: string; href: strin
       items: [
         { key: 'pairlistOptimizer', href: '/pairlist-selector', icon: '\u{1F3AF}' },
         { key: 'financeData', href: '/financedata', icon: '\u{1F4B0}' },
+        { key: 'apiTokens', href: '/settings/api-tokens', icon: '\u{1F511}' },
         { key: 'settings', href: '/settings', icon: '\u2699\uFE0F' },
       ],
     },

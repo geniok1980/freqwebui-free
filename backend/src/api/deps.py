@@ -1,6 +1,9 @@
 """API dependencies for authentication and authorization."""
 
+import hashlib
+from datetime import datetime, timezone
 from typing import Annotated
+from uuid import uuid4
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -9,12 +12,52 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import get_db
 from src.models.user import User, UserRole
+from src.models.api_token import ApiToken, TOKEN_PREFIX
 from src.models.tenant import Subscription, SubscriptionStatus, Tenant, TenantMembership
 from src.config import settings
-from src.tenancy import TenantContext, apply_tenant_search_path, set_tenant_context
+from src.tenancy import (
+    TenantContext,
+    apply_tenant_search_path,
+    get_current_tenant_id,
+    get_current_tenant_schema,
+    get_current_tenant_slug,
+    set_tenant_context,
+)
 from src.utils.security import TokenData, decode_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/token")
+
+
+async def _resolve_api_token(token: str, db: AsyncSession) -> User | None:
+    """Аутентификация по scoped API-токену (freqdash_...).
+
+    Возвращает виртуального User с ролью по скоупам токена, либо None.
+    """
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    result = await db.execute(select(ApiToken).where(ApiToken.token_hash == token_hash))
+    api_token = result.scalar_one_or_none()
+    if api_token is None or api_token.revoked:
+        return None
+
+    if api_token.tenant_id and api_token.tenant_slug and api_token.tenant_schema:
+        set_tenant_context(
+            tenant_id=api_token.tenant_id,
+            slug=api_token.tenant_slug,
+            schema_name=api_token.tenant_schema,
+        )
+        await apply_tenant_search_path(db, api_token.tenant_schema)
+
+    api_token.last_used_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    db.add(api_token)
+    await db.commit()
+
+    return User(
+        id=str(uuid4()),
+        username=f"token:{api_token.name}",
+        password_hash="",
+        role=UserRole(api_token.role_value),
+        preferences={},
+    )
 
 
 async def get_current_user(
@@ -38,6 +81,13 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    # Scoped API-токен (freqdash_...): роль по скоупам, без JWT
+    if token.startswith(TOKEN_PREFIX):
+        api_user = await _resolve_api_token(token, db)
+        if api_user is None:
+            raise credentials_exception
+        return api_user
 
     payload = decode_token(token)
     if payload is None:
@@ -139,6 +189,23 @@ async def get_tenant_context(
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> TenantContext:
+    # Scoped API-токен: контекст уже установлен в _resolve_api_token
+    if token.startswith(TOKEN_PREFIX):
+        tenant_id = get_current_tenant_id()
+        if not tenant_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tenant context required")
+        membership_role = "readonly"
+        if current_user.role.value == "admin":
+            membership_role = "admin"
+        elif current_user.role.value == "operator":
+            membership_role = "operator"
+        return TenantContext(
+            tenant_id=tenant_id,
+            slug=get_current_tenant_slug() or "default",
+            schema_name=get_current_tenant_schema() or "public",
+            membership_role=membership_role,
+        )
+
     payload = decode_token(token)
     token_data = TokenData.from_payload(payload or {})
     if token_data is None or not token_data.tenant_id:
