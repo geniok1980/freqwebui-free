@@ -54,6 +54,15 @@ class BotConfigUpdateRequest(BaseModel):
     config: dict
 
 
+class QuickTradeRequest(BaseModel):
+    """Быстрая сделка: принудительный вход в позицию (forcebuy)."""
+    pair: str
+    stake_amount: Optional[float] = None
+    price: Optional[float] = None  # лимитная цена (опц.)
+    take_profit_pct: Optional[float] = None  # ориентир TP (для расчёта цены)
+    stop_loss_pct: Optional[float] = None  # ориентир SL (для расчёта цены)
+
+
 class BotDeployRequest(BaseModel):
     name: str
     strategy_name: str
@@ -1579,3 +1588,101 @@ async def force_exit_all(
     cache.delete(bot_health_key(bot_id))
 
     return MessageResponse(message=f"Force exit initiated for all trades on '{bot.name}'")
+
+
+@router.post("/{bot_id}/forcebuy", response_model=MessageResponse)
+async def force_buy_quick_trade(
+    bot_id: str,
+    payload: QuickTradeRequest,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> MessageResponse:
+    """Быстрая сделка: принудительный вход в позицию (forcebuy).
+
+    TP/SL % — расчётные ориентиры, управление стопами остаётся за стратегией.
+    Только для админов.
+    """
+    if current_user.role.value != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can open quick trades",
+        )
+
+    result = await db.execute(select(Bot).where(Bot.id == bot_id))
+    bot = result.scalar_one_or_none()
+    if bot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bot not found")
+
+    if not bot.is_api_available:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bot API is not available",
+        )
+
+    connector, _ = await connector_manager.get_connector(bot, session=db)
+    from src.services.connectors.api import APIConnector
+    if not isinstance(connector, APIConnector):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bot control requires API connection",
+        )
+
+    api_result = await connector.force_buy(
+        pair=payload.pair,
+        price=payload.price,
+        stake_amount=payload.stake_amount,
+    )
+    if not api_result.success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to force buy: {api_result.error}",
+        )
+
+    cache.delete(bot_metrics_key(bot_id))
+    cache.delete(bot_health_key(bot_id))
+    return MessageResponse(message=f"Buy order placed for {payload.pair} on bot '{bot.name}'")
+
+
+@router.post("/{bot_id}/forceexit-trade", response_model=MessageResponse)
+async def force_exit_single_trade(
+    bot_id: str,
+    trade_id: int,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> MessageResponse:
+    """Выйти из конкретной сделки бота по trade_id."""
+    if not current_user.can_force_exit():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can force exit trades",
+        )
+
+    result = await db.execute(select(Bot).where(Bot.id == bot_id))
+    bot = result.scalar_one_or_none()
+    if bot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bot not found")
+
+    if not bot.is_api_available:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bot API is not available",
+        )
+
+    connector, _ = await connector_manager.get_connector(bot, session=db)
+    from src.services.connectors.api import APIConnector
+    if not isinstance(connector, APIConnector):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bot control requires API connection",
+        )
+
+    api_result = await connector.force_exit_trade(trade_id=trade_id)
+    if not api_result.success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to force exit trade: {api_result.error}",
+        )
+
+    cache.delete(bot_metrics_key(bot_id))
+    cache.delete(bot_health_key(bot_id))
+    return MessageResponse(message=f"Force exit requested for trade #{trade_id} on bot '{bot.name}'")

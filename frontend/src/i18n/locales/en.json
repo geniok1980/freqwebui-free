@@ -56,7 +56,8 @@
     "strategies": "Strategies",
     "monitoring": "Monitoring",
     "strategyVersions": "Strategy Versions",
-    "opportunities": "Opportunity Scanner"
+    "opportunities": "Opportunity Scanner",
+    "quickTrade": "Quick Trade"
   },
   "common": {
     "save": "Save",
@@ -1282,5 +1283,38 @@
     "loading": "Scanning market…",
     "loadFailed": "Failed to load data",
     "empty": "No opportunities found. Click \"Rescan\" or try later."
+  },
+  "quickTrade": {
+    "title": "Quick Trade",
+    "subtitle": "Force enter (forcebuy) and exit positions in one click.",
+    "openPosition": "Open position",
+    "bot": "Bot",
+    "chooseBot": "Choose a bot…",
+    "pair": "Pair",
+    "stake": "Stake amount",
+    "stakePlaceholder": "e.g. 100",
+    "price": "Price (limit)",
+    "pricePlaceholder": "Empty = market",
+    "tp": "Take profit, %",
+    "sl": "Stop loss, %",
+    "tpPrice": "TP price",
+    "slPrice": "SL price",
+    "tpSlHint": "TP/SL are reference only: real stops are managed by the bot strategy.",
+    "placing": "Placing order…",
+    "buyOk": "Buy order placed",
+    "buyFailed": "Failed to open position",
+    "enterPair": "Enter a pair",
+    "openTrades": "Open trades",
+    "closeAll": "Close all",
+    "close": "Close",
+    "closeOk": "Close request sent",
+    "closeFailed": "Failed to close trade",
+    "exitAllOk": "Close-all request sent",
+    "exitAllFailed": "Failed to close all trades",
+    "chooseBotFirst": "Choose a bot to see open trades.",
+    "noOpenTrades": "No open trades.",
+    "tradeId": "Trade",
+    "amount": "Amount",
+    "openRate": "Open rate"
   }
 }

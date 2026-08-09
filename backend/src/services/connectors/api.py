@@ -446,6 +446,30 @@ class APIConnector(BaseConnector):
             json={"tradeid": trade_id},
         )
 
+    async def force_buy(
+        self,
+        pair: str,
+        price: float | None = None,
+        stake_amount: float | None = None,
+        ordertype: str | None = None,
+    ) -> ConnectorResult:
+        """Force enter a position (quick trade).
+
+        Args:
+            pair: Trading pair, e.g. BTC/USDT.
+            price: Optional limit price.
+            stake_amount: Optional stake amount (defaults to bot's stake_amount).
+            ordertype: Optional order type (limit/market).
+        """
+        payload: dict = {"pair": pair}
+        if price is not None:
+            payload["price"] = price
+        if stake_amount is not None:
+            payload["stake_amount"] = stake_amount
+        if ordertype:
+            payload["ordertype"] = ordertype
+        return await self._request("POST", "/api/v1/forcebuy", json=payload)
+
     async def get_locks(self) -> ConnectorResult:
         """Get current pair locks."""
         return await self._request("GET", "/api/v1/locks")

@@ -22,6 +22,7 @@ import { Discovery } from './pages/Discovery';
 import { Historic } from './pages/Historic';
 import { Backtest } from './pages/Backtest';
 import { Opportunities } from './pages/Opportunities';
+import { QuickTrade } from './pages/QuickTrade';
 import { StrategyLab } from './pages/StrategyLab';
 import { StrategyList } from './pages/StrategyLab/StrategyList';
 import { StrategyVersions } from './pages/StrategyLab/StrategyVersions';
@@ -223,6 +224,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Opportunities />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quick-trade"
+            element={
+              <ProtectedRoute>
+                <QuickTrade />
               </ProtectedRoute>
             }
           />
