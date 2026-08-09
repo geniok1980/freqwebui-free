@@ -16,6 +16,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
+
+logger = logging.getLogger(__name__)
 
 from src.api.deps import CurrentUser
 from src.models import get_db
@@ -474,6 +477,20 @@ async def deploy_docker_bot(
     strategy_dst = os.path.join(backend_strategies_dir, os.path.basename(strategy_file))
     with open(strategy_dst, "w", encoding="utf-8") as f:
         f.write(source)
+
+    # История версий: фиксируем исходник при деплое
+    try:
+        from src.services.strategy_versions import record_strategy_version
+        await record_strategy_version(
+            db,
+            request.strategy_name,
+            source,
+            bot_id=bot_name,
+            created_by=getattr(current_user, "username", None),
+            comment=f"Деплой бота {bot_name}",
+        )
+    except Exception as e:
+        logger.warning("Failed to record strategy version: %s", e)
 
     host_bot_dir = f"{host_user_data_root}/{bot_name}"
 

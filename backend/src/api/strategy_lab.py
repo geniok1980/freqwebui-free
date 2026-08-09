@@ -161,7 +161,8 @@ def _sanitize_strategy_family(family: str | None) -> str:
 async def upload_strategy(
     file: UploadFile = File(...),
     family: str | None = Form(None),
-    _: object = Depends(require_operator),
+    current_user: object = Depends(require_operator),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     strategies_root = _get_strategies_root()
     filename = _sanitize_strategy_filename(file.filename)
@@ -182,6 +183,19 @@ async def upload_strategy(
             f.write(data)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to save file: {e}")
+
+    # История версий: фиксируем загруженную стратегию
+    try:
+        from src.services.strategy_versions import record_strategy_version
+        await record_strategy_version(
+            db,
+            filename[:-3],
+            data.decode("utf-8", errors="replace"),
+            created_by=getattr(current_user, "username", None),
+            comment=f"Загрузка через UI (family: {family_dir})",
+        )
+    except Exception as e:
+        logger.warning("Failed to record strategy version: %s", e)
 
     return {
         "status": "success",

@@ -33,6 +33,7 @@ const NAV_GROUPS: { key: string; icon: string; items: { key: string; href: strin
       items: [
         { key: 'strategyLab', href: '/strategy-lab', icon: '\u{1F52C}' },
         { key: 'createStrategy', href: '/strategy-lab/create', icon: '\u2728' },
+        { key: 'strategyVersions', href: '/strategy-lab/versions', icon: '\u{1F4BE}' },
         { key: 'backtestResults', href: '/backtest', icon: '\u{1F4C9}' },
         { key: 'strategyScoring', href: '/scoring', icon: '\u{1F3C6}' },
         { key: 'comparison', href: '/comparison', icon: '\u2696\uFE0F' },

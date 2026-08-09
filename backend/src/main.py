@@ -226,6 +226,15 @@ app.include_router(
     dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
 )
 
+# Include Strategy Versions routes (история версий стратегий + откат)
+from src.api.strategy_versions import router as strategy_versions_router
+app.include_router(
+    strategy_versions_router,
+    prefix="/api/v1",
+    tags=["strategy-versions"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+
 # Include FinanceData routes (AlexFinanceData integration)
 from src.api.finance import router as finance_router
 app.include_router(

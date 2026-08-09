@@ -23,6 +23,7 @@ import { Historic } from './pages/Historic';
 import { Backtest } from './pages/Backtest';
 import { StrategyLab } from './pages/StrategyLab';
 import { StrategyList } from './pages/StrategyLab/StrategyList';
+import { StrategyVersions } from './pages/StrategyLab/StrategyVersions';
 import { StrategyCreator } from './pages/StrategyLab/StrategyCreator';
 import { WorkflowControl } from './pages/StrategyLab/WorkflowControl';
 import { HyperoptMonitor } from './pages/StrategyLab/HyperoptMonitor';
@@ -239,6 +240,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <StrategyList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/strategy-lab/versions"
+            element={
+              <ProtectedRoute>
+                <StrategyVersions />
               </ProtectedRoute>
             }
           />

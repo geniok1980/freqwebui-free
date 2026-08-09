@@ -112,6 +112,16 @@ export interface OptimizationRun {
   config?: Record<string, any>;
 }
 
+export interface StrategyVersion {
+  id: number;
+  strategy_name: string;
+  version: number;
+  bot_id?: string | null;
+  created_by?: string | null;
+  comment?: string | null;
+  created_at?: string;
+}
+
 // === API Methods ===
 
 export const strategyLabApi = {
@@ -211,5 +221,36 @@ export const strategyLabApi = {
       console.error('Failed to fetch optimization runs:', error);
       return [];
     }
+  },
+
+  // === Strategy Versions (история версий стратегий + откат) ===
+
+  async getStrategyVersions(strategyName?: string): Promise<StrategyVersion[]> {
+    try {
+      const params = strategyName ? `?strategy_name=${encodeURIComponent(strategyName)}` : '';
+      const data = await apiGet('/strategy-versions' + params);
+      return data?.data || data || [];
+    } catch (error) {
+      console.error('Failed to fetch strategy versions:', error);
+      return [];
+    }
+  },
+
+  async getStrategyVersionSource(versionId: number): Promise<{ meta: any; source: string } | null> {
+    try {
+      const data = await apiGet(`/strategy-versions/${versionId}/source`);
+      return data?.data || null;
+    } catch (error) {
+      console.error('Failed to fetch version source:', error);
+      return null;
+    }
+  },
+
+  async recordStrategyVersion(strategyName: string, comment: string): Promise<void> {
+    await apiPost('/strategy-versions', { strategy_name: strategyName, comment });
+  },
+
+  async restoreStrategyVersion(versionId: number): Promise<any> {
+    return await apiPost(`/strategy-versions/${versionId}/restore`);
   },
 };
