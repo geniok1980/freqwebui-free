@@ -283,7 +283,7 @@ async def get_agent_status():
             )
             paper_trading = paper_row['value'] == 'true' if paper_row else True
             
-            today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            today = datetime.now(timezone.utc).replace(tzinfo=None, hour=0, minute=0, second=0, microsecond=0)
             trades_row = await conn.fetchrow("""
                 SELECT COUNT(*) FROM agent_trades WHERE timestamp >= $1
             """, today)
