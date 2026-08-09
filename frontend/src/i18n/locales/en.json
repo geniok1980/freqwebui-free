@@ -55,7 +55,8 @@
     "comparison": "Compare B/D/L",
     "strategies": "Strategies",
     "monitoring": "Monitoring",
-    "strategyVersions": "Strategy Versions"
+    "strategyVersions": "Strategy Versions",
+    "opportunities": "Opportunity Scanner"
   },
   "common": {
     "save": "Save",
@@ -1257,5 +1258,29 @@
     "loading": "Loading versions…",
     "loadFailed": "Failed to load versions",
     "empty": "No versions yet. Versions are recorded automatically on bot deploy or strategy upload."
+  },
+  "opportunities": {
+    "title": "Opportunity Scanner",
+    "subtitle": "Scanned coins: {{scanned}}. Opportunities found: {{found}}",
+    "rescan": "Rescan",
+    "scanning": "Scanning…",
+    "bot": "Bot for adding pairs",
+    "chooseBot": "Choose a bot…",
+    "hint": "Choose a bot, then click \"+ to pairs\" on a coin — the pair is added to pair_whitelist and the bot reloads.",
+    "all": "All",
+    "momentum": "Momentum",
+    "oversoldBounce": "Oversold bounce",
+    "breakout": "Breakout",
+    "trendUp": "Trend up",
+    "chg7d": "7 days",
+    "volume": "Volume (x avg)",
+    "above": "above",
+    "below": "below",
+    "addPair": "+ to pairs",
+    "noConfig": "Failed to read bot config",
+    "addFailed": "Failed to add pair",
+    "loading": "Scanning market…",
+    "loadFailed": "Failed to load data",
+    "empty": "No opportunities found. Click \"Rescan\" or try later."
   }
 }

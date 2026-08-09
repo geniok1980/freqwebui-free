@@ -45,6 +45,7 @@ const NAV_GROUPS: { key: string; icon: string; items: { key: string; href: strin
       icon: '\u{1F916}',
       items: [
         { key: 'botsFreqtrade', href: '/freqtrade-bots', icon: '\u{1F5A5}\uFE0F' },
+        { key: 'opportunities', href: '/opportunities', icon: '\u{1F50D}' },
         { key: 'botHistory', href: '/historic', icon: '\u{1F4C8}' },
         { key: 'discovery', href: '/discovery', icon: '\u{1F50D}' },
       ],

@@ -21,6 +21,7 @@ import { Alerts } from './pages/Alerts';
 import { Discovery } from './pages/Discovery';
 import { Historic } from './pages/Historic';
 import { Backtest } from './pages/Backtest';
+import { Opportunities } from './pages/Opportunities';
 import { StrategyLab } from './pages/StrategyLab';
 import { StrategyList } from './pages/StrategyLab/StrategyList';
 import { StrategyVersions } from './pages/StrategyLab/StrategyVersions';
@@ -214,6 +215,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Backtest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/opportunities"
+            element={
+              <ProtectedRoute>
+                <Opportunities />
               </ProtectedRoute>
             }
           />

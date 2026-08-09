@@ -235,6 +235,15 @@ app.include_router(
     dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
 )
 
+# Include Opportunity Scanner routes (сканер возможностей)
+from src.api.opportunities import router as opportunities_router
+app.include_router(
+    opportunities_router,
+    prefix="/api/v1",
+    tags=["opportunities"],
+    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
+)
+
 # Include FinanceData routes (AlexFinanceData integration)
 from src.api.finance import router as finance_router
 app.include_router(

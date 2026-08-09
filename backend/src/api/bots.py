@@ -98,14 +98,19 @@ async def _docker_find_config_path(container_id: str) -> str:
 
 async def _read_bot_config(bot: Bot) -> tuple[str | None, dict]:
     if bot.environment == BotEnvironment.DOCKER and bot.container_id:
-        path = await _docker_find_config_path(bot.container_id)
-        code, out, err = await _docker_exec(bot.container_id, ["cat", path], timeout=20)
-        if code != 0:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to read config: {err}".strip())
         try:
-            return path, json.loads(out)
+            path = await _docker_find_config_path(bot.container_id)
+            code, out, err = await _docker_exec(bot.container_id, ["cat", path], timeout=20)
+            if code == 0:
+                try:
+                    return path, json.loads(out)
+                except Exception as e:
+                    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Invalid JSON in config: {e}")
         except Exception as e:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Invalid JSON in config: {e}")
+            # Контейнер недоступен (не запущен/удалён) — fallback на файл на хосте
+            if isinstance(e, HTTPException) and "No such container" not in str(e.detail):
+                raise
+            pass
 
     candidates: list[str] = []
     if bot.user_data_path:
@@ -133,11 +138,16 @@ async def _write_bot_config(bot: Bot, config: dict) -> str:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Config too large (max 1MB)")
 
     if bot.environment == BotEnvironment.DOCKER and bot.container_id:
-        path = await _docker_find_config_path(bot.container_id)
-        code, _, err = await _docker_exec(bot.container_id, ["sh", "-c", 'cat > "$1"', "_", path], stdin=payload, timeout=20)
-        if code != 0:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to write config: {err}".strip())
-        return path
+        try:
+            path = await _docker_find_config_path(bot.container_id)
+            code, _, err = await _docker_exec(bot.container_id, ["sh", "-c", 'cat > "$1"', "_", path], stdin=payload, timeout=20)
+            if code == 0:
+                return path
+        except Exception as e:
+            # Контейнер недоступен — fallback на файл на хосте
+            if isinstance(e, HTTPException) and "No such container" not in str(e.detail):
+                raise
+            pass
 
     if bot.user_data_path:
         candidates = [
