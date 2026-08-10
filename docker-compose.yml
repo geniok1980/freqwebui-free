@@ -276,5 +276,72 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # ===========================================================================
+  # OBSERVABILITY - Prometheus + Grafana + FreqDash Exporter
+  # ===========================================================================
+  exporter:
+    build:
+      context: ./monitoring
+      dockerfile: Dockerfile.exporter
+    container_name: dashboard-exporter
+    restart: unless-stopped
+    environment:
+      FREQDASH_BASE_URL: http://backend:8000/api/v1
+      FREQDASH_USERNAME: ${ADMIN_USERNAME:-admin}
+      FREQDASH_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      FREQDASH_TENANT: ${FREQDASH_TENANT:-default}
+      FREQDASH_API_TOKEN: ${FREQDASH_API_TOKEN:-}
+      FREQDASH_POLL_SECONDS: "30"
+      PORT: "9101"
+    depends_on:
+      - backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: dashboard-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - exporter
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: dashboard-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-}
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   mastra_node_modules:
+  prometheus_data:
+  grafana_data:
