@@ -38,7 +38,10 @@ from src.schemas.bot import (
 )
 from src.schemas.common import MessageResponse
 from src.services.connectors.manager import connector_manager
-from src.services.health import health_monitor
+from src.services.worker_bridge import (
+    get_bot_health_snapshot,
+    trigger_health_check,
+)
 from src.services.cache import cache, bot_metrics_key, bot_health_key
 
 router = APIRouter()
@@ -566,7 +569,7 @@ async def deploy_docker_bot(
     await db.refresh(new_bot)
 
     try:
-        await health_monitor.trigger_check(new_bot.id)
+        await trigger_health_check(new_bot.id)
     except Exception:
         pass
 
@@ -990,7 +993,7 @@ async def get_bot_health(
         )
 
     # Get health metrics
-    metrics = health_monitor.get_metrics(bot_id)
+    metrics = await get_bot_health_snapshot(bot_id)
 
     # Determine active source
     _, active_source = await connector_manager.get_connector(bot, session=db)
@@ -1032,7 +1035,7 @@ async def get_bot_health(
 
 
 @router.post("/{bot_id}/health/check", response_model=BotHealthResponse)
-async def trigger_health_check(
+async def post_bot_health_check(
     bot_id: str,
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -1064,7 +1067,7 @@ async def trigger_health_check(
     cache.delete(bot_metrics_key(bot_id))
 
     # Trigger immediate check
-    metrics = await health_monitor.trigger_check(bot_id)
+    metrics = await trigger_health_check(bot_id)
 
     # Refresh bot to get updated state
     await db.refresh(bot)

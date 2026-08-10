@@ -44,7 +44,9 @@ async def trigger_discovery(
     Returns:
         Discovery result with counts and discovered bots.
     """
-    result = await discovery_scheduler.trigger_manual_scan()
+    from src.services.worker_bridge import trigger_discovery_scan
+
+    result = await trigger_discovery_scan()
 
     # Fetch updated bot list
     bots_result = await db.execute(select(Bot))

@@ -277,6 +277,53 @@ services:
         max-file: "3"
 
   # ===========================================================================
+  # WORKER - отдельный процесс для long-running циклов (discovery/health/trade/log)
+  # ===========================================================================
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dashboard-worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:***@postgres:5432/${DB_NAME:-dashboard}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      JWT_ALGORITHM: HS256
+      TOKEN_EXPIRE_MINUTES: 60
+      DASHBOARD_ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      DASHBOARD_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      DISABLE_ALERTS: ${DISABLE_ALERTS:-true}
+      DISABLE_FINANCE_COLLECTORS: "false"
+      DASHBOARD_API_DEFAULTS__USERNAME: ${FREQTRADE_USERNAME:-}
+      DASHBOARD_API_DEFAULTS__PASSWORD: ${FREQTRADE_PASSWORD:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-nano}
+      PYTHONUNBUFFERED: 1
+      FREQDASH_RUN_WORKERS: "worker"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - ${FREQTRADE_BASE_PATH:-/opt}:/opt:rw
+      - ./secrets/freqtrade:/opt/freqtrade_secrets:rw
+      - ./Strategies:/opt/Multibotdashboard/Strategies:rw
+      - ./backend/src:/app/src:rw
+      - ./config:/app/config:rw
+      - ./logs:/app/logs:rw
+    command: >
+      sh -c "python -m src.worker"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================================
   # OBSERVABILITY - Prometheus + Grafana + FreqDash Exporter
   # ===========================================================================
   exporter:

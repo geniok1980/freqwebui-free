@@ -138,9 +138,9 @@ async def get_rate_limit_alerts(
     Returns:
         Active rate limit count and list.
     """
-    from src.services.log_monitor import log_monitor
+    from src.services.worker_bridge import get_active_rate_limits
 
-    active_limits = log_monitor.get_active_rate_limits()
+    active_limits = await get_active_rate_limits()
     count = len(active_limits)
 
     return {
@@ -166,9 +166,9 @@ async def clear_rate_limit(
     Returns:
         Success status.
     """
-    from src.services.log_monitor import log_monitor
+    from src.services.worker_bridge import clear_rate_limit
 
-    cleared = log_monitor.clear_rate_limit(bot_id)
+    cleared = await clear_rate_limit(bot_id)
 
     if not cleared:
         raise HTTPException(status_code=404, detail="No active rate limit for this bot")

@@ -64,28 +64,62 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # No runtime user creation here (keeps startup deterministic).
 
     # Start discovery service
+    from src.services.bus import bus, is_api_only, is_worker
     from src.services.discovery.scheduler import discovery_scheduler
 
-    await discovery_scheduler.start()
-    logger.info("Discovery scheduler started")
+    worker_mode = is_api_only()
+    logger.info("Worker mode", mode=os.environ.get("FREQDASH_RUN_WORKERS", "embedded"))
 
-    # Start health monitoring
-    from src.services.health import health_monitor
+    if not worker_mode:
+        await discovery_scheduler.start()
+        logger.info("Discovery scheduler started")
 
-    await health_monitor.start()
-    logger.info("Health monitor started")
+        # Start health monitoring
+        from src.services.health import health_monitor
 
-    # Start trade monitoring for live updates
-    from src.services.trade_monitor import trade_monitor
+        await health_monitor.start()
+        logger.info("Health monitor started")
 
-    await trade_monitor.start()
-    logger.info("Trade monitor started")
+        # Start trade monitoring for live updates
+        from src.services.trade_monitor import trade_monitor
 
-    # Start log monitoring for rate limits
-    from src.services.log_monitor import log_monitor
+        await trade_monitor.start()
+        logger.info("Trade monitor started")
 
-    await log_monitor.start()
-    logger.info("Log monitor started")
+        # Start log monitoring for rate limits
+        from src.services.log_monitor import log_monitor
+
+        await log_monitor.start()
+        logger.info("Log monitor started")
+    else:
+        # API-only mode: мониторы живут в отдельном worker-процессе.
+        # Подключаемся к Redis-шине: слушаем WS-события и ответы RPC.
+        await bus.connect()
+        from src.services.websocket import ws_manager
+        from src.services.bus import bus as _bus
+
+        async def _ws_bridge_handler(event: dict) -> None:
+            """Пересылка события из Redis-шины в WebSocket-клиенты."""
+            kind = event.get("kind")
+            try:
+                if kind == "bot_update":
+                    await ws_manager.broadcast_bot_update(
+                        bot_id=event.get("bot_id", ""),
+                        event_type=event.get("type", "update"),
+                        data=event.get("data", {}),
+                    )
+                elif kind == "portfolio":
+                    await ws_manager.broadcast_portfolio_update(event.get("data", {}))
+                else:
+                    await ws_manager.broadcast(event)
+            except Exception as e:  # noqa: BLE001
+                logger.debug("WS bridge handler error", error=str(e))
+
+        import asyncio as _asyncio
+
+        _asyncio.create_task(_bus.api_ws_bridge(_ws_bridge_handler))
+        _asyncio.create_task(_bus._listen_responses())
+        logger.info("API worker bridge started (WS events + RPC responses)")
 
     # Start cache service
     from src.services.cache import cache
@@ -132,20 +166,28 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Cache service stopped")
 
     # Stop log monitor
-    await log_monitor.stop()
-    logger.info("Log monitor stopped")
+    if not worker_mode:
+        await log_monitor.stop()
+        logger.info("Log monitor stopped")
 
-    # Stop trade monitor
-    await trade_monitor.stop()
-    logger.info("Trade monitor stopped")
+        # Stop trade monitor
+        await trade_monitor.stop()
+        logger.info("Trade monitor stopped")
 
-    # Stop health monitor
-    await health_monitor.stop()
-    logger.info("Health monitor stopped")
+        # Stop health monitor
+        await health_monitor.stop()
+        logger.info("Health monitor stopped")
 
-    # Stop discovery scheduler
-    await discovery_scheduler.stop()
-    logger.info("Discovery scheduler stopped")
+        # Stop discovery scheduler
+        await discovery_scheduler.stop()
+        logger.info("Discovery scheduler stopped")
+    else:
+        # Close Redis bus
+        try:
+            await bus.close()
+        except Exception as e:  # noqa: BLE001
+            logger.debug("Bus close error", error=str(e))
+        logger.info("API worker bridge stopped")
 
     # Clean up connector manager
     from src.services.connectors.manager import connector_manager
