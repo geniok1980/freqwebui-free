@@ -66,6 +66,16 @@ class HealthSnapshot:
     def __bool__(self) -> bool:
         return self.last_check is not None
 
+    @property
+    def api_available(self) -> bool:
+        """API считается доступным при success rate >= 30% (degraded_threshold)."""
+        return self.api_success_rate >= 0.3
+
+    @property
+    def last_api_error(self) -> Optional[str]:
+        """Последняя ошибка API (для логов; в снапшоте не хранится)."""
+        return None
+
 
 # ----------------------------------------------------------------------
 # Health

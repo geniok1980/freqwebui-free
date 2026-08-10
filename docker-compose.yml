@@ -115,6 +115,8 @@ services:
 
       # Python
       PYTHONUNBUFFERED: 1
+      # Режим worker: embedded (мониторы здесь) | api (мониторы в dashboard-worker)
+      FREQDASH_RUN_WORKERS: ${FREQDASH_RUN_WORKERS:-embedded}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
@@ -286,7 +288,7 @@ services:
     container_name: dashboard-worker
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${DB_USER:***@postgres:5432/${DB_NAME:-dashboard}
+      DATABASE_URL: postgresql://${DB_USER:-dashboard}:${DB_PASSWORD:-dashboard}@postgres:5432/${DB_NAME:-dashboard}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis}@redis:6379/0
       JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
       JWT_ALGORITHM: HS256

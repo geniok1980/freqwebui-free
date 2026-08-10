@@ -14,7 +14,6 @@ from src.models.settings import SystemSetting
 from src.services.connectors.api import APIConnector
 from src.services.connectors.base import BaseConnector, ConnectorResult
 from src.services.connectors.sqlite import SQLiteConnector
-from src.services.health import health_monitor
 
 logger = structlog.get_logger()
 
@@ -135,7 +134,9 @@ class ConnectorManager:
         # Prefer API first in auto mode (real-time data)
         api_connector = await self._get_api_connector(bot, session=session)
         if api_connector:
-            metrics = health_monitor.get_metrics(bot.id)
+            from src.services.worker_bridge import get_bot_health_snapshot
+
+            metrics = await get_bot_health_snapshot(bot.id)
             api_available = metrics is None or metrics.api_available
 
             if api_available:

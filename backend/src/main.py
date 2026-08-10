@@ -118,7 +118,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         import asyncio as _asyncio
 
         _asyncio.create_task(_bus.api_ws_bridge(_ws_bridge_handler))
-        _asyncio.create_task(_bus._listen_responses())
         logger.info("API worker bridge started (WS events + RPC responses)")
 
     # Start cache service
@@ -315,11 +314,13 @@ app.include_router(
 
 # Include WebSocket routes (directly on app, not under /api/v1)
 from src.api.websocket import router as ws_router
+# NOTE: WS-роутер НЕ подключается с HTTP-зависимостями (get_current_active_user/
+# require_active_subscription) — они ломают WebSocket (OAuth2PasswordBearer требует
+# HTTP-request). Аутентификация WS выполняется внутри эндпоинта через verify_ws_token.
 app.include_router(
     ws_router,
     prefix="/api/v1",
     tags=["websocket"],
-    dependencies=[Depends(get_current_active_user), Depends(require_active_subscription)],
 )
 
 # Include Pairlist Selector routes

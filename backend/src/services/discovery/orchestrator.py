@@ -40,6 +40,25 @@ class DiscoveryOrchestrator:
         """Get timestamp of last discovery scan."""
         return self._last_scan
 
+    async def get_status(self) -> dict:
+        """Get discovery service status (enabled sources, last/next scan)."""
+        from src.config import settings
+
+        interval = settings.discovery.interval_seconds
+        last = self._last_scan
+        return {
+            "docker_enabled": await self.docker_discovery.is_available(),
+            "docker_available": await self.docker_discovery.is_available(),
+            "filesystem_enabled": await self.filesystem_discovery.is_available(),
+            "filesystem_available": await self.filesystem_discovery.is_available(),
+            "last_scan": last.isoformat() if last else None,
+            "scan_interval_seconds": interval,
+            "next_scan": (
+                (last + __import__("datetime").timedelta(seconds=interval)).isoformat()
+                if last else None
+            ),
+        }
+
     async def _get_discovery_host(self, db: AsyncSession) -> str:
         """Get discovery host IP from settings. Defaults to localhost."""
         from sqlalchemy import select

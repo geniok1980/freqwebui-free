@@ -18,6 +18,7 @@
 import asyncio
 import json
 import os
+import time
 import uuid
 from typing import Any, Awaitable, Callable, Optional
 
@@ -56,7 +57,6 @@ class EventBus:
 
     def __init__(self) -> None:
         self._redis: Any = None
-        self._pending: dict[str, asyncio.Future] = {}
 
     async def connect(self) -> None:
         if self._redis is not None:
@@ -87,23 +87,31 @@ class EventBus:
     async def send_command(
         self, cmd_type: str, payload: Optional[dict] = None, timeout: float = 20.0
     ) -> Optional[dict]:
-        """Отправить команду воркеру и дождаться ответа."""
+        """Отправить команду воркеру и дождаться ответа.
+
+        Ответ пишется воркером в ключ `freqdash:rpc:{cmd_id}` (worker_loop),
+        клиент опрашивает его — надёжнее pub/sub, нет гонки подписки.
+        """
         if self._redis is None:
             await self.connect()
         cmd_id = uuid.uuid4().hex
-        fut: asyncio.Future = asyncio.get_event_loop().create_future()
-        self._pending[cmd_id] = fut
+        resp_key = f"freqdash:rpc:{cmd_id}"
         await self._redis.publish(
             CMD_CHANNEL,
             json.dumps({"id": cmd_id, "type": cmd_type, "payload": payload or {}}),
         )
-        try:
-            return await asyncio.wait_for(fut, timeout)
-        except asyncio.TimeoutError:
-            logger.warning("RPC timeout", cmd_type=cmd_type, cmd_id=cmd_id)
-            return None
-        finally:
-            self._pending.pop(cmd_id, None)
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            raw = await self._redis.get(resp_key)
+            if raw:
+                await self._redis.delete(resp_key)
+                try:
+                    return json.loads(raw)
+                except Exception:  # noqa: BLE001
+                    return None
+            await asyncio.sleep(0.2)
+        logger.warning("RPC timeout", cmd_type=cmd_type, cmd_id=cmd_id)
+        return None
 
     async def _listen_responses(self) -> None:
         """API: слушает ответы на RPC-команды."""
@@ -138,25 +146,28 @@ class EventBus:
             async for message in pubsub.listen():
                 if message["type"] != "message":
                     continue
+                logger.debug("Worker command received", raw=str(message["data"])[:200])
                 try:
                     cmd = json.loads(message["data"])
                     handler = handlers.get(cmd.get("type"))
                     if handler is None:
                         continue
                     result = await handler(cmd.get("payload") or {})
-                    await self._redis.publish(
-                        RESP_CHANNEL,
+                    await self._redis.set(
+                        f"freqdash:rpc:{cmd['id']}",
                         json.dumps({"id": cmd["id"], "ok": True, "data": result}, default=str),
+                        ex=60,
                     )
                 except Exception as e:  # noqa: BLE001
                     logger.error("Worker command error", error=str(e), exc_info=True)
                     try:
-                        await self._redis.publish(
-                            RESP_CHANNEL,
+                        await self._redis.set(
+                            f"freqdash:rpc:{cmd.get('id')}",
                             json.dumps(
                                 {"id": cmd.get("id"), "ok": False, "error": str(e)},
                                 default=str,
                             ),
+                            ex=60,
                         )
                     except Exception:  # noqa: BLE001
                         pass
